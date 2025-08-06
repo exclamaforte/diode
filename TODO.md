@@ -1,0 +1,5 @@
+- TODO OSS Data Gathering Code
+- TODO OSS Model training code
+- TODO
+- TODO set up documentation generation
+- TODO set up CI

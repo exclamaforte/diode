@@ -4,27 +4,26 @@ set -e
 # Colors for output
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 echo -e "${YELLOW}Setting up development environment for heur...${NC}"
-
-# Create virtual environment if it doesn't exist
-if [ ! -d "venv" ]; then
-    echo -e "${YELLOW}Creating virtual environment...${NC}"
-    python -m venv venv
+echo -e "${YELLOW}This script will install packages in your current Python environment.${NC}"
+echo -e "${YELLOW}If you're using a virtual environment or conda, make sure it's activated.${NC}"
+read -p "Continue with installation? (y/n) " -n 1 -r
+echo
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    echo -e "${RED}Installation cancelled.${NC}"
+    exit 1
 fi
-
-# Activate virtual environment
-echo -e "${YELLOW}Activating virtual environment...${NC}"
-source venv/bin/activate
 
 # Upgrade pip
 echo -e "${YELLOW}Upgrading pip...${NC}"
 pip install --upgrade pip
 
-# Install the package in development mode with test dependencies
-echo -e "${YELLOW}Installing package in development mode with test dependencies...${NC}"
-pip install -e ".[test]"
+# Install the package in development mode with test and docs dependencies
+echo -e "${YELLOW}Installing package in development mode with test and docs dependencies...${NC}"
+pip install -e ".[test,docs]"
 
 # Run a simple test to verify the installation
 echo -e "${YELLOW}Verifying installation...${NC}"
@@ -35,4 +34,6 @@ echo -e "${GREEN}You can now run tests with: pytest${NC}"
 echo -e "${GREEN}For code coverage: pytest --cov=heur${NC}"
 echo -e "${GREEN}For linting: flake8 heur tests${NC}"
 echo -e "${GREEN}For type checking: mypy heur${NC}"
-echo -e "${YELLOW}Note: The virtual environment is now active. To deactivate, run: deactivate${NC}"
+echo -e "${GREEN}To build documentation: cd docs && make html${NC}"
+echo -e "${GREEN}To view documentation: open docs/_build/html/index.html${NC}"
+echo -e "${GREEN}For live documentation preview: cd docs && make livehtml${NC}"

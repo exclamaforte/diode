@@ -51,3 +51,9 @@ Thumbs.db
 *.onnx
 logs/
 runs/
+
+# Documentation
+docs/_build/
+docs/_autosummary/
+docs/_static/
+docs/_templates/
