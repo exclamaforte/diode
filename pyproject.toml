@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "heur"
+version = "0.1.0"
+description = "A project with torch dependency"
+authors = [
+    {name = "Author Name", email = "author@example.com"},
+]
+readme = "README.md"
+requires-python = ">=3.7"
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "torch",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/username/heur"
+"Bug Tracker" = "https://github.com/username/heur/issues"
+
+[tool.setuptools]
+packages = ["heur"]
+package-data = {heur = ["py.typed"]}
