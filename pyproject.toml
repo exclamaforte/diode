@@ -21,6 +21,17 @@ dependencies = [
     "torch",
 ]
 
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-xdist>=3.0.0",
+    "hypothesis>=6.0.0",
+    "mock>=5.0.0",
+    "flake8>=6.0.0",
+    "mypy>=1.0.0",
+]
+
 [project.urls]
 "Homepage" = "https://github.com/username/heur"
 "Bug Tracker" = "https://github.com/username/heur/issues"
