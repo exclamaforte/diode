@@ -1,10 +1,10 @@
-# heur
-`heur` is a framework for defining heuristics in `torch` and `torch.compile`. It makes it easy to develop heuristics that plug into the external interfaces of `torch` and `torch.compile`.
+# diode
+`diode` is a framework for defining diodeistics in `torch` and `torch.compile`. It makes it easy to develop diodeistics that plug into the external interfaces of `torch` and `torch.compile`.
 
 Torch has interfaces that allow users to both gather data and make decisions on and with the compile process. These interfaces can hard to discover and use, and this project aims to systematize these to make them more approachable.
 
 ## Target Audience:
-- Hardware Vendors looking to optimize `torch` heuristics for their hardware.
+- Hardware Vendors looking to optimize `torch` diodeistics for their hardware.
 - OSS Contributors looking to add support for less popular hardware.
 - Developers looking to adapt the compilation of their model to their specific situation.
 

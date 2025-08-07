@@ -3,7 +3,7 @@ requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "heur"
+name = "diode"
 version = "0.1.0"
 description = "A project with torch dependency"
 authors = [
@@ -41,10 +41,10 @@ docs = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/username/heur"
-"Bug Tracker" = "https://github.com/username/heur/issues"
-"Documentation" = "https://username.github.io/heur"
+"Homepage" = "https://github.com/username/diode"
+"Bug Tracker" = "https://github.com/username/diode/issues"
+"Documentation" = "https://username.github.io/diode"
 
 [tool.setuptools]
-packages = ["heur"]
-package-data = {heur = ["py.typed"]}
+packages = ["diode"]
+package-data = {diode = ["py.typed"]}

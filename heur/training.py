@@ -1,4 +1,4 @@
-"""Training utilities for ML heuristics."""
+"""Training utilities for ML diodeistics."""
 
 import time
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 
 class Trainer:
-    """Trainer class for heuristic models."""
+    """Trainer class for diodeistic models."""
 
     def __init__(
         self,

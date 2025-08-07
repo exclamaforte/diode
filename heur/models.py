@@ -1,4 +1,4 @@
-"""Models for ML heuristics."""
+"""Models for ML diodeistics."""
 
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -6,11 +6,11 @@ import torch
 import torch.nn as nn
 
 
-class HeuristicModel(nn.Module):
-    """Base class for heuristic models."""
+class diodeisticModel(nn.Module):
+    """Base class for diodeistic models."""
 
     def __init__(self, input_dim: int, output_dim: int, hidden_dims: List[int] = None):
-        """Initialize a heuristic model.
+        """Initialize a diodeistic model.
 
         Args:
             input_dim: Dimension of input features
@@ -47,11 +47,11 @@ class HeuristicModel(nn.Module):
         return self.network(x)
 
 
-class BinaryHeuristicModel(HeuristicModel):
-    """Heuristic model for binary classification tasks."""
+class BinarydiodeisticModel(diodeisticModel):
+    """diodeistic model for binary classification tasks."""
 
     def __init__(self, input_dim: int, hidden_dims: List[int] = None):
-        """Initialize a binary heuristic model.
+        """Initialize a binary diodeistic model.
 
         Args:
             input_dim: Dimension of input features
@@ -71,11 +71,11 @@ class BinaryHeuristicModel(HeuristicModel):
         return torch.sigmoid(super().forward(x))
 
 
-class MultiClassHeuristicModel(HeuristicModel):
-    """Heuristic model for multi-class classification tasks."""
+class MultiClassdiodeisticModel(diodeisticModel):
+    """diodeistic model for multi-class classification tasks."""
 
     def __init__(self, input_dim: int, num_classes: int, hidden_dims: List[int] = None):
-        """Initialize a multi-class heuristic model.
+        """Initialize a multi-class diodeistic model.
 
         Args:
             input_dim: Dimension of input features

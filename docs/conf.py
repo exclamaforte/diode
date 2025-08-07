@@ -8,7 +8,7 @@ import sys
 sys.path.insert(0, os.path.abspath('..'))
 
 # -- Project information -----------------------------------------------------
-project = 'heur'
+project = 'diode'
 copyright = '2023, Author Name'
 author = 'Author Name'
 release = '0.1.0'

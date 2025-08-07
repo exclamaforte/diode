@@ -1,7 +1,7 @@
 Types Module
 ===========
 
-.. automodule:: heur.types
+.. automodule:: diode.types
    :members:
    :undoc-members:
    :show-inheritance:
@@ -9,7 +9,7 @@ Types Module
 Kernel Lookup Tables Types
 ------------------------
 
-.. automodule:: heur.types.kernel_lut
+.. automodule:: diode.types.kernel_lut
    :members:
    :undoc-members:
    :show-inheritance:

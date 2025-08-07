@@ -1,7 +1,7 @@
 API Reference
 ============
 
-This section contains the API reference for the heur package.
+This section contains the API reference for the diode package.
 
 .. toctree::
    :maxdepth: 2

@@ -1,7 +1,7 @@
 Data Module
 ==========
 
-.. automodule:: heur.data
+.. automodule:: diode.data
    :members:
    :undoc-members:
    :show-inheritance:
@@ -9,7 +9,7 @@ Data Module
 Kernel Lookup Tables
 -------------------
 
-.. automodule:: heur.data.kernel_lut
+.. automodule:: diode.data.kernel_lut
    :members:
    :undoc-members:
    :show-inheritance:

@@ -1,4 +1,4 @@
-Welcome to heur's documentation!
+Welcome to diode's documentation!
 =============================
 
 .. toctree::
