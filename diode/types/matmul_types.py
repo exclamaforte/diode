@@ -1,7 +1,12 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from typing import Any, OrderedDict, Optional, Tuple, Union, Self
 from json_serializable import JSONSerializable
 import json
+import torch
+import logging
+from torch.utils._ordered_set import OrderedSet
+
+logger = logging.getLogger(__name__)
 
 @dataclass(kw_only=True)
 class TritonGEMMConfig(JSONSerializable):
