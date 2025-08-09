@@ -129,6 +129,12 @@ class MMProblem(JSONSerializable):
         d["out_dtype"] = str(d["out_dtype"]).split(".")[-1]
         d["out_size"] = list(d["out_size"])
         d["out_stride"] = list(d["out_stride"])
+        
+        # Convert any non-JSON serializable types to strings
+        for k, v in d.items():
+            if not isinstance(v, (type(None), bool, int, float, str, list, dict)):
+                d[k] = str(v)
+        
         d = OrderedDict((k, v) for k, v in d.items() if not k.startswith("_"))
         return json.dumps(d)
 
