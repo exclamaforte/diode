@@ -1,7 +1,11 @@
-from typing import Self, OrderedDict, Any, TypeVar, Union, get_origin, get_args
+from typing import OrderedDict, Any, TypeVar, Union, get_origin, get_args
+from typing_extensions import Self
 import torch
 import json
+import logging
 from dataclasses import dataclass, fields
+
+logger = logging.getLogger(__name__)
 
 T = TypeVar("T", bound="JSONSerializable")
 LeafType = Union[

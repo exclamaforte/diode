@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field, asdict
-from typing import Any, OrderedDict, Optional, Tuple, Union, Self
-from json_serializable import JSONSerializable
+from typing import Any, OrderedDict, Optional, Tuple, Union
+from diode.types.json_serializable import JSONSerializable
 import json
 import torch
 import logging
@@ -43,7 +43,7 @@ class TritonGEMMConfig(JSONSerializable):
         )
 
     @classmethod
-    def parse(cls, string: str) -> Self:
+    def parse(cls, string: str):
         d = json.loads(string, object_pairs_hook=OrderedDict)
         # validate types, yay python :P
         if "name" not in d:
@@ -133,7 +133,7 @@ class MMProblem(JSONSerializable):
         return json.dumps(d)
 
     @classmethod
-    def parse(cls, string: str) -> Self:
+    def parse(cls, string: str):
         d = json.loads(string, object_pairs_hook=OrderedDict)
         # validate types, yay python :P
         if "B" not in d:
@@ -224,7 +224,7 @@ class Table(JSONSerializable):
         return json.dumps(foo, indent=2)
 
     @classmethod
-    def deserialize(cls, s: str) -> Optional[Self]:
+    def deserialize(cls, s: str):
         try:
             return cls.from_dict(json.loads(s, object_pairs_hook=OrderedDict))
         except (json.JSONDecodeError, TypeError, ValueError) as e:
