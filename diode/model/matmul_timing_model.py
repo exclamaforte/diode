@@ -221,7 +221,9 @@ class DeepMatmulTimingModel(nn.Module):
             path: Path to save the model to
         """
         # Create the directory if it doesn't exist
-        os.makedirs(os.path.dirname(path), exist_ok=True)
+        directory = os.path.dirname(path)
+        if directory:  # Only create directory if path has a directory component
+            os.makedirs(directory, exist_ok=True)
         
         # Save the model
         torch.save({

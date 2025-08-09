@@ -6,6 +6,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 import numpy as np
 import logging
+import json
 from typing import Dict, List, Tuple, Optional, Union
 from collections import OrderedDict
 
@@ -67,24 +68,94 @@ class MatmulTimingDataset(Dataset):
             if self.hardware_name is not None and hw_name != self.hardware_name:
                 continue
             
+            # Check if hardware is a DatasetHardware object or a dict
+            if isinstance(hardware, dict) and "operation" in hardware:
+                operations = hardware["operation"]
+            else:
+                operations = hardware.operation
+            
             # Iterate over the operations
-            for op_name, operation in hardware.operation.items():
+            for op_name, operation in operations.items():
                 # Skip if op_name is specified and doesn't match
                 if self.op_name is not None and op_name != self.op_name:
                     continue
                 
+                # Check if operation is a DatasetOperation object or a dict
+                if isinstance(operation, dict) and "solution" in operation:
+                    solutions = operation["solution"]
+                else:
+                    solutions = operation.solution
+                
                 # Iterate over the problems
-                for problem, solution in operation.solution.items():
+                for problem_str, solution in solutions.items():
+                    # Parse the problem if it's a string
+                    if isinstance(problem_str, str):
+                        try:
+                            problem_dict = json.loads(problem_str)
+                            problem = MMProblem(
+                                B=problem_dict["B"],
+                                M=problem_dict["M"],
+                                N=problem_dict["N"],
+                                K=problem_dict["K"],
+                                M_dtype=getattr(torch, problem_dict["M_dtype"]),
+                                K_dtype=getattr(torch, problem_dict["K_dtype"]),
+                                out_dtype=getattr(torch, problem_dict["out_dtype"]),
+                                out_size=tuple(problem_dict["out_size"]),
+                                out_stride=tuple(problem_dict["out_stride"]),
+                            )
+                        except (json.JSONDecodeError, KeyError, AttributeError) as e:
+                            logger.error(f"Failed to parse problem: {e}")
+                            continue
+                    else:
+                        problem = problem_str
+                    
                     # Extract problem features
                     problem_feature = self._extract_problem_features(problem)
                     
+                    # Check if solution is a DatasetSolution object or a dict
+                    if isinstance(solution, dict) and "timed_configs" in solution:
+                        timed_configs = solution["timed_configs"]
+                    else:
+                        timed_configs = solution.timed_configs
+                    
                     # Iterate over the timed configs
-                    for timed_config in solution.timed_configs:
+                    for timed_config in timed_configs:
+                        # Parse the config if it's a dict with a string config
+                        if isinstance(timed_config, dict):
+                            config_str = timed_config.get("config", "")
+                            time = timed_config.get("time", 0.0)
+                            
+                            if isinstance(config_str, str):
+                                try:
+                                    config_dict = json.loads(config_str)
+                                    config = TritonGEMMConfig(
+                                        name=config_dict["name"],
+                                        grid=config_dict["grid"],
+                                        block_m=config_dict["block_m"],
+                                        block_n=config_dict["block_n"],
+                                        block_k=config_dict["block_k"],
+                                        group_m=config_dict["group_m"],
+                                        num_stages=config_dict["num_stages"],
+                                        num_warps=config_dict["num_warps"],
+                                        EVEN_K=config_dict.get("EVEN_K", False),
+                                        ALLOW_TF32=config_dict.get("ALLOW_TF32", False),
+                                        USE_FAST_ACCUM=config_dict.get("USE_FAST_ACCUM", False),
+                                        ACC_TYPE=config_dict.get("ACC_TYPE", "tl.float32"),
+                                    )
+                                except (json.JSONDecodeError, KeyError) as e:
+                                    logger.error(f"Failed to parse config: {e}")
+                                    continue
+                            else:
+                                config = config_str
+                        else:
+                            config = timed_config.config
+                            time = timed_config.time
+                        
                         # Extract config features
-                        config_feature = self._extract_config_features(timed_config.config)
+                        config_feature = self._extract_config_features(config)
                         
                         # Extract timing
-                        timing = timed_config.time
+                        timing = time
                         
                         # Apply log transform if specified
                         if self.log_transform:
@@ -105,28 +176,39 @@ class MatmulTimingDataset(Dataset):
         Returns:
             List of features
         """
+        # Ensure all attributes are numeric
+        try:
+            B = int(problem.B) if hasattr(problem, 'B') else 1
+            M = int(problem.M) if hasattr(problem, 'M') else 1
+            N = int(problem.N) if hasattr(problem, 'N') else 1
+            K = int(problem.K) if hasattr(problem, 'K') else 1
+        except (ValueError, TypeError):
+            # If conversion fails, use default values
+            logger.warning(f"Failed to convert problem dimensions to int: {problem}")
+            B, M, N, K = 1, 1, 1, 1
+        
         # Extract features
         features = [
-            problem.B,
-            problem.M,
-            problem.N,
-            problem.K,
+            B,
+            M,
+            N,
+            K,
             # Convert dtypes to numeric values
-            self._dtype_to_numeric(problem.M_dtype),
-            self._dtype_to_numeric(problem.K_dtype),
-            self._dtype_to_numeric(problem.out_dtype),
+            self._dtype_to_numeric(problem.M_dtype) if hasattr(problem, 'M_dtype') else 32.0,
+            self._dtype_to_numeric(problem.K_dtype) if hasattr(problem, 'K_dtype') else 32.0,
+            self._dtype_to_numeric(problem.out_dtype) if hasattr(problem, 'out_dtype') else 32.0,
             # Add log-transformed features for better numerical stability
-            np.log(max(1, problem.B)),
-            np.log(max(1, problem.M)),
-            np.log(max(1, problem.N)),
-            np.log(max(1, problem.K)),
+            np.log(max(1, B)),
+            np.log(max(1, M)),
+            np.log(max(1, N)),
+            np.log(max(1, K)),
             # Add derived features
-            problem.M * problem.K,  # Input matrix size
-            problem.K * problem.N,  # Weight matrix size
-            problem.M * problem.N,  # Output matrix size
-            np.log(max(1, problem.M * problem.K)),  # Log input matrix size
-            np.log(max(1, problem.K * problem.N)),  # Log weight matrix size
-            np.log(max(1, problem.M * problem.N)),  # Log output matrix size
+            M * K,  # Input matrix size
+            K * N,  # Weight matrix size
+            M * N,  # Output matrix size
+            np.log(max(1, M * K)),  # Log input matrix size
+            np.log(max(1, K * N)),  # Log weight matrix size
+            np.log(max(1, M * N)),  # Log output matrix size
         ]
         
         return features

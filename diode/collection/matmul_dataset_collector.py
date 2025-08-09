@@ -70,11 +70,11 @@ class MatmulDatasetCollector:
             profiled_time: Time spent profiling
         """
         # Debug logging
-        logger.info(f"Feedback handler called with name: {name}, timings: {len(timings)}")
+        logger.debug(f"Feedback handler called with name: {name}, timings: {len(timings)}")
         
         # Only handle matrix multiplication operations
         if name not in ["mm", "addmm"]:
-            logger.info(f"Skipping operation: {name} (not mm or addmm)")
+            logger.debug(f"Skipping operation: {name} (not mm or addmm)")
             return
 
         # Extract problem dimensions

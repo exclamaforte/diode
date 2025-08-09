@@ -51,6 +51,10 @@ class MatmulModelTrainer:
             device: Device to train on
         """
         self.model = model.to(device)
+        
+        # Ensure all parameters require gradients
+        for param in self.model.parameters():
+            param.requires_grad = True
         self.train_dataloader = train_dataloader
         self.val_dataloader = val_dataloader
         self.test_dataloader = test_dataloader
@@ -115,7 +119,6 @@ class MatmulModelTrainer:
             factor=scheduler_factor,
             patience=scheduler_patience,
             min_lr=scheduler_min_lr,
-            verbose=verbose,
         )
         
         # Initialize variables for early stopping
@@ -202,9 +205,9 @@ class MatmulModelTrainer:
         
         # Iterate over the batches
         for problem_features, config_features, targets in self.train_dataloader:
-            # Move the data to the device
-            problem_features = problem_features.to(self.device)
-            config_features = config_features.to(self.device)
+            # Move the data to the device and ensure they require gradients
+            problem_features = problem_features.to(self.device).requires_grad_(True)
+            config_features = config_features.to(self.device).requires_grad_(True)
             targets = targets.to(self.device)
             
             # Zero the gradients
@@ -213,8 +216,8 @@ class MatmulModelTrainer:
             # Forward pass
             outputs = self.model(problem_features, config_features)
             
-            # Calculate the loss
-            loss = self.criterion(outputs, targets)
+            # Calculate the loss manually to ensure it has a grad_fn
+            loss = torch.mean((outputs - targets) ** 2)
             
             # Backward pass
             loss.backward()

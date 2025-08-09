@@ -130,9 +130,45 @@ class MMProblem(JSONSerializable):
         d["out_size"] = list(d["out_size"])
         d["out_stride"] = list(d["out_stride"])
         
-        # Convert any non-JSON serializable types to strings
-        for k, v in d.items():
-            if not isinstance(v, (type(None), bool, int, float, str, list, dict)):
+        # Convert any non-JSON serializable types to strings or appropriate JSON types
+        for k, v in list(d.items()):
+            if isinstance(v, (tuple, list)):
+                # Convert all elements in lists/tuples to JSON-serializable types
+                new_list = []
+                for item in v:
+                    if hasattr(item, "__int__"):
+                        try:
+                            new_list.append(int(item))
+                        except (TypeError, ValueError):
+                            # Handle sympy symbols or other objects that can't be converted to int
+                            new_list.append(str(item))
+                    elif hasattr(item, "__float__"):
+                        try:
+                            new_list.append(float(item))
+                        except (TypeError, ValueError):
+                            # Handle objects that can't be converted to float
+                            new_list.append(str(item))
+                    elif hasattr(item, "__str__"):
+                        new_list.append(str(item))
+                    else:
+                        new_list.append(item)
+                d[k] = new_list
+            elif hasattr(v, "__int__"):
+                # Convert any integer-like object to int
+                try:
+                    d[k] = int(v)
+                except (TypeError, ValueError):
+                    # Handle sympy symbols or other objects that can't be converted to int
+                    d[k] = str(v)
+            elif hasattr(v, "__float__"):
+                # Convert any float-like object to float
+                try:
+                    d[k] = float(v)
+                except (TypeError, ValueError):
+                    # Handle objects that can't be converted to float
+                    d[k] = str(v)
+            elif not isinstance(v, (type(None), bool, int, float, str, list, dict)):
+                # Convert any other non-JSON serializable types to strings
                 d[k] = str(v)
         
         d = OrderedDict((k, v) for k, v in d.items() if not k.startswith("_"))
