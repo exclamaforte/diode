@@ -1,5 +1,5 @@
 """
-Consolidated toolkit for matrix multiplication data collection, model training, and evaluation.
+Toolkit for matrix multiplication data collection, model training, and evaluation.
 
 This script provides a unified interface for:
 1. Collecting matrix multiplication timing data
@@ -364,7 +364,7 @@ def run_matrix_multiplications(
 def collect_data(
     output_file: str,
     num_shapes: int = 100,
-    dtypes: List[torch.dtype] = None,
+    dtypes: Optional[List[torch.dtype]] = None,
     seed: int = 42,
     min_size: int = 32,
     max_size: int = 4096,
@@ -463,7 +463,7 @@ def collect_data(
 def create_validation_dataset(
     output_file: str,
     num_shapes: int = 30,
-    dtypes: List[torch.dtype] = None,
+    dtypes: Optional[List[torch.dtype]] = None,
     seed: int = 43,  # Different seed from training
     min_size: int = 32,
     max_size: int = 4096,
@@ -518,7 +518,7 @@ def run_collector_example(
     output_dir: str = ".",
     use_context_manager: bool = True,
     num_shapes: int = 4,
-    dtypes: List[torch.dtype] = None,
+    dtypes: Optional[List[torch.dtype]] = None,
 ) -> None:
     """
     Run an example demonstrating how to use the MatmulDatasetCollector class.
@@ -1241,12 +1241,6 @@ def main():
             num_shapes=args.num_shapes,
         )
     
-    elif args.mode == "collector-basic-example":
-        run_basic_collector_example(
-            output_dir=args.output_dir,
-            use_context_manager=args.use_context_manager,
-            num_shapes=args.num_shapes,
-        )
     
     elif args.mode == "model-example":
         run_model_example(

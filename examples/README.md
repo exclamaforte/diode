@@ -28,7 +28,6 @@ python matmul_toolkit.py <mode> [options]
 - `train`: Train a model on collected data
 - `validate-model`: Validate a trained model on a validation dataset
 - `collector-example`: Run an example demonstrating the MatmulDatasetCollector
-- `collector-basic-example`: Run an example demonstrating the basic MatmulCollector
 - `model-example`: Run an example demonstrating model training and evaluation
 - `collect-and-train`: Collect data and train a model in one step
 
@@ -97,7 +96,6 @@ python matmul_toolkit.py collect-and-train --dataset matmul_dataset.json --model
 ### Collectors
 
 - `MatmulDatasetCollector`: Collects data in a structured dataset format
-- `MatmulCollector`: Basic collector for simpler use cases
 
 ## Command-Line Options
 
