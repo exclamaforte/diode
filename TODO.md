@@ -1,6 +1,5 @@
-- TODO OSS Data Gathering Code
-- TODO OSS Model training code
-- TODO set up documentation generation
+- TODO create
+- TODO finish set up documentation generation
 - TODO set up CI
 
 
