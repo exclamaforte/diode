@@ -3,9 +3,9 @@ requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "diode"
+name = "diode-models"
 version = "0.1.0"
-description = "A toolkit for matrix multiplication data collection, model training, and evaluation"
+description = "Pre-trained models for the diode package"
 authors = [
     {name = "Meta", email = "example@meta.com"},
 ]
@@ -22,9 +22,10 @@ classifiers = [
 dependencies = [
     "torch>=2.0.0",
     "numpy>=1.20.0",
-    "matplotlib>=3.5.0",
-    "tqdm>=4.62.0",
 ]
 
 [tool.setuptools]
-packages = {find = {exclude = ["tests", "tests.*"]}}
+packages = ["diode_models"]
+
+[tool.setuptools.package-data]
+diode_models = ["trained_models/**/*.pt", "trained_models/**/*.json"]
