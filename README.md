@@ -25,6 +25,9 @@ Torch has interfaces that allow users to both gather data and make decisions on 
 ## Featured Heruistics
 - Matmul Kernel Prediction: Predict the runtime of matmul kernel.
 
+## Get Started
+
+[The main entry point is in examples.](https://github.com/pytorch/diode/examples/README.md)
 ## Interface Locations
 - _inductor/choices.py
 - _inductor/config.py
