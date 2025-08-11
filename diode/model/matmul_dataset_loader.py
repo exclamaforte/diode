@@ -178,14 +178,40 @@ class MatmulTimingDataset(Dataset):
         """
         # Ensure all attributes are numeric
         try:
+            # Try to get size hints for symbolic dimensions
             B = int(problem.B) if hasattr(problem, 'B') else 1
-            M = int(problem.M) if hasattr(problem, 'M') else 1
-            N = int(problem.N) if hasattr(problem, 'N') else 1
-            K = int(problem.K) if hasattr(problem, 'K') else 1
+            
+            # Handle symbolic dimensions for M, N, K
+            if hasattr(problem, 'M') and isinstance(problem.M, str) and problem.M.startswith('s'):
+                # This is a symbolic dimension, try to extract a reasonable value
+                try:
+                    # Some symbolic dimensions might have a numeric part
+                    M = int(problem.M[1:]) if problem.M[1:].isdigit() else 64
+                except (ValueError, IndexError):
+                    M = 64  # Default size for symbolic dimensions
+            else:
+                M = int(problem.M) if hasattr(problem, 'M') else 1
+                
+            if hasattr(problem, 'N') and isinstance(problem.N, str) and problem.N.startswith('s'):
+                try:
+                    N = int(problem.N[1:]) if problem.N[1:].isdigit() else 64
+                except (ValueError, IndexError):
+                    N = 64
+            else:
+                N = int(problem.N) if hasattr(problem, 'N') else 1
+                
+            if hasattr(problem, 'K') and isinstance(problem.K, str) and problem.K.startswith('s'):
+                try:
+                    K = int(problem.K[1:]) if problem.K[1:].isdigit() else 64
+                except (ValueError, IndexError):
+                    K = 64
+            else:
+                K = int(problem.K) if hasattr(problem, 'K') else 1
+                
         except (ValueError, TypeError):
             # If conversion fails, use default values
             logger.warning(f"Failed to convert problem dimensions to int: {problem}")
-            B, M, N, K = 1, 1, 1, 1
+            B, M, N, K = 1, 64, 64, 64  # Use more reasonable defaults for matrix dimensions
         
         # Extract features
         features = [

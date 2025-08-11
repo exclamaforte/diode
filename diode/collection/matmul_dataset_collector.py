@@ -4,6 +4,9 @@ from collections import OrderedDict
 import logging
 from typing import Dict, List, Optional, Tuple, Union, Any
 
+# Import the size_hints function from PyTorch inductor
+import torch._inductor.config as inductor_config
+
 from diode.types.matmul_types import (
     TritonGEMMConfig,
     MMProblem,
@@ -57,6 +60,52 @@ class MatmulDatasetCollector:
         self._is_collecting = False
         logger.info("Stopped collecting matmul data")
 
+    def _get_size_hints(self, mat1, mat2, m, n, k):
+        """
+        Get size hints for symbolic dimensions, similar to PyTorch inductor's get_size_hints.
+        
+        Args:
+            mat1: First matrix
+            mat2: Second matrix
+            m, n, k: Matrix dimensions (may be symbolic)
+            
+        Returns:
+            Tuple of (m, n, k) with integer values
+        """
+        from torch._inductor.virtualized import V
+        
+        # Handle m and k from mat1
+        if not isinstance(m, int) or not isinstance(k, int):
+            try:
+                # Try to get size hints from the graph's sizevars
+                (m, k) = V.graph.sizevars.size_hints(
+                    mat1.layout.size, 
+                    fallback=inductor_config.unbacked_symint_fallback
+                )
+            except (AttributeError, TypeError):
+                # If that fails, use default values
+                m = m if isinstance(m, int) else 1
+                k = k if isinstance(k, int) else 1
+        
+        # Handle k and n from mat2
+        if not isinstance(n, int) or not isinstance(k, int):
+            try:
+                # Try to get size hints from the graph's sizevars
+                (k2, n) = V.graph.sizevars.size_hints(
+                    mat2.layout.size, 
+                    fallback=inductor_config.unbacked_symint_fallback
+                )
+                # Use k2 if k is not an int
+                if not isinstance(k, int):
+                    k = k2
+            except (AttributeError, TypeError):
+                # If that fails, use default values
+                n = n if isinstance(n, int) else 1
+                if not isinstance(k, int):
+                    k = 1
+        
+        return m, n, k
+
     def _feedback_handler(self, timings: Dict, name: str, input_nodes: List, 
                          choices: Any, profiled_time: float) -> None:
         """
@@ -79,23 +128,30 @@ class MatmulDatasetCollector:
 
         # Extract problem dimensions
         if name == "addmm":
+            mat1 = input_nodes[1]
+            mat2 = input_nodes[2]
             M, K, N = (
-                input_nodes[1].layout.size[0],
-                input_nodes[1].layout.size[1],
-                input_nodes[2].layout.size[1],
+                mat1.layout.size[0],
+                mat1.layout.size[1],
+                mat2.layout.size[1],
             )
-            M_dtype = input_nodes[1].layout.dtype
-            K_dtype = input_nodes[2].layout.dtype
+            M_dtype = mat1.layout.dtype
+            K_dtype = mat2.layout.dtype
         elif name == "mm":
+            mat1 = input_nodes[0]
+            mat2 = input_nodes[1]
             M, K, N = (
-                input_nodes[0].layout.size[0],
-                input_nodes[0].layout.size[1],
-                input_nodes[1].layout.size[1],
+                mat1.layout.size[0],
+                mat1.layout.size[1],
+                mat2.layout.size[1],
             )
-            M_dtype = input_nodes[0].layout.dtype
-            K_dtype = input_nodes[1].layout.dtype
+            M_dtype = mat1.layout.dtype
+            K_dtype = mat2.layout.dtype
         else:
             return
+            
+        # Get size hints for symbolic dimensions
+        M, N, K = self._get_size_hints(mat1, mat2, M, N, K)
 
         # Create MMProblem instance
         # Note: Some fields are approximated as we don't have all the information

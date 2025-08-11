@@ -178,13 +178,8 @@ def collect_data(
     config.force_disable_caches = True
     
     # Try to set environment variable for EXHAUSTIVE search, but fall back to DEFAULT if triton is not available
-    try:
-        import triton
-        os.environ["TORCHINDUCTOR_MAX_AUTOTUNE_GEMM_SEARCH_SPACE"] = "EXHAUSTIVE"
-        logger.info("Set search space to EXHAUSTIVE")
-    except ImportError:
-        os.environ["TORCHINDUCTOR_MAX_AUTOTUNE_GEMM_SEARCH_SPACE"] = "DEFAULT"
-        logger.info("Triton not available, falling back to DEFAULT search space")
+    os.environ["TORCHINDUCTOR_MAX_AUTOTUNE_GEMM_SEARCH_SPACE"] = "EXHAUSTIVE"
+    logger.info("Set search space to EXHAUSTIVE")
     
     # Start collection
     collector.start_collection()
@@ -485,12 +480,45 @@ def analyze_worst_predictions(model, dataloader, device, top_n=10):
         print(f"  Error (log space): {error_data['error']:.6f}")
         print(f"  Error (ratio): {np.exp(error_data['predicted']) / np.exp(error_data['actual']):.2f}x")
         
-        # Extract problem features (M, N, K)
-        # Note: This assumes the first 3 features are M, N, K in log space
-        M = int(np.exp(error_data['problem_features'][0]))
-        N = int(np.exp(error_data['problem_features'][1]))
-        K = int(np.exp(error_data['problem_features'][2]))
-        print(f"  Matrix size: ({M}, {K}) x ({K}, {N})")
+        # Extract problem features (M, N, K) with better error handling
+        try:
+            # The problem features are in the order: B, M, N, K, ...
+            # And the log-transformed versions are at indices 7, 8, 9
+            # We use the log-transformed versions for better numerical stability
+            M = int(np.exp(error_data['problem_features'][8]))
+            N = int(np.exp(error_data['problem_features'][9]))
+            K = int(np.exp(error_data['problem_features'][10]))
+            
+            # Check for unreasonable values that might indicate symbolic dimensions
+            if M > 1e9 or N > 1e9 or K > 1e9:
+                print(f"  Matrix size: (symbolic dimensions)")
+            else:
+                print(f"  Matrix size: ({M}, {K}) x ({K}, {N})")
+        except (ValueError, OverflowError, IndexError):
+            # Handle symbolic or invalid dimensions
+            print(f"  Matrix size: (symbolic dimensions)")
+        
+        # Extract configuration features
+        try:
+            # The config features are in the order:
+            # grid, block_m, block_n, block_k, group_m, num_stages, num_warps, EVEN_K, ALLOW_TF32, USE_FAST_ACCUM, ...
+            config_features = error_data['config_features']
+            block_m = int(config_features[1])
+            block_n = int(config_features[2])
+            block_k = int(config_features[3])
+            group_m = int(config_features[4])
+            num_stages = int(config_features[5])
+            num_warps = int(config_features[6])
+            even_k = bool(int(config_features[7]))
+            allow_tf32 = bool(int(config_features[8]))
+            use_fast_accum = bool(int(config_features[9]))
+            
+            print(f"  Config: block_m={block_m}, block_n={block_n}, block_k={block_k}, "
+                  f"group_m={group_m}, num_stages={num_stages}, num_warps={num_warps}")
+            print(f"          EVEN_K={even_k}, ALLOW_TF32={allow_tf32}, USE_FAST_ACCUM={use_fast_accum}")
+        except (ValueError, IndexError):
+            print(f"  Config: (unable to extract configuration)")
+        
         print()
 
 def train_model(
