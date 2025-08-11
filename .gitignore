@@ -32,6 +32,7 @@ ENV/
 htmlcov/
 .pytest_cache/
 .tox/
+.hypothesis
 
 # IDE
 .idea/

@@ -18,6 +18,7 @@ except ImportError:
 
 import torch
 from torch.utils._ordered_set import OrderedSet
+from diode.types.matmul_types import TritonGEMMConfig, Table
 
 
 # Set up logging for kernel LUT
@@ -93,7 +94,9 @@ def get_table(path: str) -> Optional[Table]:
     """Load a table from a file path."""
     try:
         with open(path) as f:
-            return Table.deserialize(f.read())
+            table_content = f.read()
+            table = Table.deserialize(table_content)
+            return table
     except OSError as e:
         logger.error("Failed to read table from %s: %s", path, e)
         return None
@@ -103,7 +106,9 @@ def get_table_safe(path: str) -> Optional[Table]:
     """Safely load a table from a file path without caching."""
     try:
         with open(path) as f:
-            return Table.deserialize(f.read())
+            table_content = f.read()
+            table = Table.deserialize(table_content)
+            return table
     except OSError as e:
         logger.error("Failed to read table from %s: %s", path, e)
         return None

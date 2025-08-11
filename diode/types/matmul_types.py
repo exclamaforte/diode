@@ -268,8 +268,16 @@ class Table(JSONSerializable):
     @classmethod
     def deserialize(cls, s: str):
         try:
-            return cls.from_dict(json.loads(s, object_pairs_hook=OrderedDict))
-        except (json.JSONDecodeError, TypeError, ValueError) as e:
+            data = json.loads(s, object_pairs_hook=OrderedDict)
+            try:
+                return cls.from_dict(data)
+            except Exception as e:
+                logger.error("Failed to convert dict to table: %s", e)
+                return None
+        except json.JSONDecodeError as e:
+            logger.error("Failed to deserialize table (JSON decode error): %s", e)
+            return None
+        except Exception as e:
             logger.error("Failed to deserialize table: %s", e)
             return None
 
