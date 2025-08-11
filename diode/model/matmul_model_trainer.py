@@ -6,18 +6,15 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
-import numpy as np
 import logging
-import time
 import os
-from typing import Dict, List, Tuple, Optional, Union, Any, Callable
-from collections import OrderedDict
+from typing import Dict, List, Tuple, Optional, Union
 # Import matplotlib only when needed to avoid dependency issues
 from tqdm import tqdm
 
 from diode.types.matmul_dataset import Dataset as MatmulDataset
 from diode.model.matmul_timing_model import MatmulTimingModel, DeepMatmulTimingModel
-from diode.model.matmul_dataset_loader import MatmulTimingDataset, create_dataloaders
+from diode.model.matmul_dataset_loader import create_dataloaders
 
 logger = logging.getLogger(__name__)
 

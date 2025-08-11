@@ -25,7 +25,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from diode.collection.matmul_dataset_collector import MatmulDatasetCollector
 from diode.model.matmul_timing_model import MatmulTimingModel, DeepMatmulTimingModel
-from diode.model.matmul_dataset_loader import MatmulTimingDataset, create_dataloaders
+from diode.model.matmul_dataset_loader import create_dataloaders
 from diode.model.matmul_model_trainer import MatmulModelTrainer, train_model_from_dataset
 from diode.types.matmul_dataset import Dataset as MatmulDataset
 
