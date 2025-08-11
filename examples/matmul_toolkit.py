@@ -24,7 +24,6 @@ from typing import List, Tuple, Optional, Dict, Any
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from diode.collection.matmul_dataset_collector import MatmulDatasetCollector
-from diode.collection.matmul_collector import MatmulCollector
 from diode.model.matmul_timing_model import MatmulTimingModel, DeepMatmulTimingModel
 from diode.model.matmul_dataset_loader import MatmulTimingDataset, create_dataloaders
 from diode.model.matmul_model_trainer import MatmulModelTrainer, train_model_from_dataset
@@ -104,42 +103,6 @@ def print_dataset_statistics(
                           f"block_k={fastest_config.config.block_k}, "
                           f"time={fastest_config.time*1000:.3f} ms")
 
-def print_collector_statistics(collector: MatmulCollector) -> None:
-    """
-    Print statistics about the collected data from MatmulCollector.
-    
-    Args:
-        collector: The MatmulCollector containing the collected data
-    """
-    table = collector.get_table()
-    
-    print("\nCollector Statistics:")
-    print("-------------------")
-    
-    # Count the number of hardware entries
-    hardware_count = len(table.hardware)
-    print(f"Number of hardware entries: {hardware_count}")
-    
-    # For each hardware, count operations and problems
-    for hw_name, hardware in table.hardware.items():
-        print(f"\nHardware: {hw_name}")
-        
-        op_count = len(hardware.operation)
-        print(f"  Number of operations: {op_count}")
-        
-        for op_name, operation in hardware.operation.items():
-            problem_count = len(operation.solution)
-            config_count = sum(len(solution.config) for solution in operation.solution.values())
-            print(f"  Operation '{op_name}': {problem_count} problems, {config_count} configs")
-            
-            # Print details of a few problems
-            for i, (problem, solution) in enumerate(operation.solution.items()):
-                if i >= 3:  # Limit to 3 problems for brevity
-                    print(f"    ... and {problem_count - 3} more problems")
-                    break
-                
-                print(f"    Problem {i+1}: M={problem.M}, N={problem.N}, K={problem.K}, "
-                      f"dtype={problem.M_dtype}, {len(solution.config)} configs")
 
 def plot_training_history(history: dict, save_path: Optional[str] = None) -> None:
     """
@@ -625,77 +588,6 @@ def run_collector_example(
     
     # Print statistics about the collected data
     print_dataset_statistics(collector)
-
-def run_basic_collector_example(
-    output_dir: str = ".",
-    use_context_manager: bool = True,
-    num_shapes: int = 4,
-    dtypes: List[torch.dtype] = None,
-) -> None:
-    """
-    Run an example demonstrating how to use the MatmulCollector class.
-    
-    Args:
-        output_dir: Directory to save output files
-        use_context_manager: Whether to use the collector as a context manager
-        num_shapes: Number of matrix shapes to test
-        dtypes: List of dtypes to test
-    """
-    if dtypes is None:
-        dtypes = [torch.float16, torch.float32] if torch.cuda.is_available() else [torch.float32]
-    
-    # Get the hardware name
-    device_name = torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu"
-    print(f"Running on device: {device_name}")
-    
-    # Generate matrix sizes
-    sizes = [
-        (32, 64, 128),   # (M, K, N)
-        (64, 128, 256),
-        (128, 256, 512),
-        (256, 512, 1024),
-    ][:num_shapes]
-    
-    if use_context_manager:
-        # Example using the collector as a context manager
-        print("\nUsing the collector as a context manager")
-        collector = MatmulCollector(hardware_name=device_name)
-        
-        # Use the collector as a context manager
-        with collector:
-            print("Running matrix multiplications...")
-            run_matrix_multiplications(sizes, dtypes)
-        
-        # Save the collected data to a file
-        output_file = os.path.join(output_dir, "matmul_data_context_manager.json")
-        collector.save_to_file(output_file)
-        print(f"Saved collected data to {output_file}")
-    else:
-        # Example using start_collection and stop_collection methods
-        print("\nUsing start_collection and stop_collection methods")
-        collector = MatmulCollector(hardware_name=device_name)
-        collector.start_collection()
-        
-        # Run matrix multiplications
-        print("Running matrix multiplications...")
-        run_matrix_multiplications(sizes, dtypes)
-        
-        # Stop collection
-        collector.stop_collection()
-        
-        # Save the collected data to a file
-        output_file = os.path.join(output_dir, "matmul_data_explicit.json")
-        collector.save_to_file(output_file)
-        print(f"Saved collected data to {output_file}")
-    
-    # Example of loading data from a file
-    print("\nLoading data from a file")
-    new_collector = MatmulCollector()
-    new_collector.load_from_file(output_file)
-    print(f"Loaded data from {output_file}")
-    
-    # Print statistics about the collected data
-    print_collector_statistics(new_collector)
 
 ###########################################
 # Model Training and Evaluation Functions
@@ -1196,16 +1088,6 @@ def main():
                                         help="Use the collector as a context manager")
     collector_example_parser.add_argument("--num-shapes", type=int, default=4, 
                                         help="Number of matrix shapes to test")
-    
-    # Basic collector example mode
-    basic_collector_example_parser = subparsers.add_parser("collector-basic-example", 
-                                                        help="Run an example demonstrating the MatmulCollector")
-    basic_collector_example_parser.add_argument("--output-dir", type=str, default=".", 
-                                             help="Directory to save output files")
-    basic_collector_example_parser.add_argument("--use-context-manager", action="store_true", 
-                                             help="Use the collector as a context manager")
-    basic_collector_example_parser.add_argument("--num-shapes", type=int, default=4, 
-                                             help="Number of matrix shapes to test")
     
     # Model example mode
     model_example_parser = subparsers.add_parser("model-example", 

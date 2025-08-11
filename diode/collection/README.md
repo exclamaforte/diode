@@ -2,15 +2,16 @@
 
 This module provides tools for collecting data from PyTorch's feedback saver interface and storing it in structured types.
 
-## MatmulCollector
+## MatmulDatasetCollector
 
-The `MatmulCollector` class is designed to hook into PyTorch's feedback saver interface to collect matrix multiplication data and store it in structured types defined in `diode.types.matmul_types`.
+The `MatmulDatasetCollector` class is designed to hook into PyTorch's feedback saver interface to collect matrix multiplication data with timing information and store it in structured types defined in `diode.types.matmul_dataset`.
 
 ### Features
 
 - Hooks into PyTorch's feedback saver interface
 - Collects data from matrix multiplication operations (`mm` and `addmm`)
-- Stores data in structured types (`TritonGEMMConfig`, `MMProblem`, `Solution`, etc.)
+- Stores data in structured types (`Dataset`, `TimedConfig`, `TritonGEMMConfig`, `MMProblem`, etc.)
+- Captures timing information for different configurations
 - Supports saving and loading data to/from files
 - Can be used as a context manager
 
@@ -19,11 +20,11 @@ The `MatmulCollector` class is designed to hook into PyTorch's feedback saver in
 #### Basic Usage
 
 ```python
-from diode.collection.matmul_collector import MatmulCollector
+from diode.collection.matmul_dataset_collector import MatmulDatasetCollector
 import torch
 
 # Create a collector instance
-collector = MatmulCollector(hardware_name="my_gpu")
+collector = MatmulDatasetCollector(hardware_name="my_gpu")
 
 # Start collecting data
 collector.start_collection()
@@ -43,35 +44,38 @@ result = compiled_mm(a, b)
 collector.stop_collection()
 
 # Save the collected data to a file
-collector.save_to_file("matmul_data.json")
+collector.save_to_file("matmul_dataset.json")
 ```
 
 #### Using as a Context Manager
 
 ```python
-with MatmulCollector(hardware_name="my_gpu") as collector:
+with MatmulDatasetCollector(hardware_name="my_gpu") as collector:
     # Run matrix multiplication operations
     # ...
 
 # Save the collected data
-collector.save_to_file("matmul_data.json")
+collector.save_to_file("matmul_dataset.json")
 ```
 
 #### Loading Data from a File
 
 ```python
-collector = MatmulCollector()
-collector.load_from_file("matmul_data.json")
+collector = MatmulDatasetCollector()
+collector.load_from_file("matmul_dataset.json")
 
 # Access the collected data
-table = collector.get_table()
+dataset = collector.get_dataset()
+
+# Convert to a table (selecting fastest config for each problem)
+table = collector.to_table()
 ```
 
 ### API Reference
 
 #### `__init__(hardware_name="unknown")`
 
-Initialize the MatmulCollector.
+Initialize the MatmulDatasetCollector.
 
 - `hardware_name`: The name of the hardware being used.
 
@@ -83,22 +87,32 @@ Start collecting data by hooking into the feedback saver interface.
 
 Stop collecting data by removing the feedback saver hook.
 
-#### `get_table()`
+#### `get_dataset()`
 
-Get the collected data as a `Table` object.
+Get the collected data as a `Dataset` object.
+
+#### `to_table()`
+
+Convert the dataset to a table by selecting the fastest configuration for each problem.
 
 #### `save_to_file(file_path)`
 
-Save the collected data to a file.
+Save the collected dataset to a file.
 
 - `file_path`: Path to save the data to.
 
 #### `load_from_file(file_path)`
 
-Load data from a file.
+Load dataset from a file.
 
 - `file_path`: Path to load the data from.
 
+#### `save_table_to_file(file_path)`
+
+Convert the dataset to a table and save it to a file.
+
+- `file_path`: Path to save the table to.
+
 ### Example
 
-See the [example script](../../examples/matmul_collector_example.py) for a complete example of how to use the `MatmulCollector` class.
+See the [example script](../../examples/matmul_dataset_collector_example.py) for a complete example of how to use the `MatmulDatasetCollector` class.
