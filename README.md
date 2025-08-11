@@ -27,7 +27,7 @@ Torch has interfaces that allow users to both gather data and make decisions on 
 
 ## Get Started
 
-[The main entry point is in examples.](https://github.com/pytorch/diode/examples/README.md)
+[The main entry point is in examples.](https://github.com/exclamaforte/diode/tree/main/examples#readme)
 ## Interface Locations
 - _inductor/choices.py
 - _inductor/config.py
