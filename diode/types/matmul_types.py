@@ -92,7 +92,7 @@ class TritonGEMMConfig(JSONSerializable):
 
 
 @dataclass(kw_only=True)
-class MMProblem(JSONSerializable):
+class MMShape(JSONSerializable):
     _is_leaf: bool = True
     B: int
     M: int
@@ -245,7 +245,7 @@ class Solution(JSONSerializable):
 @dataclass(kw_only=True)
 class Operation(JSONSerializable):
     name: str
-    solution: OrderedDict[MMProblem, Solution]
+    solution: OrderedDict[MMShape, Solution]
 
 
 @dataclass(kw_only=True)
@@ -255,10 +255,68 @@ class Hardware(JSONSerializable):
 
 
 @dataclass(kw_only=True)
+class ShapeSet(JSONSerializable):
+    """
+    A collection of MMShape objects that can be serialized to JSON.
+    This class is used to store and manage sets of matrix multiplication shapes.
+    """
+    shapes: list[MMShape] = field(default_factory=list)
+    
+    def add_shape(self, shape: MMShape) -> None:
+        """
+        Add a shape to the collection.
+        
+        Args:
+            shape: The MMShape to add
+        """
+        self.shapes.append(shape)
+    
+    def serialize(self) -> str:
+        """
+        Serialize the ShapeSet to a JSON string.
+        
+        Returns:
+            A JSON string representation of the ShapeSet
+        """
+        shapes_dict = {"shapes": [json.loads(shape.__str__()) for shape in self.shapes]}
+        return json.dumps(shapes_dict, indent=2)
+    
+    @classmethod
+    def deserialize(cls, s: str):
+        """
+        Deserialize a JSON string into a ShapeSet.
+        
+        Args:
+            s: The JSON string to deserialize
+            
+        Returns:
+            A ShapeSet object
+        """
+        try:
+            data = json.loads(s)
+            if "shapes" not in data:
+                raise KeyError("Missing required field: shapes")
+            
+            shape_set = cls()
+            for shape_data in data["shapes"]:
+                shape_str = json.dumps(shape_data)
+                shape = MMShape.parse(shape_str)
+                shape_set.add_shape(shape)
+            
+            return shape_set
+        except json.JSONDecodeError as e:
+            logger.error("Failed to deserialize ShapeSet (JSON decode error): %s", e)
+            return None
+        except Exception as e:
+            logger.error("Failed to deserialize ShapeSet: %s", e)
+            return None
+
+
+@dataclass(kw_only=True)
 class Table(JSONSerializable):
     hardware: OrderedDict[str, Hardware]
     _set_cache: OrderedDict[
-        tuple[str, str, MMProblem], OrderedSet[TritonGEMMConfig]
+        tuple[str, str, MMShape], OrderedSet[TritonGEMMConfig]
     ] = field(default_factory=OrderedDict)
 
     def serialize(self) -> str:
@@ -282,7 +340,7 @@ class Table(JSONSerializable):
             return None
 
     def lookup(
-        self, hardware: str, op_name: str, problem: MMProblem
+        self, hardware: str, op_name: str, problem: MMShape
     ) -> Optional[list[TritonGEMMConfig]]:
         """
         Lookup the best TritonGEMMConfig for a given problem.
@@ -298,7 +356,7 @@ class Table(JSONSerializable):
         return tmp[problem].config
 
     def lookup_set(
-        self, hardware: str, op_name: str, problem: MMProblem
+        self, hardware: str, op_name: str, problem: MMShape
     ) -> Optional[OrderedSet[TritonGEMMConfig]]:
         """
         Easier and faster to check membership in a set, but cache the sets for runtime.
@@ -316,7 +374,7 @@ class Table(JSONSerializable):
         self,
         hardware: str,
         op_name: str,
-        problem: MMProblem,
+        problem: MMShape,
         to_filter: list[TritonGEMMConfig],
     ) -> Optional[list[TritonGEMMConfig]]:
         """

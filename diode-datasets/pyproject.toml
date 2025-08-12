@@ -3,9 +3,9 @@ requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "diode"
+name = "diode-datasets"
 version = "0.1.0"
-description = "A toolkit for matrix multiplication data collection, model training, and evaluation"
+description = "Generated datasets from ourselves and the community for the diode package"
 authors = [
     {name = "Meta", email = "example@meta.com"},
 ]
@@ -21,16 +21,14 @@ classifiers = [
 ]
 dependencies = [
     "torch>=2.0.0",
-    "matplotlib>=3.5.0",
-    "tqdm>=4.62.0",
+    "diode>=0.1.0",
 ]
 
 [project.optional-dependencies]
-datasets = ["diode-datasets>=0.1.0"]
+diode = []
 
 [tool.setuptools]
-packages = {find = {exclude = ["tests", "tests.*", "diode-models", "diode-models.*", "diode_common"]}}
+packages = ["diode_datasets"]
 
 [tool.setuptools.package-data]
-diode = ["**/*.py"]
-diode_common = ["**/*.py"]
+diode_datasets = ["datasets/**/*.json"]
