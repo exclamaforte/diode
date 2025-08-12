@@ -6,7 +6,6 @@ import unittest
 import os
 import sys
 import torch
-import numpy as np
 from collections import OrderedDict
 import tempfile
 
@@ -30,7 +29,6 @@ class TestMatmulTimingModel(unittest.TestCase):
         """
         # Set random seed for reproducibility
         torch.manual_seed(42)
-        np.random.seed(42)
         
         # Create a small dataset for testing
         self.dataset = self._create_test_dataset()

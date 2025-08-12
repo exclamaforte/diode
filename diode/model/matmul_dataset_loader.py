@@ -4,7 +4,6 @@ Dataset loader for matrix multiplication timing data.
 
 import torch
 from torch.utils.data import Dataset, DataLoader
-import numpy as np
 import logging
 import json
 from typing import Dict, List, Tuple, Optional, Union
@@ -159,7 +158,7 @@ class MatmulTimingDataset(Dataset):
                         
                         # Apply log transform if specified
                         if self.log_transform:
-                            timing = np.log(timing)
+                            timing = torch.log(torch.tensor(timing, dtype=torch.float32))
                         
                         # Add to the lists
                         self.problem_features.append(problem_feature)
@@ -224,17 +223,17 @@ class MatmulTimingDataset(Dataset):
             self._dtype_to_numeric(problem.K_dtype) if hasattr(problem, 'K_dtype') else 32.0,
             self._dtype_to_numeric(problem.out_dtype) if hasattr(problem, 'out_dtype') else 32.0,
             # Add log-transformed features for better numerical stability
-            np.log(max(1, B)),
-            np.log(max(1, M)),
-            np.log(max(1, N)),
-            np.log(max(1, K)),
+            torch.log(torch.tensor(max(1, B), dtype=torch.float32)),
+            torch.log(torch.tensor(max(1, M), dtype=torch.float32)),
+            torch.log(torch.tensor(max(1, N), dtype=torch.float32)),
+            torch.log(torch.tensor(max(1, K), dtype=torch.float32)),
             # Add derived features
             M * K,  # Input matrix size
             K * N,  # Weight matrix size
             M * N,  # Output matrix size
-            np.log(max(1, M * K)),  # Log input matrix size
-            np.log(max(1, K * N)),  # Log weight matrix size
-            np.log(max(1, M * N)),  # Log output matrix size
+            torch.log(torch.tensor(max(1, M * K), dtype=torch.float32)),  # Log input matrix size
+            torch.log(torch.tensor(max(1, K * N), dtype=torch.float32)),  # Log weight matrix size
+            torch.log(torch.tensor(max(1, M * N), dtype=torch.float32)),  # Log output matrix size
         ]
         
         return features
@@ -262,16 +261,16 @@ class MatmulTimingDataset(Dataset):
             int(config.ALLOW_TF32),
             int(config.USE_FAST_ACCUM),
             # Add log-transformed features for better numerical stability
-            np.log(max(1, config.block_m)),
-            np.log(max(1, config.block_n)),
-            np.log(max(1, config.block_k)),
+            torch.log(torch.tensor(max(1, config.block_m), dtype=torch.float32)),
+            torch.log(torch.tensor(max(1, config.block_n), dtype=torch.float32)),
+            torch.log(torch.tensor(max(1, config.block_k), dtype=torch.float32)),
             # Add derived features
             config.block_m * config.block_k,  # Block input size
             config.block_k * config.block_n,  # Block weight size
             config.block_m * config.block_n,  # Block output size
-            np.log(max(1, config.block_m * config.block_k)),  # Log block input size
-            np.log(max(1, config.block_k * config.block_n)),  # Log block weight size
-            np.log(max(1, config.block_m * config.block_n)),  # Log block output size
+            torch.log(torch.tensor(max(1, config.block_m * config.block_k), dtype=torch.float32)),  # Log block input size
+            torch.log(torch.tensor(max(1, config.block_k * config.block_n), dtype=torch.float32)),  # Log block weight size
+            torch.log(torch.tensor(max(1, config.block_m * config.block_n), dtype=torch.float32)),  # Log block output size
         ]
         
         return features
@@ -372,7 +371,6 @@ def create_dataloaders(
     """
     # Set the random seed for reproducibility
     torch.manual_seed(seed)
-    np.random.seed(seed)
     
     # Create the dataset
     full_dataset = MatmulTimingDataset(

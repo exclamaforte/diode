@@ -11,7 +11,6 @@ All functionality is controlled through command-line flags.
 """
 
 import torch
-import numpy as np
 import os
 import sys
 import logging
@@ -173,7 +172,7 @@ def generate_matrix_sizes(
         List of (M, K, N) tuples
     """
     random.seed(seed)
-    np.random.seed(seed)
+    torch.manual_seed(seed)
     
     sizes = []
     
@@ -212,9 +211,9 @@ def generate_matrix_sizes(
     while len(sizes) < num_shapes:
         if power_of_two:
             # Generate power-of-two sizes
-            m_pow = random.randint(int(np.log2(min_size)), int(np.log2(max_size)))
-            k_pow = random.randint(int(np.log2(min_size)), int(np.log2(max_size)))
-            n_pow = random.randint(int(np.log2(min_size)), int(np.log2(max_size)))
+            m_pow = random.randint(int(torch.log2(torch.tensor(min_size, dtype=torch.float32))), int(torch.log2(torch.tensor(max_size, dtype=torch.float32))))
+            k_pow = random.randint(int(torch.log2(torch.tensor(min_size, dtype=torch.float32))), int(torch.log2(torch.tensor(max_size, dtype=torch.float32))))
+            n_pow = random.randint(int(torch.log2(torch.tensor(min_size, dtype=torch.float32))), int(torch.log2(torch.tensor(max_size, dtype=torch.float32))))
             
             M = 2 ** m_pow
             K = 2 ** k_pow
@@ -272,19 +271,19 @@ def analyze_worst_predictions(model, dataloader, device, top_n=10):
     
     for i, error_data in enumerate(all_errors[:top_n]):
         print(f"Error {i+1}:")
-        print(f"  Predicted: {np.exp(error_data['predicted']):.6f} ms")
-        print(f"  Actual: {np.exp(error_data['actual']):.6f} ms")
+        print(f"  Predicted: {torch.exp(torch.tensor(error_data['predicted'])):.6f} ms")
+        print(f"  Actual: {torch.exp(torch.tensor(error_data['actual'])):.6f} ms")
         print(f"  Error (log space): {error_data['error']:.6f}")
-        print(f"  Error (ratio): {np.exp(error_data['predicted']) / np.exp(error_data['actual']):.2f}x")
+        print(f"  Error (ratio): {torch.exp(torch.tensor(error_data['predicted'])) / torch.exp(torch.tensor(error_data['actual'])):.2f}x")
         
         # Extract problem features (M, N, K) with better error handling
         try:
             # The problem features are in the order: B, M, N, K, ...
             # And the log-transformed versions are at indices 7, 8, 9
             # We use the log-transformed versions for better numerical stability
-            M = int(np.exp(error_data['problem_features'][8]))
-            N = int(np.exp(error_data['problem_features'][9]))
-            K = int(np.exp(error_data['problem_features'][10]))
+            M = int(torch.exp(torch.tensor(error_data['problem_features'][8])))
+            N = int(torch.exp(torch.tensor(error_data['problem_features'][9])))
+            K = int(torch.exp(torch.tensor(error_data['problem_features'][10])))
             
             # Check for unreasonable values that might indicate symbolic dimensions
             if M > 1e9 or N > 1e9 or K > 1e9:
@@ -958,14 +957,14 @@ def run_model_example(
     avg_loss = total_loss / len(test_dataloader)
     
     # Calculate the RMSE
-    rmse = np.sqrt(avg_loss)
+    rmse = torch.sqrt(torch.tensor(avg_loss))
     
     # Print the results
     print("\nModel Evaluation:")
     print("----------------")
     print(f"Test Loss (MSE): {avg_loss:.6f}")
     print(f"Test RMSE: {rmse:.6f}")
-    print(f"Test RMSE (exp): {np.exp(rmse):.6f}")
+    print(f"Test RMSE (exp): {torch.exp(rmse):.6f}")
     
     logger.info("Example completed")
 
@@ -1172,7 +1171,6 @@ def main():
     
     # Set the random seed for reproducibility
     torch.manual_seed(args.seed)
-    np.random.seed(args.seed)
     random.seed(args.seed)
     
     # Run the appropriate mode

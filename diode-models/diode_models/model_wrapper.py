@@ -1,14 +1,20 @@
 """
 Model wrapper for loading and running inference on trained models.
+
+This module imports the common ModelWrapper from diode_common and extends it
+with diode-models-specific functionality.
 """
 
 import os
 import torch
 import logging
-import json
 from typing import Dict, List, Tuple, Optional, Union, Any
 from pathlib import Path
 from dataclasses import dataclass
+
+# Import from the common module
+from diode_common.model_wrapper import ModelWrapper as CommonModelWrapper
+from diode_common.model_wrapper import load_model_config as common_load_model_config
 
 # Import the model classes directly if available
 try:
@@ -117,27 +123,14 @@ def load_model_config(model_path: Union[str, Path]) -> Optional[MatmulModelConfi
     Returns:
         Model configuration if available, None otherwise
     """
-    model_path = Path(model_path)
-    config_path_json = model_path.with_suffix(".json")
-    
-    # Try to load the configuration
-    if config_path_json.exists():
-        # Load from JSON
-        with open(config_path_json, "r") as f:
-            config_dict = json.load(f)
-        return MatmulModelConfig.from_dict(config_dict)
-    
-    return None
+    return common_load_model_config(model_path, MatmulModelConfig)
 
 
-class ModelWrapper:
+class ModelWrapper(CommonModelWrapper):
     """
     Wrapper for loading and running inference on trained models.
     
-    This class provides functionality to:
-    1. Load a trained model from a file
-    2. Compile the model using torch.compile
-    3. Run inference on the model
+    This class extends the common ModelWrapper with diode-models-specific functionality.
     """
     
     def __init__(
@@ -156,127 +149,21 @@ class ModelWrapper:
             compile_model: Whether to compile the model using torch.compile
             compile_options: Options to pass to torch.compile
         """
-        self.model_path = model_path
-        self.device = device
-        self.compile_model = compile_model
-        self.compile_options = compile_options or {}
+        # Define the model classes dictionary
+        model_classes = {
+            "base": MatmulTimingModel,
+            "deep": DeepMatmulTimingModel
+        }
         
-        # Load the model configuration if available
-        self.config = load_model_config(model_path)
-        
-        # Load the model
-        self._load_model()
-        
-        # Compile the model if requested
-        if compile_model:
-            self._compile_model()
-    
-    def _load_model(self) -> None:
-        """
-        Load the model from the file.
-        """
-        # Check if the file exists
-        if not os.path.exists(self.model_path):
-            raise FileNotFoundError(f"Model file not found: {self.model_path}")
-        
-        # If we have a config, use it to create the model
-        if self.config is not None:
-            if self.config.model_type.lower() == "base":
-                self.model = MatmulTimingModel(
-                    problem_feature_dim=self.config.problem_feature_dim,
-                    config_feature_dim=self.config.config_feature_dim,
-                    hidden_dims=self.config.hidden_dims,
-                    dropout_rate=self.config.dropout_rate,
-                )
-            elif self.config.model_type.lower() == "deep":
-                self.model = DeepMatmulTimingModel(
-                    problem_feature_dim=self.config.problem_feature_dim,
-                    config_feature_dim=self.config.config_feature_dim,
-                    hidden_dim=self.config.hidden_dim,
-                    num_layers=self.config.num_layers,
-                    dropout_rate=self.config.dropout_rate,
-                )
-            else:
-                raise ValueError(f"Unknown model type in config: {self.config.model_type}")
-            
-            # Load the state dict
-            self.model.load_state_dict(torch.load(self.model_path, map_location=self.device)["model_state_dict"])
-        else:
-            # No config available, load the model using the old method
-            # Load the model checkpoint
-            checkpoint = torch.load(self.model_path, map_location=self.device)
-            
-            # Determine the model type based on the checkpoint
-            if "hidden_dims" in checkpoint:
-                # This is a MatmulTimingModel
-                self.model = MatmulTimingModel(
-                    problem_feature_dim=checkpoint["problem_feature_dim"],
-                    config_feature_dim=checkpoint["config_feature_dim"],
-                    hidden_dims=checkpoint["hidden_dims"],
-                    dropout_rate=checkpoint["dropout_rate"],
-                )
-            elif "hidden_dim" in checkpoint:
-                # This is a DeepMatmulTimingModel
-                self.model = DeepMatmulTimingModel(
-                    problem_feature_dim=checkpoint["problem_feature_dim"],
-                    config_feature_dim=checkpoint["config_feature_dim"],
-                    hidden_dim=checkpoint["hidden_dim"],
-                    num_layers=checkpoint["num_layers"],
-                    dropout_rate=checkpoint["dropout_rate"],
-                )
-            else:
-                raise ValueError(f"Unknown model type in checkpoint: {self.model_path}")
-            
-            # Load the state dict
-            self.model.load_state_dict(checkpoint["model_state_dict"])
-        
-        # Move the model to the device
-        self.model = self.model.to(self.device)
-        
-        # Set the model to evaluation mode
-        self.model.eval()
-        
-        logger.info(f"Model loaded from {self.model_path}")
-    
-    def _compile_model(self) -> None:
-        """
-        Compile the model using torch.compile.
-        """
-        try:
-            self.compiled_model = torch.compile(self.model, **self.compile_options)
-            logger.info(f"Model compiled with options: {self.compile_options}")
-        except Exception as e:
-            logger.warning(f"Failed to compile model: {e}")
-            logger.warning("Using uncompiled model for inference")
-            self.compiled_model = self.model
-    
-    def predict(
-        self,
-        problem_features: torch.Tensor,
-        config_features: torch.Tensor,
-    ) -> torch.Tensor:
-        """
-        Run inference on the model.
-        
-        Args:
-            problem_features: Tensor of shape (batch_size, problem_feature_dim)
-            config_features: Tensor of shape (batch_size, config_feature_dim)
-            
-        Returns:
-            Tensor of shape (batch_size, 1) containing the predicted log execution time
-        """
-        # Move the inputs to the device
-        problem_features = problem_features.to(self.device)
-        config_features = config_features.to(self.device)
-        
-        # Run inference
-        with torch.no_grad():
-            if self.compile_model and hasattr(self, "compiled_model"):
-                predictions = self.compiled_model(problem_features, config_features)
-            else:
-                predictions = self.model(problem_features, config_features)
-        
-        return predictions
+        # Call the parent class constructor
+        super().__init__(
+            model_path=model_path,
+            device=device,
+            compile_model=compile_model,
+            compile_options=compile_options,
+            model_classes=model_classes,
+            model_config_class=MatmulModelConfig
+        )
     
     @staticmethod
     def list_available_models(models_dir: str = None) -> List[str]:

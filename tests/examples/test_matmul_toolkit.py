@@ -13,7 +13,6 @@ import sys
 import json
 import pytest
 import torch
-import numpy as np
 from unittest.mock import patch, MagicMock, mock_open
 from collections import OrderedDict
 

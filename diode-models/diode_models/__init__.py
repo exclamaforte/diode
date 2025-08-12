@@ -58,8 +58,9 @@ def get_model_wrapper():
     """
     Get the ModelWrapper class.
     
-    This function imports the ModelWrapper class from the diode package.
-    If the diode package is not installed, it falls back to a local copy.
+    This function tries to import the ModelWrapper class in the following order:
+    1. From the diode package
+    2. From the local copy
     
     Returns:
         The ModelWrapper class

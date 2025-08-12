@@ -21,10 +21,13 @@ classifiers = [
 ]
 dependencies = [
     "torch>=2.0.0",
-    "numpy>=1.20.0",
     "matplotlib>=3.5.0",
     "tqdm>=4.62.0",
 ]
 
 [tool.setuptools]
-packages = {find = {exclude = ["tests", "tests.*"]}}
+packages = {find = {exclude = ["tests", "tests.*", "diode-models", "diode-models.*", "diode_common"]}}
+
+[tool.setuptools.package-data]
+diode = ["**/*.py"]
+diode_common = ["**/*.py"]
