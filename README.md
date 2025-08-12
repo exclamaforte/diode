@@ -25,6 +25,19 @@ Torch has interfaces that allow users to both gather data and make decisions on 
 ## Featured Heruistics
 - Matmul Kernel Prediction: Predict the runtime of matmul kernel.
 
+## Model Organization
+
+### Directory Structure
+Models are organized in a structured directory format:
+```
+diode-models/diode_models/<heuristic>/<hardware>/model
+```
+
+For example:
+```
+diode-models/diode_models/matmul/nvidia-h100/matmul_nvidia_h100_deep.pt
+```
+
 ## Get Started
 
 [The main entry point is in examples.](https://github.com/exclamaforte/diode/tree/main/examples#readme)

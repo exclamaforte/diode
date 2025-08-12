@@ -5,12 +5,36 @@ Model wrapper for loading and running inference on trained models.
 import os
 import torch
 import logging
+import json
 from typing import Dict, List, Tuple, Optional, Union, Any
 from pathlib import Path
 
 from diode.model.matmul_timing_model import MatmulTimingModel, DeepMatmulTimingModel
+from diode.model.matmul_model_config import MatmulModelConfig
 
 logger = logging.getLogger(__name__)
+
+def load_model_config(model_path: Union[str, Path]) -> Optional[MatmulModelConfig]:
+    """
+    Load the configuration for a model.
+    
+    Args:
+        model_path: Path to the model file (with .pt extension)
+    
+    Returns:
+        Model configuration if available, None otherwise
+    """
+    model_path = Path(model_path)
+    config_path_json = model_path.with_suffix(".json")
+    
+    # Try to load the configuration
+    if config_path_json.exists():
+        # Load from JSON
+        with open(config_path_json, "r") as f:
+            config_dict = json.load(f)
+        return MatmulModelConfig.from_dict(config_dict)
+    
+    return None
 
 class ModelWrapper:
     """
@@ -43,6 +67,9 @@ class ModelWrapper:
         self.compile_model = compile_model
         self.compile_options = compile_options or {}
         
+        # Load the model configuration if available
+        self.config = load_model_config(model_path)
+        
         # Load the model
         self._load_model()
         
@@ -58,32 +85,56 @@ class ModelWrapper:
         if not os.path.exists(self.model_path):
             raise FileNotFoundError(f"Model file not found: {self.model_path}")
         
-        # Load the model checkpoint
-        checkpoint = torch.load(self.model_path, map_location=self.device)
-        
-        # Determine the model type based on the checkpoint
-        if "hidden_dims" in checkpoint:
-            # This is a MatmulTimingModel
-            self.model = MatmulTimingModel(
-                problem_feature_dim=checkpoint["problem_feature_dim"],
-                config_feature_dim=checkpoint["config_feature_dim"],
-                hidden_dims=checkpoint["hidden_dims"],
-                dropout_rate=checkpoint["dropout_rate"],
-            )
-        elif "hidden_dim" in checkpoint:
-            # This is a DeepMatmulTimingModel
-            self.model = DeepMatmulTimingModel(
-                problem_feature_dim=checkpoint["problem_feature_dim"],
-                config_feature_dim=checkpoint["config_feature_dim"],
-                hidden_dim=checkpoint["hidden_dim"],
-                num_layers=checkpoint["num_layers"],
-                dropout_rate=checkpoint["dropout_rate"],
-            )
+        # If we have a config, use it to create the model
+        if self.config is not None:
+            if self.config.model_type.lower() == "base":
+                self.model = MatmulTimingModel(
+                    problem_feature_dim=self.config.problem_feature_dim,
+                    config_feature_dim=self.config.config_feature_dim,
+                    hidden_dims=self.config.hidden_dims,
+                    dropout_rate=self.config.dropout_rate,
+                )
+            elif self.config.model_type.lower() == "deep":
+                self.model = DeepMatmulTimingModel(
+                    problem_feature_dim=self.config.problem_feature_dim,
+                    config_feature_dim=self.config.config_feature_dim,
+                    hidden_dim=self.config.hidden_dim,
+                    num_layers=self.config.num_layers,
+                    dropout_rate=self.config.dropout_rate,
+                )
+            else:
+                raise ValueError(f"Unknown model type in config: {self.config.model_type}")
+            
+            # Load the state dict
+            self.model.load_state_dict(torch.load(self.model_path, map_location=self.device)["model_state_dict"])
         else:
-            raise ValueError(f"Unknown model type in checkpoint: {self.model_path}")
-        
-        # Load the state dict
-        self.model.load_state_dict(checkpoint["model_state_dict"])
+            # No config available, load the model using the old method
+            # Load the model checkpoint
+            checkpoint = torch.load(self.model_path, map_location=self.device)
+            
+            # Determine the model type based on the checkpoint
+            if "hidden_dims" in checkpoint:
+                # This is a MatmulTimingModel
+                self.model = MatmulTimingModel(
+                    problem_feature_dim=checkpoint["problem_feature_dim"],
+                    config_feature_dim=checkpoint["config_feature_dim"],
+                    hidden_dims=checkpoint["hidden_dims"],
+                    dropout_rate=checkpoint["dropout_rate"],
+                )
+            elif "hidden_dim" in checkpoint:
+                # This is a DeepMatmulTimingModel
+                self.model = DeepMatmulTimingModel(
+                    problem_feature_dim=checkpoint["problem_feature_dim"],
+                    config_feature_dim=checkpoint["config_feature_dim"],
+                    hidden_dim=checkpoint["hidden_dim"],
+                    num_layers=checkpoint["num_layers"],
+                    dropout_rate=checkpoint["dropout_rate"],
+                )
+            else:
+                raise ValueError(f"Unknown model type in checkpoint: {self.model_path}")
+            
+            # Load the state dict
+            self.model.load_state_dict(checkpoint["model_state_dict"])
         
         # Move the model to the device
         self.model = self.model.to(self.device)

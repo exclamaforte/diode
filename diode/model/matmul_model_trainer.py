@@ -8,13 +8,16 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 import logging
 import os
-from typing import Dict, List, Tuple, Optional, Union
+import json
+from pathlib import Path
+from typing import Dict, List, Tuple, Optional, Union, Any
 # Import matplotlib only when needed to avoid dependency issues
 from tqdm import tqdm
 
 from diode.types.matmul_dataset import Dataset as MatmulDataset
 from diode.model.matmul_timing_model import MatmulTimingModel, DeepMatmulTimingModel
 from diode.model.matmul_dataset_loader import create_dataloaders
+from diode.model.matmul_model_config import MatmulModelConfig
 
 logger = logging.getLogger(__name__)
 
@@ -353,76 +356,208 @@ class MatmulModelTrainer:
             logger.warning("Matplotlib not available, skipping plot")
 
 
+def get_model_save_path(
+    heuristic_name: str,
+    hardware_name: str,
+    model_name: str,
+    base_dir: Optional[str] = None,
+) -> Path:
+    """
+    Get the path to save a model based on heuristic and hardware.
+    
+    Args:
+        heuristic_name: Name of the heuristic (e.g., "matmul")
+        hardware_name: Name of the hardware (e.g., "NVIDIA-H100", "AMD-MI250", "Intel-CPU")
+        model_name: Name of the model file
+        base_dir: Base directory for models. If None, uses the default
+                 diode-models directory structure
+    
+    Returns:
+        Path object for the model save location
+    """
+    if base_dir is None:
+        # Use the default directory structure in diode-models
+        try:
+            import diode_models
+            base_dir = Path(diode_models.__file__).parent
+        except ImportError:
+            # Fall back to the current directory if diode_models is not installed
+            base_dir = Path.cwd()
+    else:
+        base_dir = Path(base_dir)
+    
+    # Create the directory structure: <base_dir>/<heuristic>/<hardware>/
+    save_dir = base_dir / heuristic_name / hardware_name
+    save_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Return the full path including the model name
+    return save_dir / model_name
+
+
+def save_model_with_config(
+    model: Union[MatmulTimingModel, DeepMatmulTimingModel],
+    config: MatmulModelConfig,
+    save_path: Union[str, Path],
+) -> None:
+    """
+    Save a model with its configuration.
+    
+    Args:
+        model: The model to save
+        config: The model configuration
+        save_path: Path to save the model (without extension)
+    """
+    save_path = Path(save_path)
+    
+    # Save the model
+    model.save(str(save_path.with_suffix(".pt")))
+    
+    # Save the configuration
+    config.save(save_path)
+    
+    logger.info(f"Saved model to {save_path.with_suffix('.pt')}")
+
+
+def load_model_with_config(
+    load_path: Union[str, Path],
+    device: str = "cuda" if torch.cuda.is_available() else "cpu",
+) -> Tuple[Union[MatmulTimingModel, DeepMatmulTimingModel], MatmulModelConfig]:
+    """
+    Load a model with its configuration.
+    
+    Args:
+        load_path: Path to load the model from (without extension)
+        device: Device to load the model to
+    
+    Returns:
+        Tuple of (model, config)
+    """
+    load_path = Path(load_path)
+    
+    # Load the configuration
+    try:
+        config = MatmulModelConfig.load(load_path)
+    except FileNotFoundError:
+        raise FileNotFoundError(f"No config file found for {load_path}")
+    
+    # Load the model
+    model_path = load_path.with_suffix(".pt")
+    if not model_path.exists():
+        raise FileNotFoundError(f"Model file not found: {model_path}")
+    
+    # Create the model based on the config
+    if config.model_type.lower() == "base":
+        model = MatmulTimingModel(
+            problem_feature_dim=config.problem_feature_dim,
+            config_feature_dim=config.config_feature_dim,
+            hidden_dims=config.hidden_dims,
+            dropout_rate=config.dropout_rate,
+        )
+    elif config.model_type.lower() == "deep":
+        model = DeepMatmulTimingModel(
+            problem_feature_dim=config.problem_feature_dim,
+            config_feature_dim=config.config_feature_dim,
+            hidden_dim=config.hidden_dim,
+            num_layers=config.num_layers,
+            dropout_rate=config.dropout_rate,
+        )
+    else:
+        raise ValueError(f"Unknown model type: {config.model_type}")
+    
+    # Load the state dict
+    model.load_state_dict(torch.load(model_path, map_location=device)["model_state_dict"])
+    model = model.to(device)
+    model.eval()
+    
+    logger.info(f"Loaded model from {model_path}")
+    
+    return model, config
+
+
 def train_model_from_dataset(
     dataset: MatmulDataset,
-    model_type: str = "deep",
-    batch_size: int = 64,
-    num_epochs: int = 100,
-    learning_rate: float = 0.001,
-    weight_decay: float = 1e-5,
-    patience: int = 10,
+    config: Optional[MatmulModelConfig] = None,
     log_dir: str = "logs",
     checkpoint_path: Optional[str] = None,
-    hardware_name: Optional[str] = None,
-    op_name: Optional[str] = None,
-    log_transform: bool = True,
     num_workers: int = 4,
-    seed: int = 42,
     verbose: bool = True,
-    device: str = "cuda" if torch.cuda.is_available() else "cpu",
-) -> Tuple[Union[MatmulTimingModel, DeepMatmulTimingModel], Dict[str, List[float]]]:
+    save_model: bool = True,
+) -> Tuple[Union[MatmulTimingModel, DeepMatmulTimingModel], Dict[str, List[float]], MatmulModelConfig]:
     """
     Train a model from a MatmulDataset.
     
     Args:
         dataset: The MatmulDataset containing the timing data
-        model_type: Type of model to train ("base" or "deep")
-        batch_size: Batch size for the dataloaders
-        num_epochs: Number of epochs to train for
-        learning_rate: Learning rate for the optimizer
-        weight_decay: Weight decay for the optimizer
-        patience: Number of epochs to wait for improvement before early stopping
+        config: Configuration for the model and training. If None, default config is used.
         log_dir: Directory to save logs and checkpoints
         checkpoint_path: Path to save the best model checkpoint
-        hardware_name: Optional hardware name to filter by
-        op_name: Optional operation name to filter by
-        log_transform: Whether to apply log transform to the timing values
         num_workers: Number of workers for the dataloaders
-        seed: Random seed for reproducibility
         verbose: Whether to print progress
-        device: Device to train on
+        save_model: Whether to save the model after training
         
     Returns:
-        Tuple of (trained_model, training_history)
+        Tuple of (trained_model, training_history, config)
     """
+    # Create or update the configuration
+    if config is None:
+        config = MatmulModelConfig()
+    
+    # Get hardware info from dataset if not specified in config
+    if config.hardware_name == "unknown" and dataset.hardware_names:
+        config.hardware_name = dataset.hardware_names[0]
+        
+        # Set a more granular hardware type based on hardware_name
+        # This is a simple heuristic and might need to be updated based on actual hardware naming
+        if "h100" in config.hardware_name.lower():
+            config.hardware_type = "NVIDIA-H100"
+        elif "a100" in config.hardware_name.lower():
+            config.hardware_type = "NVIDIA-A100"
+        elif "v100" in config.hardware_name.lower():
+            config.hardware_type = "NVIDIA-V100"
+        elif "mi" in config.hardware_name.lower():
+            config.hardware_type = "AMD-MI250"
+        elif "cpu" in config.hardware_name.lower():
+            config.hardware_type = "Intel-CPU"
+        else:
+            config.hardware_type = config.hardware_name
+    
     # Create the dataloaders
     train_dataloader, val_dataloader, test_dataloader = create_dataloaders(
         dataset=dataset,
-        batch_size=batch_size,
-        hardware_name=hardware_name,
-        op_name=op_name,
-        log_transform=log_transform,
+        batch_size=config.batch_size,
+        hardware_name=config.hardware_name,
+        op_name=config.op_name,
+        log_transform=config.log_transform,
         num_workers=num_workers,
-        seed=seed,
+        seed=config.seed,
     )
     
     # Get the feature dimensions
     problem_feature_dim = train_dataloader.dataset.dataset.problem_feature_dim
     config_feature_dim = train_dataloader.dataset.dataset.config_feature_dim
     
+    # Update the config with the feature dimensions
+    config.problem_feature_dim = problem_feature_dim
+    config.config_feature_dim = config_feature_dim
+    
     # Create the model
-    if model_type.lower() == "base":
+    if config.model_type.lower() == "base":
         model = MatmulTimingModel(
             problem_feature_dim=problem_feature_dim,
             config_feature_dim=config_feature_dim,
+            hidden_dims=config.hidden_dims,
+            dropout_rate=config.dropout_rate,
         )
-    elif model_type.lower() == "deep":
+    elif config.model_type.lower() == "deep":
         model = DeepMatmulTimingModel(
             problem_feature_dim=problem_feature_dim,
             config_feature_dim=config_feature_dim,
+            hidden_dim=config.hidden_dim,
+            num_layers=config.num_layers,
+            dropout_rate=config.dropout_rate,
         )
     else:
-        raise ValueError(f"Unknown model type: {model_type}")
+        raise ValueError(f"Unknown model type: {config.model_type}")
     
     # Create the trainer
     trainer = MatmulModelTrainer(
@@ -430,18 +565,37 @@ def train_model_from_dataset(
         train_dataloader=train_dataloader,
         val_dataloader=val_dataloader,
         test_dataloader=test_dataloader,
-        learning_rate=learning_rate,
-        weight_decay=weight_decay,
+        learning_rate=config.learning_rate,
+        weight_decay=config.weight_decay,
         log_dir=log_dir,
-        device=device,
+        device=config.device,
     )
     
     # Train the model
     history = trainer.train(
-        num_epochs=num_epochs,
-        patience=patience,
+        num_epochs=config.num_epochs,
+        patience=config.patience,
         checkpoint_path=checkpoint_path,
         verbose=verbose,
     )
     
-    return model, history
+    # Save the model with its configuration
+    if save_model:
+        # Generate a model name based on the hardware and model type
+        model_name = f"matmul_{config.hardware_name}_{config.model_type}"
+        
+        # Get the save path
+        save_path = get_model_save_path(
+            heuristic_name=config.heuristic_name,
+            hardware_name=config.hardware_name,
+            model_name=model_name,
+        )
+        
+        # Save the model with its configuration
+        save_model_with_config(model, config, save_path)
+        
+        if verbose:
+            print(f"Saved model to {save_path}.pt")
+            print(f"Saved config to {save_path}.json")
+    
+    return model, history, config

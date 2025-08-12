@@ -1,6 +1,11 @@
 - TODO create
 - TODO finish set up documentation generation
 - TODO set up CI
+1. create a trained_models directory that contains trained models
+2. run README.md this to create some example models in that directory for h100.
+3. Create a model_wrapper code in diode/model that will load matmul_timing_model.pys, torch.compile them, and then run inference on the model.
+4. I want to create two pypi packages: diode and diode-models. One contains everything, and the other contains just the models in trained_models along with the new inference code so that they can be run. The model wrapper should be importable via it's file name on the module diode-object
+5. create some integration tests that are tests for this functionality
 
 
 # diode

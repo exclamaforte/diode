@@ -21,19 +21,36 @@ def get_models_dir() -> str:
     """
     return MODELS_DIR
 
-def list_available_models() -> List[str]:
+def list_available_models(
+    heuristic_name: Optional[str] = None,
+    hardware_name: Optional[str] = None,
+) -> List[str]:
     """
     List all available models in the models directory.
+    
+    Args:
+        heuristic_name: Filter models by heuristic name (e.g., "matmul")
+        hardware_name: Filter models by hardware name (e.g., "NVIDIA-H100", "AMD-MI250", "Intel-CPU")
     
     Returns:
         List of model file paths
     """
+    # Start with the base directory
+    search_dir = Path(MODELS_DIR)
+    
+    # If heuristic is specified, add it to the path
+    if heuristic_name:
+        search_dir = search_dir / heuristic_name
+        
+        # If hardware is also specified, add it to the path
+        if hardware_name:
+            search_dir = search_dir / hardware_name
+    
     # Find all .pt files in the directory and its subdirectories
     model_files = []
-    for root, _, files in os.walk(MODELS_DIR):
-        for file in files:
-            if file.endswith(".pt"):
-                model_files.append(os.path.join(root, file))
+    if search_dir.exists():
+        for path in search_dir.glob("**/*.pt"):
+            model_files.append(str(path))
     
     return model_files
 
