@@ -1,4 +1,5 @@
 Warning: code is in pre-Alpha
+<img width="718" height="571" alt="diode" src="https://github.com/user-attachments/assets/308cb05a-01d9-4fc4-9c03-7e13ade91475" />
 
 # diode
 `diode` is a framework for defining heuristics in `torch` and `torch.compile`. It makes it easy to develop heuristics that plug into the external interfaces of `torch` and `torch.compile`.
