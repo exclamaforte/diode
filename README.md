@@ -31,12 +31,12 @@ Warning: code is in pre-Alpha
 ### Directory Structure
 Models are organized in a structured directory format:
 ```
-diode-models/diode_models/<heuristic>/<hardware>/model
+diode_models/diode_models/<heuristic>/<hardware>/model
 ```
 
 For example:
 ```
-diode-models/diode_models/matmul/nvidia-h100/matmul_nvidia_h100_deep.pt
+diode_models/diode_models/matmul/nvidia-h100/matmul_nvidia_h100_deep.pt
 ```
 
 ## Get Started

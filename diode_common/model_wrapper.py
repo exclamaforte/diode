@@ -2,7 +2,7 @@
 Model wrapper for loading and running inference on trained models.
 
 This module provides common functionality for loading and running models
-that is shared between the diode and diode-models packages.
+that is shared between the diode and diode_models packages.
 """
 
 import os

@@ -47,8 +47,8 @@ Diode is a framework for developing heuristics that plug into PyTorch's external
 4. Install the project in development mode:
    ```bash
    pip install -e .
-   pip install -e ./diode-models
-   pip install -e ./diode-datasets
+   pip install -e ./diode_models
+   pip install -e ./diode_datasets
    pip install -e ./diode_common
    ```
 
@@ -64,8 +64,8 @@ The project is organized into several packages:
 ```
 diode/
 ├── diode/                    # Core framework
-├── diode-models/            # Pre-trained models
-├── diode-datasets/          # Dataset utilities
+├── diode_models/            # Pre-trained models
+├── diode_datasets/          # Dataset utilities
 ├── diode_common/            # Shared utilities
 ├── examples/                # Usage examples
 ├── tests/                   # Test suite
@@ -222,8 +222,8 @@ Fixes #123
 
 When contributing pre-trained models or datasets:
 
-1. **Models**: Place in `diode-models/diode_models/<heuristic>/<hardware>/`
-2. **Datasets**: Add to `diode-datasets/diode_datasets/datasets/`
+1. **Models**: Place in `diode_models/diode_models/<heuristic>/<hardware>/`
+2. **Datasets**: Add to `diode_datasets/diode_datasets/datasets/`
 3. **Documentation**: Include clear documentation about:
    - Hardware compatibility
    - Performance characteristics

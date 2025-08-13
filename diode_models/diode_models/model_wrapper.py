@@ -2,7 +2,7 @@
 Model wrapper for loading and running inference on trained models.
 
 This module imports the common ModelWrapper from diode_common and extends it
-with diode-models-specific functionality.
+with diode_models-specific functionality.
 """
 
 import os
@@ -130,7 +130,7 @@ class ModelWrapper(CommonModelWrapper):
     """
     Wrapper for loading and running inference on trained models.
     
-    This class extends the common ModelWrapper with diode-models-specific functionality.
+    This class extends the common ModelWrapper with diode_models-specific functionality.
     """
     
     def __init__(

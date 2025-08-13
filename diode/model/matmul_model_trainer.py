@@ -370,13 +370,13 @@ def get_model_save_path(
         hardware_name: Name of the hardware (e.g., "NVIDIA-H100", "AMD-MI250", "Intel-CPU")
         model_name: Name of the model file
         base_dir: Base directory for models. If None, uses the default
-                 diode-models directory structure
+                 diode_models directory structure
     
     Returns:
         Path object for the model save location
     """
     if base_dir is None:
-        # Use the default directory structure in diode-models
+        # Use the default directory structure in diode_models
         try:
             import diode_models
             base_dir = Path(diode_models.__file__).parent

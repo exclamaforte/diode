@@ -1,10 +1,10 @@
 # diode_common
 
-This package provides common functionality shared between the `diode` and `diode-models` packages.
+This package provides common functionality shared between the `diode` and `diode_models` packages.
 
 ## Overview
 
-`diode_common` contains shared code that is used by both the main `diode` package and the `diode-models` package. This approach eliminates code duplication and ensures that both packages use the same core functionality.
+`diode_common` contains shared code that is used by both the main `diode` package and the `diode_models` package. This approach eliminates code duplication and ensures that both packages use the same core functionality.
 
 ## Components
 
@@ -22,7 +22,7 @@ The primary component is the `ModelWrapper` class, which provides functionality 
 
 ## Usage
 
-This package is not meant to be used directly. Instead, it is included as a dependency in both the `diode` and `diode-models` packages.
+This package is not meant to be used directly. Instead, it is included as a dependency in both the `diode` and `diode_models` packages.
 
 ### In diode
 
@@ -34,13 +34,13 @@ class ModelWrapper(CommonModelWrapper):
     ...
 ```
 
-### In diode-models
+### In diode_models
 
 ```python
 from diode_common.model_wrapper import ModelWrapper as CommonModelWrapper
 
 class ModelWrapper(CommonModelWrapper):
-    # diode-models-specific extensions
+    # diode_models-specific extensions
     ...
 ```
 
@@ -49,9 +49,9 @@ class ModelWrapper(CommonModelWrapper):
 When making changes to shared functionality:
 
 1. Update the code in `diode_common`
-2. Test with both `diode` and `diode-models` to ensure compatibility
+2. Test with both `diode` and `diode_models` to ensure compatibility
 3. Update version numbers as needed
 
 ## Installation
 
-This package is automatically included when installing either `diode` or `diode-models`. It is not intended to be installed separately.
+This package is automatically included when installing either `diode` or `diode_models`. It is not intended to be installed separately.

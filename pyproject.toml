@@ -26,7 +26,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-datasets = ["diode-datasets>=0.1.0"]
+datasets = ["diode_datasets>=0.1.0"]
 lint = [
     "lintrunner>=0.12.0",
     "flake8==6.1.0",
@@ -53,7 +53,7 @@ lint = [
 ]
 
 [tool.setuptools]
-packages = {find = {exclude = ["tests", "tests.*", "diode-models", "diode-models.*", "diode_common"]}}
+packages = {find = {exclude = ["tests", "tests.*", "diode_models", "diode_models.*", "diode_common"]}}
 
 [tool.setuptools.package-data]
 diode = ["**/*.py"]

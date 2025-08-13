@@ -1,5 +1,5 @@
 """
-Integration tests for the diode-models package.
+Integration tests for the diode_models package.
 """
 
 import os
@@ -22,7 +22,7 @@ from diode.model.matmul_model_trainer import (
 
 
 class TestDiodeModelsIntegration(unittest.TestCase):
-    """Integration tests for the diode-models package."""
+    """Integration tests for the diode_models package."""
 
     def setUp(self):
         """Set up the test environment."""
@@ -86,8 +86,8 @@ class TestDiodeModelsIntegration(unittest.TestCase):
         self.problem_features = torch.randn(5, self.problem_feature_dim)
         self.config_features = torch.randn(5, self.config_feature_dim)
         
-        # Create a mock directory structure in the diode-models package
-        self.diode_models_dir = Path("/home/gabeferns/diode/diode-models/diode_models")
+        # Create a mock directory structure in the diode_models package
+        self.diode_models_dir = Path("/home/gabeferns/diode/diode_models/diode_models")
         self.trained_models_dir = self.diode_models_dir / "trained_models"
         
         # Create the directory structure for the new format
@@ -97,7 +97,7 @@ class TestDiodeModelsIntegration(unittest.TestCase):
         os.makedirs(self.matmul_cpu_dir, exist_ok=True)
         os.makedirs(self.matmul_gpu_dir, exist_ok=True)
         
-        # Copy the models to the diode-models package with the new structure
+        # Copy the models to the diode_models package with the new structure
         shutil.copy(self.base_model_path.with_suffix(".pt"), self.matmul_cpu_dir / "matmul_test_cpu_base.pt")
         shutil.copy(self.deep_model_path.with_suffix(".pt"), self.matmul_gpu_dir / "matmul_test_gpu_deep.pt")
         

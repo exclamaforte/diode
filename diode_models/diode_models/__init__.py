@@ -1,5 +1,5 @@
 """
-diode-models package.
+diode_models package.
 
 This package provides pre-trained models for the diode package.
 """
