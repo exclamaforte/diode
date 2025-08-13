@@ -27,6 +27,30 @@ dependencies = [
 
 [project.optional-dependencies]
 datasets = ["diode-datasets>=0.1.0"]
+lint = [
+    "lintrunner>=0.12.0",
+    "flake8==6.1.0",
+    "flake8-bugbear==23.3.23",
+    "flake8-comprehensions==3.15.0",
+    "flake8-executable==2.1.3",
+    "flake8-logging-format==0.9.0",
+    "flake8-pyi==23.3.1",
+    "flake8-simplify==0.19.3",
+    "mccabe==0.7.0",
+    "pycodestyle==2.11.1",
+    "pyflakes==3.1.0",
+    "mypy==1.16.0",
+    "types-requests==2.27.25",
+    "types-pyyaml==6.0.1",
+    "types-setuptools==79.0.0.20250422",
+    "ruff==0.12.2",
+    "black==23.12.1",
+    "usort==1.0.8.post1",
+    "isort==6.0.1",
+    "codespell[toml]==2.4.1",
+    "packaging==25.0",
+    "tomli==2.2.1 ; python_version < '3.11'",
+]
 
 [tool.setuptools]
 packages = {find = {exclude = ["tests", "tests.*", "diode-models", "diode-models.*", "diode_common"]}}
@@ -34,3 +58,55 @@ packages = {find = {exclude = ["tests", "tests.*", "diode-models", "diode-models
 [tool.setuptools.package-data]
 diode = ["**/*.py"]
 diode_common = ["**/*.py"]
+
+[tool.ruff]
+target-version = "py38"
+line-length = 88
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+]
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]  # unused imports in __init__.py
+"tests/**/*.py" = ["B011"]  # assert False
+
+[tool.ruff.isort]
+known-first-party = ["diode", "diode_common"]
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+known_first_party = ["diode", "diode_common"]
+line_length = 88
+
+[tool.codespell]
+skip = "*.git,*.pdf,*.svg"
+check-hidden = true
