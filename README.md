@@ -4,19 +4,12 @@ Warning: code is in pre-Alpha
 <img width="718" height="571" alt="diode" src="https://github.com/user-attachments/assets/308cb05a-01d9-4fc4-9c03-7e13ade91475" />
 
 # diode
-`diode` is a framework for defining heuristics in `torch` and `torch.compile`. It makes it easy to develop heuristics that plug into the external interfaces of `torch` and `torch.compile`.
-
-Torch has interfaces that allow users to both gather data and make decisions on and with the compile process. These interfaces can hard to discover and use, and this project aims to systematize these to make them more approachable.
+`diode` is a framework that makes it easy to develop heuristics that plug into the external interfaces of `torch` and `torch.compile`. It allows users to both gather data from torch and train models on the gathered data.
 
 ## Target Audience:
 - Hardware Vendors looking to optimize `torch` heuristics for their hardware.
 - OSS Contributors looking to add support for less popular hardware.
 - Developers looking to adapt the compilation of their model to their specific situation.
-
-## Common Herustic Types
-- ML Models: Collect and train on data directly from `torch`.
-- Lookup Tables: Build a json based lookup table that's editable by external tools like `jq`.
-- Custom Logic: Come with your own ideas/functions.
 
 ## Features:
 - Pre-Trained Models: Profit from community efforts to gather data and train models.
@@ -24,6 +17,11 @@ Torch has interfaces that allow users to both gather data and make decisions on 
 - Stable Type Definitions: storing data from the external interfaces.
 - Model Training Code: Train ML models on the gathered data and contribute back to the `torch` community.
 - Caching code: Create Lookup Tables (LUT) to ensure maximum performance.
+
+## Common Herustic Types
+- ML Models: Collect and train on data directly from `torch`.
+- Lookup Tables: Build a json based lookup table that's editable by external tools like `jq`.
+- Custom Logic: Come with your own ideas/functions.
 
 ## Featured Heruistics
 - Matmul Kernel Prediction: Predict the runtime of matmul kernel.
