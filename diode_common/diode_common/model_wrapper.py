@@ -14,6 +14,54 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+
+def list_available_models(
+    models_dir: Optional[Union[str, Path]] = None,
+    heuristic_name: Optional[str] = None,
+    hardware_name: Optional[str] = None,
+) -> List[str]:
+    """
+    List all available models in the models directory.
+    
+    Args:
+        models_dir: Directory containing the models. If None, will need to be
+                   provided by the calling package.
+        heuristic_name: Filter models by heuristic name (e.g., "matmul")
+        hardware_name: Filter models by hardware name (e.g., "NVIDIA-H100", "AMD-MI250", "Intel-CPU")
+    
+    Returns:
+        List of model file paths
+    """
+    if models_dir is None:
+        raise ValueError("models_dir must be provided")
+    
+    models_dir = Path(models_dir)
+    
+    # Start with the base directory
+    search_dir = models_dir
+    
+    # If heuristic is specified, add it to the path
+    if heuristic_name:
+        search_dir = search_dir / heuristic_name
+        
+        # If hardware is also specified, add it to the path
+        if hardware_name:
+            search_dir = search_dir / hardware_name
+    
+    # Find all .pt files in the directory and its subdirectories
+    model_files = []
+    if search_dir.exists():
+        for path in search_dir.glob("**/*.pt"):
+            model_files.append(str(path))
+    else:
+        # Fallback to os.walk for compatibility
+        for root, _, files in os.walk(str(search_dir)):
+            for file in files:
+                if file.endswith(".pt"):
+                    model_files.append(os.path.join(root, file))
+    
+    return model_files
+
 def load_model_config(model_path: Union[str, Path], model_config_class=None) -> Optional[Any]:
     """
     Load the configuration for a model.
@@ -88,6 +136,26 @@ class ModelWrapper:
         # Compile the model if requested
         if compile_model:
             self._compile_model()
+    
+    @staticmethod
+    def list_available_models(
+        models_dir: Optional[Union[str, Path]] = None,
+        heuristic_name: Optional[str] = None,
+        hardware_name: Optional[str] = None,
+    ) -> List[str]:
+        """
+        List all available models in the models directory.
+        
+        Args:
+            models_dir: Directory containing the models. If None, will need to be
+                       provided by the calling package.
+            heuristic_name: Filter models by heuristic name (e.g., "matmul")
+            hardware_name: Filter models by hardware name (e.g., "NVIDIA-H100", "AMD-MI250", "Intel-CPU")
+        
+        Returns:
+            List of model file paths
+        """
+        return list_available_models(models_dir, heuristic_name, hardware_name)
     
     def _load_model(self) -> None:
         """

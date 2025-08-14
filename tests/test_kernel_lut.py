@@ -17,7 +17,7 @@ import torch
 from diode.types.json_serializable import JSONSerializable
 from diode.types.matmul_types import (
     Hardware,
-    MMProblem,
+    MMShape,
     Operation,
     Solution,
     Table,
@@ -72,12 +72,12 @@ def triton_gemm_config_strategy(draw):
 
 @composite
 def mm_problem_strategy(draw):
-    """Generate MMProblem instances."""
+    """Generate MMShape instances."""
     B = draw(st.integers(min_value=1, max_value=10000))
     M = draw(st.integers(min_value=1, max_value=10000))
     N = draw(st.integers(min_value=1, max_value=10000))
     K = draw(st.integers(min_value=1, max_value=10000))
-    return MMProblem(
+    return MMShape(
         B=B,
         M=M,
         M_dtype=draw(torch_dtype_strategy()),
@@ -102,7 +102,7 @@ def operation_strategy(draw):
         config = draw(triton_gemm_config_strategy())
         # Create a Solution object containing the config
         sol = Solution(name=f"solution_{len(solution)}", config=[config])
-        # Use the problem object directly as key since MMProblem should be hashable
+        # Use the problem object directly as key since MMShape should be hashable
         solution[problem] = sol
 
     return Operation(
@@ -199,7 +199,7 @@ class TestKernelLUTPropertyBased(TestCase):
 
     @given(mm_problem_strategy())
     def test_mm_problem_roundtrip(self, problem):
-        """Test that MMProblem to_dict/from_dict are inverses."""
+        """Test that MMShape to_dict/from_dict are inverses."""
         # Convert to dict and back
         problem_dict = problem.to_dict()
 
@@ -211,10 +211,10 @@ class TestKernelLUTPropertyBased(TestCase):
         self.assertIn("version", problem_dict)
 
         # Test round-trip
-        reconstructed = MMProblem.from_dict(problem_dict)
+        reconstructed = MMShape.from_dict(problem_dict)
 
         # Type checking: verify reconstructed object is correct type
-        self.assertIsInstance(reconstructed, MMProblem)
+        self.assertIsInstance(reconstructed, MMShape)
 
         # Type checking: verify all fields have correct types
         self.assertIsInstance(reconstructed.B, int)
@@ -264,7 +264,7 @@ class TestKernelLUTPropertyBased(TestCase):
 
         # Type check solution contents
         for key, value in reconstructed.solution.items():
-            self.assertIsInstance(key, MMProblem)  # Keys should be MMProblem objects
+            self.assertIsInstance(key, MMShape)  # Keys should be MMShape objects
             self.assertIsInstance(value, Solution)  # Values should be Solution objects
 
     @given(hardware_strategy())
@@ -388,7 +388,7 @@ class TestKernelLUTPropertyBased(TestCase):
         self.assertEqual(len(deserialized_table.hardware), 0)
 
         # Test all lookup methods return None for empty table
-        dummy_problem = MMProblem(
+        dummy_problem = MMShape(
             B=100,
             M=100,
             M_dtype=torch.float32,
@@ -464,7 +464,7 @@ class TestKernelLUTPropertyBased(TestCase):
             num_warps=4,
             version=version,
         )
-        problem = MMProblem(
+        problem = MMShape(
             B=1,
             M=1,
             M_dtype=torch.float32,
@@ -531,7 +531,7 @@ class TestKernelLUTLookup(TestCase):
             ALLOW_TF32=True,
         )
         # Create sample problems
-        self.problem1 = MMProblem(
+        self.problem1 = MMShape(
             B=1024,
             M=1024,
             M_dtype=torch.float32,
@@ -543,7 +543,7 @@ class TestKernelLUTLookup(TestCase):
             out_stride=(1024 * 512, 512, 1),
         )
 
-        self.problem2 = MMProblem(
+        self.problem2 = MMShape(
             B=2048,
             M=2048,
             M_dtype=torch.float16,
@@ -631,7 +631,7 @@ class TestKernelLUTLookup(TestCase):
     def test_lookup_invalid_problem(self):
         """Test lookup with problem not in solution."""
         # Create a problem that's not in any solution
-        unknown_problem = MMProblem(
+        unknown_problem = MMShape(
             B=9999,
             M=9999,
             M_dtype=torch.float32,
@@ -733,7 +733,7 @@ class TestKernelLUTLookup(TestCase):
         """Test that lookup works correctly with problem equality."""
         # Create a new problem with same values as problem1
 
-        identical_problem = MMProblem(
+        identical_problem = MMShape(
             B=1024,
             M=1024,
             M_dtype=torch.float32,
@@ -745,8 +745,8 @@ class TestKernelLUTLookup(TestCase):
             out_stride=(1024 * 512, 512, 1),
         )
 
-        # This should work if MMProblem implements proper equality
-        # Note: This test might fail if MMProblem doesn't implement __eq__ and __hash__
+        # This should work if MMShape implements proper equality
+        # Note: This test might fail if MMShape doesn't implement __eq__ and __hash__
         try:
             result = self.table.lookup("gpu1", "mm", identical_problem)
             # If the lookup works, the problems are considered equal
@@ -755,7 +755,7 @@ class TestKernelLUTLookup(TestCase):
                 self.assertGreater(len(result), 0)
                 self.assertEqual(result[0].name, "config1")
         except (KeyError, TypeError):
-            # If lookup fails, it's likely because MMProblem doesn't implement proper equality
+            # If lookup fails, it's likely because MMShape doesn't implement proper equality
             # This is expected behavior and indicates a potential issue to fix
             pass
 
@@ -882,7 +882,7 @@ class TestKernelLUTLookup(TestCase):
         self.assertIsNone(result)
 
         # Invalid problem
-        unknown_problem = MMProblem(
+        unknown_problem = MMShape(
             B=9999,
             M=9999,
             M_dtype=torch.float32,
@@ -977,7 +977,7 @@ class TestKernelLUTLookup(TestCase):
         self.assertIsNone(result)
 
         # Invalid problem
-        unknown_problem = MMProblem(
+        unknown_problem = MMShape(
             B=9999,
             M=9999,
             M_dtype=torch.float32,
@@ -1066,7 +1066,7 @@ class TestKernelLUTIntegration(TestCase):
             ALLOW_TF32=True,
         )
 
-        self.problem1 = MMProblem(
+        self.problem1 = MMShape(
             B=512,
             M=512,
             M_dtype=torch.float32,
@@ -1081,7 +1081,7 @@ class TestKernelLUTIntegration(TestCase):
         # Invalid problem
 
         # Create sample problems
-        self.problem2 = MMProblem(
+        self.problem2 = MMShape(
             B=1024,
             M=1024,
             M_dtype=torch.float32,
@@ -1301,7 +1301,7 @@ class TestKernelLUTIntegration(TestCase):
 
         problems = []
         for i in range(5):
-            problem = MMProblem(
+            problem = MMShape(
                 B=256 * (i + 1),
                 M=256 * (i + 1),
                 M_dtype=torch.float32,
@@ -1407,7 +1407,7 @@ class TestKernelLUTIntegration(TestCase):
         # Test problems with different dtypes
         problems = []
         for i, dtype in enumerate(dtypes_to_test[:3]):  # Use first 3 dtypes
-            problem = MMProblem(
+            problem = MMShape(
                 B=100 * (i + 1),
                 M=100 * (i + 1),
                 M_dtype=dtype,
@@ -1458,7 +1458,7 @@ class TestKernelLUTIntegration(TestCase):
 
                     for prob, sol in op.solution.items():
                         # Type check Problem fields including torch.dtype preservation
-                        self.assertIsInstance(prob, MMProblem)
+                        self.assertIsInstance(prob, MMShape)
                         self.assertIsInstance(prob.B, int)
                         self.assertIsInstance(prob.M, int)
                         self.assertIsInstance(prob.M_dtype, torch.dtype)
@@ -1494,7 +1494,7 @@ class TestKernelLUTIntegration(TestCase):
 
         # Test individual dtype preservation for all dtypes
         for dtype in dtypes_to_test:
-            problem = MMProblem(
+            problem = MMShape(
                 B=100,
                 M=100,
                 M_dtype=dtype,
@@ -1508,7 +1508,7 @@ class TestKernelLUTIntegration(TestCase):
 
             # Serialize and deserialize
             problem_dict = problem.to_dict()
-            reconstructed = MMProblem.from_dict(problem_dict)
+            reconstructed = MMShape.from_dict(problem_dict)
 
             # Type check: ensure torch.dtype fields are still torch.dtype
             self.assertIsInstance(
@@ -1931,9 +1931,9 @@ class TestLeafTypeClasses(TestCase):
             for i in range(len(test_objects))
         ]
 
-        # Create problems using standard MMProblem (not our test classes)
+        # Create problems using standard MMShape (not our test classes)
         problems = [
-            MMProblem(
+            MMShape(
                 B=100 * (i + 1),
                 M=100 * (i + 1),
                 M_dtype=torch.float32,
@@ -2206,7 +2206,7 @@ class TestTritonConfigConversion(TestCase):
             self.triton_configs, name_prefix="lut_test"
         )
         # Create a problem
-        self.problem = MMProblem(
+        self.problem = MMShape(
             B=1024,
             M=1024,
             M_dtype=torch.float32,
@@ -2820,7 +2820,7 @@ class TestTritonConfigConversion(TestCase):
                 },
                 "version": 1,
             },
-            # Invalid MMProblem key
+            # Invalid MMShape key
             {
                 "hardware": {
                     "gpu1": {
@@ -2865,7 +2865,7 @@ class TestTritonConfigConversion(TestCase):
             num_warps=4,
         )
 
-        valid_problem = MMProblem(
+        valid_problem = MMShape(
             B=1024,
             M=1024,
             M_dtype=torch.float32,
@@ -3007,7 +3007,7 @@ class TestKernelLUTParseMethodCalls(TestCase):
             num_warps=4,
         )
 
-        problem = MMProblem(
+        problem = MMShape(
             B=1024,
             M=1024,
             M_dtype=torch.float32,
@@ -3031,7 +3031,7 @@ class TestKernelLUTParseMethodCalls(TestCase):
         with mock.patch.object(
             TritonGEMMConfig, "parse", wraps=TritonGEMMConfig.parse
         ) as mock_triton_parse, mock.patch.object(
-            MMProblem, "parse", wraps=MMProblem.parse
+            MMShape, "parse", wraps=MMShape.parse
         ) as mock_problem_parse:
             # Deserialize the table - this should call parse methods for leaf classes
             reconstructed_table = Table.deserialize(serialized_json)
@@ -3052,15 +3052,15 @@ class TestKernelLUTParseMethodCalls(TestCase):
                 "TritonGEMMConfig.parse should be called at least once",
             )
 
-            # MMProblem.parse should be called for each problem key in the serialized data
+            # MMShape.parse should be called for each problem key in the serialized data
             self.assertTrue(
                 mock_problem_parse.called,
-                "MMProblem.parse should be called for leaf class",
+                "MMShape.parse should be called for leaf class",
             )
             self.assertGreater(
                 mock_problem_parse.call_count,
                 0,
-                "MMProblem.parse should be called at least once",
+                "MMShape.parse should be called at least once",
             )
 
             # Verify the arguments passed to parse methods are strings
@@ -3124,7 +3124,7 @@ class TestKernelLUTParseMethodCalls(TestCase):
         ]
 
         problems = [
-            MMProblem(
+            MMShape(
                 B=1024 * (i + 1),
                 M=1024 * (i + 1),
                 M_dtype=torch.float32,
@@ -3155,7 +3155,7 @@ class TestKernelLUTParseMethodCalls(TestCase):
         with mock.patch.object(
             TritonGEMMConfig, "parse", wraps=TritonGEMMConfig.parse
         ) as mock_triton_parse, mock.patch.object(
-            MMProblem, "parse", wraps=MMProblem.parse
+            MMShape, "parse", wraps=MMShape.parse
         ) as mock_problem_parse:
             # Deserialize the table
             reconstructed_table = Table.deserialize(serialized_json)
@@ -3175,7 +3175,7 @@ class TestKernelLUTParseMethodCalls(TestCase):
             self.assertEqual(
                 mock_problem_parse.call_count,
                 3,
-                f"MMProblem.parse should be called 3 times, was called {mock_problem_parse.call_count} times",
+                f"MMShape.parse should be called 3 times, was called {mock_problem_parse.call_count} times",
             )
 
             # Verify all calls were made with string arguments
@@ -3188,7 +3188,7 @@ class TestKernelLUTParseMethodCalls(TestCase):
             for call in mock_problem_parse.call_args_list:
                 args, kwargs = call
                 self.assertIsInstance(
-                    args[0], str, "MMProblem.parse should be called with string"
+                    args[0], str, "MMShape.parse should be called with string"
                 )
 
     def test_parse_method_not_called_for_non_leaf_classes(self):
@@ -3207,7 +3207,7 @@ class TestKernelLUTParseMethodCalls(TestCase):
             num_warps=4,
         )
 
-        problem = MMProblem(
+        problem = MMShape(
             B=1024,
             M=1024,
             M_dtype=torch.float32,
@@ -3267,7 +3267,7 @@ class TestKernelLUTParseMethodCalls(TestCase):
         self.assertTrue(
             TritonGEMMConfig._is_leaf, "TritonGEMMConfig should be a leaf class"
         )
-        self.assertTrue(MMProblem._is_leaf, "MMProblem should be a leaf class")
+        self.assertTrue(MMShape._is_leaf, "MMShape should be a leaf class")
 
         # Test that non-leaf classes have _is_leaf = False
         self.assertFalse(Solution._is_leaf, "Solution should not be a leaf class")
@@ -3286,9 +3286,9 @@ class TestKernelLUTParseMethodCalls(TestCase):
         )
 
         self.assertTrue(
-            hasattr(MMProblem, "parse"), "MMProblem should have parse method"
+            hasattr(MMShape, "parse"), "MMShape should have parse method"
         )
-        self.assertTrue(callable(MMProblem.parse), "MMProblem.parse should be callable")
+        self.assertTrue(callable(MMShape.parse), "MMShape.parse should be callable")
 
 
 class TestKernelLUTMalformedJSON(TestCase):
@@ -3310,7 +3310,7 @@ class TestKernelLUTMalformedJSON(TestCase):
         )
 
         # Create a valid problem for comparison
-        self.valid_problem = MMProblem(
+        self.valid_problem = MMShape(
             B=1024,
             M=1024,
             M_dtype=torch.float32,
@@ -3377,9 +3377,9 @@ class TestKernelLUTMalformedJSON(TestCase):
                 with self.assertRaises((ValueError, TypeError)):
                     TritonGEMMConfig.parse(malformed_json)
 
-                # Test MMProblem.parse
+                # Test MMShape.parse
                 with self.assertRaises((ValueError, TypeError)):
-                    MMProblem.parse(malformed_json)
+                    MMShape.parse(malformed_json)
 
     def test_malformed_json_missing_required_fields(self):
         """Test JSON with missing required fields."""
@@ -3388,7 +3388,7 @@ class TestKernelLUTMalformedJSON(TestCase):
             '{"name": "test"}',  # Missing grid, block_m, etc.
             '{"grid": 1, "block_m": 64}',  # Missing name
             '{"name": "test", "grid": 1, "block_m": 64}',  # Missing other required fields
-            # MMProblem missing required fields
+            # MMShape missing required fields
             '{"M": 1024}',  # Missing other dimensions
             '{"M": 1024, "N": 1024}',  # Missing K and dtypes
             '{"M": 1024, "N": 1024, "K": 512}',  # Missing dtypes
@@ -3408,9 +3408,9 @@ class TestKernelLUTMalformedJSON(TestCase):
                     with self.assertRaises((TypeError, ValueError, KeyError)):
                         TritonGEMMConfig.parse(malformed_json)
                 elif "M" in malformed_json:
-                    # This is an MMProblem case
+                    # This is an MMShape case
                     with self.assertRaises((TypeError, ValueError, KeyError)):
-                        MMProblem.parse(malformed_json)
+                        MMShape.parse(malformed_json)
                 else:
                     # This is a Table case
                     result = Table.deserialize(malformed_json)
@@ -3433,7 +3433,7 @@ class TestKernelLUTMalformedJSON(TestCase):
 "num_stages": 2, "num_warps": 4}',  # block_m should be int
             '{"name": "test", "grid": 1, "block_m": 64, "block_n": 64, "block_k": 32, "group_m": 8, \
 "num_stages": 2, "num_warps": 4, "EVEN_K": "true"}',  # EVEN_K should be bool
-            # MMProblem with wrong types
+            # MMShape with wrong types
             '{"B": 1024, "M": "1024", "M_dtype": "float32", "N": 1024, "K_dtype": "float32", "K": 512,\
 "out_dtype": "float32", "version": 1, "out_size": (1, 1024, 1024), "out_stride": (1, 1024, 1)}',  # M should be int
             '{"B": 1024, "M": 1024, "M_dtype": "invalid_dtype", "N": 1024, "K_dtype": "float32", "K": 512, \
@@ -3456,9 +3456,9 @@ class TestKernelLUTMalformedJSON(TestCase):
                     with self.assertRaises((ValueError, TypeError)):
                         TritonGEMMConfig.parse(malformed_json)
                 elif "M_dtype" in malformed_json:
-                    # This is an MMProblem case
+                    # This is an MMShape case
                     with self.assertRaises((ValueError, AttributeError)):
-                        MMProblem.parse(malformed_json)
+                        MMShape.parse(malformed_json)
                 else:
                     # This is a Table case
                     result = Table.deserialize(malformed_json)
@@ -3488,7 +3488,7 @@ G"float32", "version": 1}',
                 dtype_case=f"invalid_dtype_case_{i}",
             ):
                 with self.assertRaises((ValueError, TypeError, KeyError)):
-                    MMProblem.parse(malformed_json)
+                    MMShape.parse(malformed_json)
 
     def test_get_table_with_malformed_file(self):
         """Test get_table function with malformed JSON files."""

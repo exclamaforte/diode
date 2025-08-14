@@ -1,0 +1,18 @@
+# CI Requirements for Diode Project
+# Core testing framework
+pytest>=7.0.0
+pytest-cov>=4.0.0
+pytest-xdist>=3.0.0
+
+# Code quality and linting
+flake8>=6.0.0
+mypy>=1.0.0
+ruff>=0.1.0
+codespell>=2.2.0
+
+# Testing dependencies
+hypothesis>=6.0.0
+
+# Common dependencies that might be needed
+numpy>=1.20.0
+torch>=2.0.0

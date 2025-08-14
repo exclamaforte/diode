@@ -9,7 +9,7 @@ import torch._inductor.config as inductor_config
 
 from diode.types.matmul_types import (
     TritonGEMMConfig,
-    MMProblem,
+    MMShape,
     Table,
 )
 from diode.types.matmul_dataset import (
@@ -153,10 +153,10 @@ class MatmulDatasetCollector:
         # Get size hints for symbolic dimensions
         M, N, K = self._get_size_hints(mat1, mat2, M, N, K)
 
-        # Create MMProblem instance
+        # Create MMShape instance
         # Note: Some fields are approximated as we don't have all the information
         # from the feedback saver interface
-        problem = MMProblem(
+        problem = MMShape(
             B=1,  # Batch size, assuming 1 for now
             M=M,
             N=N,

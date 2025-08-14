@@ -10,7 +10,7 @@ The `MatmulDatasetCollector` class is designed to hook into PyTorch's feedback s
 
 - Hooks into PyTorch's feedback saver interface
 - Collects data from matrix multiplication operations (`mm` and `addmm`)
-- Stores data in structured types (`Dataset`, `TimedConfig`, `TritonGEMMConfig`, `MMProblem`, etc.)
+- Stores data in structured types (`Dataset`, `TimedConfig`, `TritonGEMMConfig`, `MMShape`, etc.)
 - Captures timing information for different configurations
 - Supports saving and loading data to/from files
 - Can be used as a context manager

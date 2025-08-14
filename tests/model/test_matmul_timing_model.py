@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../.
 
 from diode.model.matmul_timing_model import MatmulTimingModel, DeepMatmulTimingModel
 from diode.types.matmul_dataset import Dataset, TimedConfig, DatasetSolution, DatasetOperation, DatasetHardware
-from diode.types.matmul_types import MMProblem, TritonGEMMConfig
+from diode.types.matmul_types import MMShape, TritonGEMMConfig
 from diode.model.matmul_dataset_loader import MatmulTimingDataset, create_dataloaders
 
 
@@ -72,7 +72,7 @@ class TestMatmulTimingModel(unittest.TestCase):
         # Create problems and solutions
         for i in range(10):
             # Create a problem
-            problem = MMProblem(
+            problem = MMShape(
                 B=1,
                 M=64 * (i + 1),
                 N=32 * (i + 1),

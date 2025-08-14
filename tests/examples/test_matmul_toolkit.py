@@ -42,7 +42,7 @@ from examples.matmul_toolkit import (
 )
 
 from diode.types.matmul_dataset import Dataset
-from diode.types.matmul_types import MMProblem, TritonGEMMConfig
+from diode.types.matmul_types import MMShape, TritonGEMMConfig
 from diode.collection.matmul_dataset_collector import MatmulDatasetCollector
 from diode.model.matmul_timing_model import MatmulTimingModel, DeepMatmulTimingModel
 
@@ -68,7 +68,7 @@ def mock_dataset():
     dataset.hardware["test_gpu"].operation["mm"] = operation
     
     # Mock the problem and solution
-    problem = MagicMock(spec=MMProblem)
+    problem = MagicMock(spec=MMShape)
     problem.M = 128
     problem.N = 128
     problem.K = 128

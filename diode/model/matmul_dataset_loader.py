@@ -10,7 +10,7 @@ from typing import Dict, List, Tuple, Optional, Union
 from collections import OrderedDict
 
 from diode.types.matmul_dataset import Dataset as MatmulDataset
-from diode.types.matmul_types import MMProblem, TritonGEMMConfig
+from diode.types.matmul_types import MMShape, TritonGEMMConfig
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ class MatmulTimingDataset(Dataset):
     """
     PyTorch Dataset for matrix multiplication timing data.
     
-    This dataset extracts features from MMProblem and TritonGEMMConfig objects
+    This dataset extracts features from MMShape and TritonGEMMConfig objects
     and converts them to tensors for training a neural network.
     """
     
@@ -91,7 +91,7 @@ class MatmulTimingDataset(Dataset):
                     if isinstance(problem_str, str):
                         try:
                             problem_dict = json.loads(problem_str)
-                            problem = MMProblem(
+                            problem = MMShape(
                                 B=problem_dict["B"],
                                 M=problem_dict["M"],
                                 N=problem_dict["N"],
@@ -165,12 +165,12 @@ class MatmulTimingDataset(Dataset):
                         self.config_features.append(config_feature)
                         self.timings.append(timing)
     
-    def _extract_problem_features(self, problem: MMProblem) -> List[float]:
+    def _extract_problem_features(self, problem: MMShape) -> List[float]:
         """
-        Extract features from an MMProblem.
+        Extract features from an MMShape.
         
         Args:
-            problem: The MMProblem to extract features from
+            problem: The MMShape to extract features from
             
         Returns:
             List of features

@@ -25,7 +25,7 @@ dependencies = [
 ]
 
 [tool.setuptools]
-packages = ["diode_models", "diode_common"]
+packages = ["diode_models"]
 
 [tool.setuptools.package-data]
 diode_models = ["trained_models/**/*.pt", "trained_models/**/*.json"]

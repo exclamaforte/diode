@@ -15,7 +15,7 @@ from diode.types.matmul_dataset import (
 )
 from diode.types.matmul_types import (
     TritonGEMMConfig,
-    MMProblem,
+    MMShape,
     Table,
 )
 
@@ -186,7 +186,7 @@ class TestMatmulDatasetCollector(unittest.TestCase):
     def test_to_table(self):
         """Test converting the dataset to a table."""
         # Create a problem
-        problem = MMProblem(
+        problem = MMShape(
             B=1,
             M=128,
             N=64,
@@ -260,7 +260,7 @@ class TestMatmulDatasetCollector(unittest.TestCase):
     def test_save_to_file(self, mock_file):
         """Test saving the dataset to a file."""
         # Add some data to the dataset
-        problem = MMProblem(
+        problem = MMShape(
             B=1,
             M=128,
             N=64,
@@ -327,7 +327,7 @@ class TestMatmulDatasetCollector(unittest.TestCase):
     def test_save_table_to_file(self, mock_file):
         """Test saving the table to a file."""
         # Add some data to the dataset
-        problem = MMProblem(
+        problem = MMShape(
             B=1,
             M=128,
             N=64,

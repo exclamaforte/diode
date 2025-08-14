@@ -12,7 +12,7 @@ from diode.collection.matmul_dataset_collector import MatmulDatasetCollector
 from diode.types.matmul_dataset import Dataset
 from diode.types.matmul_types import (
     Table,
-    MMProblem,
+    MMShape,
     TritonGEMMConfig,
 )
 
@@ -151,7 +151,7 @@ class TestMatmulDatasetToTableConversion(unittest.TestCase):
         dataset = Dataset(hardware=OrderedDict())
         
         # Create a problem
-        problem = MMProblem(
+        problem = MMShape(
             B=1,
             M=64,
             N=32,

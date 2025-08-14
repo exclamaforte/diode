@@ -12,7 +12,7 @@ from torch.utils._ordered_set import OrderedSet
 from diode.types.json_serializable import JSONSerializable
 from diode.types.matmul_types import (
     TritonGEMMConfig,
-    MMProblem,
+    MMShape,
     Solution,
     Operation,
     Hardware,
@@ -49,7 +49,7 @@ class DatasetOperation(JSONSerializable):
     An operation with solutions for different problems.
     """
     name: str
-    solution: OrderedDict[MMProblem, DatasetSolution]
+    solution: OrderedDict[MMShape, DatasetSolution]
 
 
 @dataclass(kw_only=True)
@@ -88,7 +88,7 @@ class Dataset(JSONSerializable):
         self,
         hardware_name: str,
         op_name: str,
-        problem: MMProblem,
+        problem: MMShape,
         config: TritonGEMMConfig,
         time: float,
     ) -> None:
@@ -159,7 +159,7 @@ class Dataset(JSONSerializable):
         
         return table
 
-    def get_fastest_configs(self) -> Dict[Tuple[str, str, MMProblem], TritonGEMMConfig]:
+    def get_fastest_configs(self) -> Dict[Tuple[str, str, MMShape], TritonGEMMConfig]:
         """
         Get the fastest configuration for each (hardware, operation, problem) tuple.
         

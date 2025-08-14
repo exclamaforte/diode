@@ -17,7 +17,7 @@ from diode.types.matmul_dataset import (
 )
 from diode.types.matmul_types import (
     TritonGEMMConfig,
-    MMProblem,
+    MMShape,
     Table,
 )
 
@@ -32,7 +32,7 @@ class TestMatmulDataset(unittest.TestCase):
         self.op_name = "mm"
         
         # Create a problem
-        self.problem = MMProblem(
+        self.problem = MMShape(
             B=1,
             M=64,
             N=32,
