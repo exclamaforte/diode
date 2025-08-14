@@ -2,7 +2,7 @@ import torch
 from torch._inductor.select_algorithm import add_feedback_saver, clear_feedback_saver
 from collections import OrderedDict
 import logging
-from typing import Dict, List, Optional, Tuple, Union, Any
+from typing import Dict, List, Any
 
 # Import the size_hints function from PyTorch inductor
 import torch._inductor.config as inductor_config
@@ -14,7 +14,6 @@ from diode.types.matmul_types import (
 )
 from diode.types.matmul_dataset import (
     Dataset,
-    TimedConfig,
 )
 
 logger = logging.getLogger(__name__)

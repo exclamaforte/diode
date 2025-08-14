@@ -13,6 +13,7 @@ import sys
 import json
 import pytest
 import torch
+import numpy as np
 from unittest.mock import patch, MagicMock, mock_open
 from collections import OrderedDict
 
@@ -395,12 +396,13 @@ def test_run_collector_example(mock_print, mock_cuda, mock_collector_class, mock
 # Model Training and Evaluation Function Tests
 ###########################################
 
+@patch("examples.matmul_toolkit.plot_training_history")
 @patch("examples.matmul_toolkit.MatmulModelTrainer")
 @patch("examples.matmul_toolkit.create_dataloaders")
 @patch("examples.matmul_toolkit.DeepMatmulTimingModel")
 @patch("examples.matmul_toolkit.MatmulTimingModel")
 @patch("builtins.open", new_callable=mock_open, read_data='{"mock": "data"}')
-def test_train_model(mock_file, mock_base_model, mock_deep_model, mock_create_dataloaders, mock_trainer_class, tmp_path):
+def test_train_model(mock_file, mock_base_model, mock_deep_model, mock_create_dataloaders, mock_trainer_class, mock_plot_history, tmp_path):
     """Test the train_model function."""
     # Set up the mock objects
     mock_train_dataloader = MagicMock()
@@ -441,6 +443,7 @@ def test_train_model(mock_file, mock_base_model, mock_deep_model, mock_create_da
         mock_deep_model.assert_called_once()
         mock_trainer_class.assert_called_once()
         mock_trainer.train.assert_called_once()
+        mock_plot_history.assert_called_once()
         
         # Check that the function returned the expected result
         assert isinstance(result, tuple)

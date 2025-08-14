@@ -13,9 +13,9 @@ from diode.model.matmul_timing_model import MatmulTimingModel, DeepMatmulTimingM
 from diode.model.matmul_model_config import MatmulModelConfig
 
 # Import from the common module
-from diode_common.model_wrapper import ModelWrapper as CommonModelWrapper
-from diode_common.model_wrapper import load_model_config as common_load_model_config
-from diode_common.model_wrapper import list_available_models as common_list_available_models
+from diode_common.diode_common.model_wrapper import ModelWrapper as CommonModelWrapper
+from diode_common.diode_common.model_wrapper import load_model_config as common_load_model_config
+from diode_common.diode_common.model_wrapper import list_available_models as common_list_available_models
 
 
 def load_model_config(model_path):

@@ -4,6 +4,7 @@ import torch
 import json
 import logging
 from dataclasses import dataclass, fields
+from collections import OrderedDict as CollectionsOrderedDict
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +42,7 @@ class JSONSerializable:
                     )
             for k, v in inp.items():
                 v_type = cls.__dataclass_fields__[k].type
-                if get_origin(v_type) is OrderedDict:
+                if get_origin(v_type) is OrderedDict or get_origin(v_type) is CollectionsOrderedDict:
                     k1_type, v1_type = get_args(v_type)
                     if isinstance(k1_type, type) and issubclass(
                         k1_type, JSONSerializable

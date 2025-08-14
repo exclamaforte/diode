@@ -12,9 +12,9 @@ from pathlib import Path
 from dataclasses import dataclass
 
 # Import from the common module
-from diode_common.model_wrapper import ModelWrapper as CommonModelWrapper
-from diode_common.model_wrapper import load_model_config as common_load_model_config
-from diode_common.model_wrapper import list_available_models as common_list_available_models
+from diode_common.diode_common.model_wrapper import ModelWrapper as CommonModelWrapper
+from diode_common.diode_common.model_wrapper import load_model_config as common_load_model_config
+from diode_common.diode_common.model_wrapper import list_available_models as common_list_available_models
 
 # Import the model classes directly if available
 try:

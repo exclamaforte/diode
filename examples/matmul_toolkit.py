@@ -251,15 +251,15 @@ def analyze_worst_predictions(model, dataloader, device, top_n=10):
             targets = targets.to(device)
             
             outputs = model(problem_features, config_features)
-            errors = torch.abs(outputs - targets).cpu().numpy()
+            errors = torch.abs(outputs - targets).cpu()
             
             for i in range(len(errors)):
                 all_errors.append({
                     'error': errors[i].item(),
                     'predicted': outputs[i].item(),
                     'actual': targets[i].item(),
-                    'problem_features': problem_features[i].cpu().numpy(),
-                    'config_features': config_features[i].cpu().numpy(),
+                    'problem_features': problem_features[i].cpu(),
+                    'config_features': config_features[i].cpu(),
                 })
     
     # Sort by error (descending)
@@ -634,7 +634,6 @@ def train_model(
     """
     # Set the random seed for reproducibility
     torch.manual_seed(seed)
-    np.random.seed(seed)
     
     # Create directories if they don't exist
     os.makedirs(os.path.dirname(os.path.abspath(model_path)) if os.path.dirname(model_path) else ".", exist_ok=True)
@@ -711,11 +710,11 @@ def train_model(
     
     # Evaluate the model on the test set
     test_loss = trainer._evaluate(test_dataloader, "Test")
-    rmse = np.sqrt(test_loss)
+    rmse = torch.sqrt(torch.tensor(test_loss))
     
     logger.info(f"Test Loss (MSE): {test_loss:.6f}")
     logger.info(f"Test RMSE: {rmse:.6f}")
-    logger.info(f"Test RMSE (exp): {np.exp(rmse):.6f}")
+    logger.info(f"Test RMSE (exp): {torch.exp(torch.tensor(rmse)):.6f}")
     
     return model, history
 
@@ -829,11 +828,11 @@ def validate_model(
     
     # Evaluate the model on the validation dataset
     val_loss = trainer._evaluate(val_dataloader, "Validation")
-    rmse = np.sqrt(val_loss)
+    rmse = torch.sqrt(torch.tensor(val_loss))
     
     logger.info(f"Validation Loss (MSE): {val_loss:.6f}")
     logger.info(f"Validation RMSE: {rmse:.6f}")
-    logger.info(f"Validation RMSE (exp): {np.exp(rmse):.6f}")
+    logger.info(f"Validation RMSE (exp): {torch.exp(rmse):.6f}")
     
     # Analyze the worst predictions
     if top_n_worst > 0:
