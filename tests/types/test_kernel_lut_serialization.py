@@ -21,7 +21,7 @@ from diode.types.matmul_types import (
     Table,
     TritonGEMMConfig,
 )
-from diode.tests.types.test_kernel_lut_strategies import (
+from tests.types.test_kernel_lut_strategies import (
     torch_dtype_strategy,
     triton_gemm_config_strategy,
     mm_problem_strategy,
@@ -737,4 +737,36 @@ class TestLeafTypeClasses(TestCase):
         reconstructed = LeafTypeTestClass.from_dict(obj_dict)
 
         # Verify mixed OrderedDict is preserved with correct types
-        recon
+        reconstructed_dict = reconstructed.ordered_dict_field
+
+        # Check each key-value pair has correct type
+        self.assertIsNone(reconstructed_dict["none_key"])
+        self.assertIsInstance(reconstructed_dict["bool_key"], bool)
+        self.assertIsInstance(reconstructed_dict["int_key"], int)
+        self.assertIsInstance(reconstructed_dict["float_key"], float)
+        self.assertIsInstance(reconstructed_dict["str_key"], str)
+        self.assertIsInstance(reconstructed_dict["dtype_key"], torch.dtype)
+        self.assertIsInstance(reconstructed_dict["list_key"], list)
+        self.assertIsInstance(reconstructed_dict["nested_dict_key"], OrderedDict)
+
+        # Check values are preserved
+        self.assertEqual(reconstructed_dict["bool_key"], True)
+        self.assertEqual(reconstructed_dict["int_key"], 999)
+        self.assertEqual(reconstructed_dict["float_key"], 2.718)
+        self.assertEqual(reconstructed_dict["str_key"], "mixed_dict_string")
+        self.assertEqual(reconstructed_dict["dtype_key"], torch.float64)
+
+        # Check nested list types
+        list_val = reconstructed_dict["list_key"]
+        self.assertIsInstance(list_val[0], int)
+        self.assertIsInstance(list_val[1], str)
+        self.assertIsInstance(list_val[2], float)
+        self.assertIsInstance(list_val[3], torch.dtype)
+
+        # Check nested OrderedDict
+        nested_dict = reconstructed_dict["nested_dict_key"]
+        self.assertEqual(nested_dict["inner"], "value")
+
+
+if __name__ == "__main__":
+    run_tests()

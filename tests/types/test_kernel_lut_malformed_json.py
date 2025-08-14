@@ -296,10 +296,7 @@ class TestKernelLUTMalformedJSON(TestCase):
 
     def test_get_table_with_malformed_file(self):
         """Test get_table function with malformed JSON files."""
-        try:
-            from torch._inductor.kernel_lut import get_table, get_table_safe
-        except ImportError:
-            self.skipTest("torch._inductor.kernel_lut not available")
+        from diode.types.kernel_lut import get_table, get_table_safe
 
         malformed_json_cases = [
             '{"name": "test", "grid": 1',  # Missing closing brace
@@ -336,10 +333,7 @@ class TestKernelLUTMalformedJSON(TestCase):
 
     def test_get_table_with_nonexistent_file(self):
         """Test get_table function with nonexistent files."""
-        try:
-            from torch._inductor.kernel_lut import get_table, get_table_safe
-        except ImportError:
-            self.skipTest("torch._inductor.kernel_lut not available")
+        from diode.types.kernel_lut import get_table, get_table_safe
 
         nonexistent_path = "/path/that/does/not/exist.json"
 
