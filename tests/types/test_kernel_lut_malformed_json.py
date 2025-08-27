@@ -104,19 +104,6 @@ class TestKernelLUTParseMethodCalls(TestCase):
                 "MMShape.parse should be called at least once",
             )
 
-    def test_leaf_class_identification(self):
-        """Test that we can correctly identify which classes are leaf classes."""
-        # Test that leaf classes have _is_leaf = True
-        self.assertTrue(
-            TritonGEMMConfig._is_leaf, "TritonGEMMConfig should be a leaf class"
-        )
-        self.assertTrue(MMShape._is_leaf, "MMShape should be a leaf class")
-
-        # Test that non-leaf classes have _is_leaf = False
-        self.assertFalse(Solution._is_leaf, "Solution should not be a leaf class")
-        self.assertFalse(Operation._is_leaf, "Operation should not be a leaf class")
-        self.assertFalse(Hardware._is_leaf, "Hardware should not be a leaf class")
-        self.assertFalse(Table._is_leaf, "Table should not be a leaf class")
 
 
 class TestKernelLUTMalformedJSON(TestCase):

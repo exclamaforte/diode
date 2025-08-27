@@ -1,168 +1,174 @@
-import json
 import logging
-from collections import OrderedDict as CollectionsOrderedDict
-from dataclasses import dataclass, fields
-from typing import Any, get_args, get_origin, OrderedDict, TypeVar, Union
+from typing import Any, Dict, TypeVar
+from collections import OrderedDict
+import torch
 
 import msgpack
-import torch
+from pydantic import BaseModel, ConfigDict, field_serializer, field_validator
 from typing_extensions import Self
 
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T", bound="JSONSerializable")
-LeafType = Union[
-    None, bool, int, float, str, OrderedDict[str, Any], torch.dtype, list[Any]
-]
-JSONType = Union[T, LeafType]
 
 
-@dataclass(kw_only=True)
-class JSONSerializable:
+class JSONSerializable(BaseModel):
     """
-    This class implements a system similar to Pydantic Models for validating and serializing dataclasses.
+    Base class that provides JSON and MessagePack serialization capabilities using Pydantic.
+    This replaces the previous dataclass-based implementation with Pydantic models for
+    automatic type checking, validation, and hierarchical type support.
     """
 
     # Incrementing version will invalidate all LUT entries, in the case of major perf update or
     # changes to the Ontology.
     version: int = 1
-    _is_leaf: bool = False
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    def model_dump(self, **kwargs) -> Dict[str, Any]:
+        """Override model_dump to handle torch.dtype and other special types"""
+        # Remove any JSON-specific parameters that model_dump doesn't accept
+        filtered_kwargs = {k: v for k, v in kwargs.items() if k not in ['indent']}
+        
+        # Get the raw data before pydantic serialization to preserve OrderedDict
+        raw_data = {}
+        for field_name, field_info in self.__class__.model_fields.items():
+            if hasattr(self, field_name):
+                raw_data[field_name] = getattr(self, field_name)
+        raw_data['version'] = self.version
+        
+        # Apply our custom serialization to the raw data
+        return self._serialize_torch_dtypes(raw_data)
+
+    def _serialize_torch_dtypes(self, obj: Any) -> Any:
+        """Recursively serialize torch.dtype objects to strings and mark OrderedDict objects"""
+        if isinstance(obj, torch.dtype):
+            return str(obj).split(".")[-1]
+        elif isinstance(obj, JSONSerializable):
+            # If it's a JSONSerializable object, serialize it recursively
+            return obj.model_dump()
+        elif isinstance(obj, OrderedDict):
+            # Create a special marker for OrderedDict
+            result = {}
+            result['__ordered_dict_marker__'] = True
+            result['__ordered_dict_items__'] = [(k, self._serialize_torch_dtypes(v)) for k, v in obj.items()]
+            return result
+        elif isinstance(obj, dict):
+            return {k: self._serialize_torch_dtypes(v) for k, v in obj.items()}
+        elif isinstance(obj, (list, tuple)):
+            return [self._serialize_torch_dtypes(item) for item in obj]
+        else:
+            return obj
 
     @classmethod
-    def from_dict(cls, inp: OrderedDict[str, Any] | str) -> Self:
+    def model_validate(cls, obj: Any, **kwargs):
+        """Override model_validate to handle torch.dtype deserialization"""
+        if isinstance(obj, dict):
+            obj = cls._deserialize_torch_dtypes(obj)
+        return super().model_validate(obj, **kwargs)
+
+    @classmethod
+    def _deserialize_torch_dtypes(cls, obj: Any) -> Any:
+        """Recursively deserialize torch.dtype strings back to torch.dtype objects and restore OrderedDict objects"""
+        if isinstance(obj, dict):
+            # Check if this is a marked OrderedDict
+            if obj.get('__ordered_dict_marker__') is True and '__ordered_dict_items__' in obj:
+                # Restore OrderedDict from marked format
+                result = OrderedDict()
+                for k, v in obj['__ordered_dict_items__']:
+                    result[k] = cls._deserialize_torch_dtypes(v)
+                return result
+            else:
+                # Regular dict processing
+                result_type = OrderedDict if isinstance(obj, OrderedDict) else dict
+                result = result_type()
+                for k, v in obj.items():
+                    # Check if this looks like a torch dtype field
+                    if isinstance(k, str) and k.endswith('_dtype') and isinstance(v, str):
+                        try:
+                            result[k] = getattr(torch, v)
+                        except AttributeError:
+                            result[k] = v  # Keep as string if not a valid torch dtype
+                    else:
+                        result[k] = cls._deserialize_torch_dtypes(v)
+                return result
+        elif isinstance(obj, (list, tuple)):
+            return [cls._deserialize_torch_dtypes(item) for item in obj]
+        elif isinstance(obj, str):
+            # Check if this string might be a torch dtype
+            # Only convert strings that are actual torch dtypes
+            torch_dtype_names = {
+                'float32', 'float64', 'float16', 'bfloat16',
+                'int8', 'int16', 'int32', 'int64',
+                'uint8', 'uint16', 'uint32', 'uint64',
+                'bool', 'complex64', 'complex128'
+            }
+            
+            if obj in torch_dtype_names:
+                try:
+                    return getattr(torch, obj)
+                except AttributeError:
+                    return obj
+            elif obj.startswith('torch.') and obj[6:] in torch_dtype_names:
+                try:
+                    return getattr(torch, obj[6:])  # Remove 'torch.' prefix
+                except AttributeError:
+                    return obj
+            return obj
+        else:
+            return obj
+
+    @classmethod
+    def from_dict(cls, inp: Dict[str, Any] | str) -> Self:
         """
-        Convert a dictionary representation of the object.
+        Convert a dictionary representation to the object.
         """
-        try:
-            ret = OrderedDict()
-            if isinstance(inp, str):
-                if cls._is_leaf:
-                    return cls.parse(inp)
-                else:
-                    raise NotImplementedError(
-                        f"String representation not implemented for base {cls.__name__}"
-                    )
-            for k, v in inp.items():
-                v_type = cls.__dataclass_fields__[k].type
-                if (
-                    get_origin(v_type) is OrderedDict
-                    or get_origin(v_type) is CollectionsOrderedDict
-                ):
-                    k1_type, v1_type = get_args(v_type)
-                    if isinstance(k1_type, type) and issubclass(
-                        k1_type, JSONSerializable
-                    ):
-
-                        def kp(tmpk: Any) -> Any:
-                            return k1_type.from_dict(tmpk)
-
-                        k_process = kp
-                    else:
-
-                        def k_process(tmpk: Any) -> Any:
-                            return tmpk
-
-                    if isinstance(v1_type, type) and issubclass(
-                        v1_type, JSONSerializable
-                    ):
-
-                        def vp(tmpv: Any) -> Any:
-                            return v1_type.from_dict(tmpv)
-
-                        v_process = vp
-                    else:
-
-                        def v_process(tmpv: Any) -> Any:
-                            return tmpv
-
-                    v_new: Any = OrderedDict(
-                        (k_process(key), v_process(val)) for key, val in v.items()
-                    )
-
-                elif get_origin(v_type) is list:
-                    elem_type = get_args(v_type)[0]
-                    if isinstance(elem_type, type) and issubclass(
-                        elem_type, JSONSerializable
-                    ):
-                        v_new = [elem_type.from_dict(x) for x in v]
-                    else:
-                        v_new = v
-                elif isinstance(v_type, type) and issubclass(v_type, JSONSerializable):
-                    v_new = v_type.from_dict(v)
-                else:
-                    v_new = v
-                ret[k] = v_new
-            return cls(**ret)  # type: ignore[arg-type]
-        except Exception as e:
-            logger.error("Failed to deserialize %s from dict: %s", cls.__name__, e)
-            raise ValueError(f"Malformed data for {cls.__name__}: {e}") from e
+        if isinstance(inp, str):
+            return cls.model_validate_json(inp)
+        return cls.model_validate(inp)
 
     def to_dict(self) -> OrderedDict[str, Any]:
         """
         Convert the object to a dictionary representation.
-        Will be written to and from using json.dumps and json.loads.
         """
-        # get the fields of the dataclass
-        field_list = fields(self)
-        # filter out the _ fields
-        field_list = [field for field in field_list if not field.name.startswith("_")]
-        # ensure the fields are sorted for consistent serialization
-        field_list.sort(key=lambda x: x.name)
-        ret: OrderedDict[str, Any] = OrderedDict()
-        for field_obj in field_list:
-            field_val = getattr(self, field_obj.name)
-            if isinstance(field_val, JSONSerializable):
-                if field_val._is_leaf:
-                    ret[field_obj.name] = str(field_val)
-                else:
-                    ret[field_obj.name] = field_val.to_dict()
-            elif isinstance(field_val, list):
-                if len(field_val) == 0:
-                    ret[field_obj.name] = []
-                elif isinstance(field_val[0], JSONSerializable):
-                    if field_val[0]._is_leaf:
-                        ret[field_obj.name] = [str(x) for x in field_val]
-                    else:
-                        ret[field_obj.name] = [x.to_dict() for x in field_val]
-                else:
-                    ret[field_obj.name] = field_val
-            elif isinstance(field_val, OrderedDict):
-                tmp: OrderedDict[Any, Any] = OrderedDict()
-                for k, v in field_val.items():
-                    if isinstance(v, JSONSerializable):
-                        if v._is_leaf:
-                            new_v: Any = str(v)
-                        else:
-                            new_v = v.to_dict()
-                    else:
-                        new_v = v
-                    if isinstance(k, JSONSerializable):
-                        if k._is_leaf:
-                            new_k: Any = str(k)
-                        else:
-                            new_k = k.to_dict()
-                    else:
-                        new_k = k
-                    tmp[new_k] = new_v
-                ret[field_obj.name] = tmp
-            else:
-                ret[field_obj.name] = field_val
-        return ret
+        data = self.model_dump()
+        return OrderedDict(data)
+
+    def model_dump_json(self, **kwargs) -> str:
+        """Override model_dump_json to use our custom serialization"""
+        import json
+        # Extract JSON-specific parameters
+        indent = kwargs.pop('indent', None)
+        # Use our custom model_dump method and then convert to JSON
+        data = self.model_dump(**kwargs)
+        return json.dumps(data, indent=indent)
 
     def __str__(self) -> str:
         """
-        Return a string representation of the object.
+        Return a JSON string representation of the object.
         """
-        return json.dumps(self.to_dict())
+        return self.model_dump_json()
 
     @classmethod
     def parse(cls, string: str) -> Self:
         """
-        Parse the string representaiton of the object. Only reqiured for leaf nodes.
+        Parse the string representation of the object.
         """
-        raise NotImplementedError(
-            f"String representation not implemented for base {cls.__name__}"
-        )
+        import json
+        from pydantic import ValidationError
+        try:
+            # Parse JSON string to dict first
+            data = json.loads(string)
+            # Apply our custom deserialization
+            data = cls._deserialize_torch_dtypes(data)
+            # Then validate with pydantic
+            return cls.model_validate(data)
+        except ValidationError as e:
+            # Convert ValidationError to ValueError for backward compatibility
+            raise ValueError(f"Validation failed: {e}") from e
+        except json.JSONDecodeError as e:
+            # Convert JSON decode errors to ValueError
+            raise ValueError(f"Invalid JSON: {e}") from e
 
     def to_msgpack(self) -> bytes:
         """
@@ -170,7 +176,7 @@ class JSONSerializable:
         Returns bytes that can be written to a file or transmitted over a network.
         """
         try:
-            return msgpack.packb(self.to_dict(), use_bin_type=True)
+            return msgpack.packb(self.model_dump(), use_bin_type=True)
         except Exception as e:
             logger.error(
                 "Failed to serialize %s to MessagePack: %s", self.__class__.__name__, e
@@ -187,7 +193,7 @@ class JSONSerializable:
         """
         try:
             decoded_dict = msgpack.unpackb(data, raw=False, strict_map_key=False)
-            return cls.from_dict(decoded_dict)
+            return cls.model_validate(decoded_dict)
         except Exception as e:
             logger.error(
                 "Failed to deserialize %s from MessagePack: %s", cls.__name__, e

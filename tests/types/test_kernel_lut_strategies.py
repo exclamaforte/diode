@@ -5,7 +5,6 @@ Common test strategies and data classes for kernel lookup table tests.
 
 import json
 from collections import OrderedDict
-from dataclasses import dataclass, field
 from typing import Any
 
 import triton
@@ -26,6 +25,7 @@ from diode.types.kernel_lut import convert_triton_configs_to_gemm_configs
 from torch.utils._ordered_set import OrderedSet
 import unittest
 from unittest import TestCase
+from pydantic import Field
 
 
 # Hypothesis strategies for generating test data
@@ -149,11 +149,8 @@ def table_strategy(draw):
 # Test data classes for LeafType testing
 
 
-@dataclass(kw_only=True)
 class LeafTypeTestClass(JSONSerializable):
     """Test class that uses all LeafType values for comprehensive testing."""
-
-    _is_leaf: bool = True
 
     # Test all LeafType values
     none_field: None = None
@@ -161,19 +158,21 @@ class LeafTypeTestClass(JSONSerializable):
     int_field: int = 42
     float_field: float = 3.14
     str_field: str = "test_string"
-    ordered_dict_field: OrderedDict[str, Any] = field(
+    ordered_dict_field: OrderedDict[str, Any] = Field(
         default_factory=lambda: OrderedDict([("key1", "value1"), ("key2", 123)])
     )
     torch_dtype_field: torch.dtype = torch.float32
-    list_field: list[Any] = field(default_factory=lambda: [1, "two", 3.0, True])
+    list_field: list[Any] = Field(default_factory=lambda: [1, "two", 3.0, True])
+    
+    # Mark as leaf class for backward compatibility with tests
+    _is_leaf: bool = True
 
 
-@dataclass(kw_only=True)
 class NestedLeafTypeTestClass(JSONSerializable):
     """Test class with nested structures using LeafType values."""
 
     # Nested OrderedDict with various LeafType values
-    nested_dict: OrderedDict[str, Any] = field(
+    nested_dict: OrderedDict[str, Any] = Field(
         default_factory=lambda: OrderedDict(
             [
                 ("none_val", None),
@@ -188,7 +187,7 @@ class NestedLeafTypeTestClass(JSONSerializable):
     )
 
     # List containing various LeafType values
-    mixed_list: list[Any] = field(
+    mixed_list: list[Any] = Field(
         default_factory=lambda: [
             None,
             True,
@@ -205,14 +204,16 @@ class NestedLeafTypeTestClass(JSONSerializable):
     dtype1: torch.dtype = torch.float16
     dtype2: torch.dtype = torch.int32
     dtype3: torch.dtype = torch.bool
+    
+    # Mark as leaf class for backward compatibility with tests
+    _is_leaf: bool = True
 
 
-@dataclass(kw_only=True)
 class ComplexLeafTypeTestClass(JSONSerializable):
     """Test class with complex combinations of LeafType values."""
 
     # OrderedDict with nested structures
-    complex_dict: OrderedDict[str, Any] = field(
+    complex_dict: OrderedDict[str, Any] = Field(
         default_factory=lambda: OrderedDict(
             [
                 (
@@ -241,13 +242,16 @@ class ComplexLeafTypeTestClass(JSONSerializable):
     )
 
     # List of OrderedDicts
-    dict_list: list[Any] = field(
+    dict_list: list[Any] = Field(
         default_factory=lambda: [
             OrderedDict([("dict1_key", "dict1_value"), ("dict1_dtype", torch.float32)]),
             OrderedDict([("dict2_key", 42), ("dict2_dtype", torch.int64)]),
             OrderedDict([("dict3_key", None), ("dict3_dtype", torch.bool)]),
         ]
     )
+    
+    # Mark as leaf class for backward compatibility with tests
+    _is_leaf: bool = True
 
 
 # Hypothesis strategies for LeafType test classes

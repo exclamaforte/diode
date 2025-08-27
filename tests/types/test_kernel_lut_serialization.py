@@ -76,7 +76,6 @@ class TestKernelLUTPropertyBased(TestCase):
         self.assertIsInstance(reconstructed.USE_FAST_ACCUM, bool)
         self.assertIsInstance(reconstructed.ACC_TYPE, str)
         self.assertIsInstance(reconstructed.version, int)
-        self.assertIsInstance(reconstructed._is_leaf, bool)
 
         # Compare all fields
         self.assertEqual(config.name, reconstructed.name)
@@ -120,7 +119,6 @@ class TestKernelLUTPropertyBased(TestCase):
         self.assertIsInstance(reconstructed.K, int)
         self.assertIsInstance(reconstructed.out_dtype, torch.dtype)
         self.assertIsInstance(reconstructed.version, int)
-        self.assertIsInstance(reconstructed._is_leaf, bool)
 
         # Compare all fields
         self.assertEqual(problem.B, reconstructed.B)
@@ -211,7 +209,7 @@ class TestKernelLUTPropertyBased(TestCase):
         # Type checking: verify all fields have correct types
         self.assertIsInstance(reconstructed.hardware, OrderedDict)
         self.assertIsInstance(reconstructed.version, int)
-        self.assertIsInstance(reconstructed._set_cache, OrderedDict)
+        self.assertIsInstance(reconstructed.set_cache, dict)
 
         # Compare fields
         self.assertEqual(len(table.hardware), len(reconstructed.hardware))
@@ -981,7 +979,7 @@ class TestMessagePackSerialization(TestCase):
         valid_msgpack_wrong_structure = msgpack.packb({"wrong": "structure"})
         with self.assertRaises(ValueError) as context:
             TritonGEMMConfig.from_msgpack(valid_msgpack_wrong_structure)
-        self.assertIn("Malformed data", str(context.exception))
+        self.assertIn("Failed to deserialize TritonGEMMConfig from MessagePack", str(context.exception))
 
     def test_msgpack_empty_structures(self):
         """Test MessagePack serialization with empty structures."""

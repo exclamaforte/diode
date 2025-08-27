@@ -2,12 +2,12 @@
 Dataset class for storing matrix multiplication data with timing information.
 """
 
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, OrderedDict, Tuple
+from typing import Dict, List, Optional, Tuple
 import json
 import logging
 import torch
 from torch.utils._ordered_set import OrderedSet
+from pydantic import Field
 
 from diode.types.json_serializable import JSONSerializable
 from diode.types.matmul_types import (
@@ -22,7 +22,6 @@ from diode.types.matmul_types import (
 logger = logging.getLogger(__name__)
 
 
-@dataclass(kw_only=True)
 class TimedConfig(JSONSerializable):
     """
     A configuration with its execution time.
@@ -34,38 +33,34 @@ class TimedConfig(JSONSerializable):
         return hash((hash(self.config), self.time))
 
 
-@dataclass(kw_only=True)
 class DatasetSolution(JSONSerializable):
     """
     A solution with timed configurations.
     """
     name: str
-    timed_configs: List[TimedConfig]
+    timed_configs: List[TimedConfig] = Field(default_factory=list)
 
 
-@dataclass(kw_only=True)
 class DatasetOperation(JSONSerializable):
     """
     An operation with solutions for different problems.
     """
     name: str
-    solution: OrderedDict[MMShape, DatasetSolution]
+    solution: Dict[MMShape, DatasetSolution] = Field(default_factory=dict)
 
 
-@dataclass(kw_only=True)
 class DatasetHardware(JSONSerializable):
     """
     Hardware with operations.
     """
-    operation: OrderedDict[str, DatasetOperation]
+    operation: Dict[str, DatasetOperation] = Field(default_factory=dict)
 
 
-@dataclass(kw_only=True)
 class Dataset(JSONSerializable):
     """
     Dataset for storing matrix multiplication data with timing information.
     """
-    hardware: OrderedDict[str, DatasetHardware]
+    hardware: Dict[str, DatasetHardware] = Field(default_factory=dict)
 
     def serialize(self) -> str:
         """
@@ -79,7 +74,7 @@ class Dataset(JSONSerializable):
         Deserialize a JSON string to a Dataset.
         """
         try:
-            return cls.from_dict(json.loads(s, object_pairs_hook=OrderedDict))
+            return cls.from_dict(json.loads(s))
         except (json.JSONDecodeError, TypeError, ValueError) as e:
             logger.error("Failed to deserialize dataset: %s", e)
             return None
@@ -104,13 +99,13 @@ class Dataset(JSONSerializable):
         """
         # Get or create hardware entry
         if hardware_name not in self.hardware:
-            self.hardware[hardware_name] = DatasetHardware(operation=OrderedDict())
+            self.hardware[hardware_name] = DatasetHardware(operation={})
         
         hardware = self.hardware[hardware_name]
         
         # Get or create operation entry
         if op_name not in hardware.operation:
-            hardware.operation[op_name] = DatasetOperation(name=op_name, solution=OrderedDict())
+            hardware.operation[op_name] = DatasetOperation(name=op_name, solution={})
         
         operation = hardware.operation[op_name]
         
@@ -131,14 +126,14 @@ class Dataset(JSONSerializable):
         Returns:
             A Table with the fastest configuration for each problem.
         """
-        table = Table(hardware=OrderedDict())
+        table = Table(hardware={})
         
         for hw_name, hardware in self.hardware.items():
-            table_hw = Hardware(operation=OrderedDict())
+            table_hw = Hardware(operation={})
             table.hardware[hw_name] = table_hw
             
             for op_name, operation in hardware.operation.items():
-                table_op = Operation(name=op_name, solution=OrderedDict())
+                table_op = Operation(name=op_name, solution={})
                 table_hw.operation[op_name] = table_op
                 
                 for problem, solution in operation.solution.items():

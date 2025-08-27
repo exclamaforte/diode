@@ -550,7 +550,7 @@ class TestKernelLUTIntegration(TestCase):
             # Comprehensive type checking at all levels
             self.assertIsInstance(table, Table)
             self.assertIsInstance(table.hardware, OrderedDict)
-            self.assertIsInstance(table._set_cache, OrderedDict)
+            self.assertIsInstance(table.set_cache, dict)
 
             for hw_name, hw in table.hardware.items():
                 self.assertIsInstance(hw_name, str)
