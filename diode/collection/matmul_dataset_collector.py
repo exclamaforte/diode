@@ -489,12 +489,13 @@ class MatmulDatasetCollector:
         config.max_autotune_gemm_backends = "TRITON"
         config.triton.num_decompose_k_splits = 0
 
-        # Set search space
+        # Set search space - this needs to be set before importing torch._inductor.config
+        # but since it's already imported, we need to set it directly on the config object
         if search_space == "EXHAUSTIVE":
-            os.environ["TORCHINDUCTOR_MAX_AUTOTUNE_GEMM_SEARCH_SPACE"] = "EXHAUSTIVE"
+            config.max_autotune_gemm_search_space = "EXHAUSTIVE"
             logger.info("Set search space to EXHAUSTIVE")
         else:
-            os.environ["TORCHINDUCTOR_MAX_AUTOTUNE_GEMM_SEARCH_SPACE"] = "DEFAULT"
+            config.max_autotune_gemm_search_space = "DEFAULT"
             logger.info("Set search space to DEFAULT")
 
         # Generate shapes and dtypes
