@@ -1,0 +1,136 @@
+{
+  "operations": {
+    "addmm": {
+      "shapes": [
+        {
+          "version": 1,
+          "B": 1,
+          "M": 256,
+          "M_dtype": "float16",
+          "N": 197951,
+          "K": 512,
+          "K_dtype": "float16",
+          "out_dtype": "float16",
+          "out_size": [
+            1,
+            197951,
+            256
+          ],
+          "out_stride": [
+            50675456,
+            256,
+            1
+          ]
+        },
+        {
+          "version": 1,
+          "B": 1,
+          "M": 16448,
+          "M_dtype": "float16",
+          "N": 2048,
+          "K": 512,
+          "K_dtype": "float16",
+          "out_dtype": "float16",
+          "out_size": [
+            1,
+            2048,
+            16448
+          ],
+          "out_stride": [
+            33685504,
+            16448,
+            1
+          ]
+        }
+      ]
+    },
+    "mm": {
+      "shapes": [
+        {
+          "version": 1,
+          "B": 1,
+          "M": 256,
+          "M_dtype": "float16",
+          "N": 128112,
+          "K": 1024,
+          "K_dtype": "float16",
+          "out_dtype": "float16",
+          "out_size": [
+            1,
+            128112,
+            256
+          ],
+          "out_stride": [
+            32796672,
+            256,
+            1
+          ]
+        },
+        {
+          "version": 1,
+          "B": 1,
+          "M": 1280,
+          "M_dtype": "float16",
+          "N": 256,
+          "K": 6272,
+          "K_dtype": "float16",
+          "out_dtype": "float16",
+          "out_size": [
+            1,
+            1280,
+            256
+          ],
+          "out_stride": [
+            327680,
+            256,
+            1
+          ]
+        }
+      ]
+    },
+    "bmm": {
+      "shapes": [
+        {
+          "version": 1,
+          "B": 1024,
+          "M": 64,
+          "M_dtype": "float16",
+          "N": 64,
+          "K": 50,
+          "K_dtype": "float16",
+          "out_dtype": "float16",
+          "out_size": [
+            1024,
+            64,
+            64
+          ],
+          "out_stride": [
+            4096,
+            64,
+            1
+          ]
+        },
+        {
+          "version": 1,
+          "B": 2048,
+          "M": 49,
+          "M_dtype": "float16",
+          "N": 49,
+          "K": 32,
+          "K_dtype": "float16",
+          "out_dtype": "float16",
+          "out_size": [
+            2048,
+            49,
+            49
+          ],
+          "out_stride": [
+            2401,
+            49,
+            1
+          ]
+        }
+      ]
+    }
+  }
+}

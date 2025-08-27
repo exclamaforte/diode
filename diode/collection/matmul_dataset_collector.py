@@ -1,39 +1,100 @@
-import torch
-from torch._inductor.select_algorithm import add_feedback_saver, clear_feedback_saver
-from collections import OrderedDict
 import logging
-from typing import Dict, List, Any
+import os
+import time
+from collections import OrderedDict
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
+
+import torch
 
 # Import the size_hints function from PyTorch inductor
 import torch._inductor.config as inductor_config
+from diode.types.matmul_dataset import Dataset
 
-from diode.types.matmul_types import (
-    TritonGEMMConfig,
-    MMShape,
-    Table,
-)
-from diode.types.matmul_dataset import (
-    Dataset,
-)
+from diode.types.matmul_types import MMShape, OperationShapeSet, Table, TritonGEMMConfig
+from diode.utils.dataset_utils import generate_matrix_sizes
+from torch._inductor.select_algorithm import add_feedback_saver, clear_feedback_saver
 
 logger = logging.getLogger(__name__)
+
+
+class CollectionMode(Enum):
+    """Enumeration for data collection modes."""
+
+    RANDOM = "random"
+    OPERATION_SHAPE_SET = "operation_shape_set"
+
 
 class MatmulDatasetCollector:
     """
     A class that hooks into the PyTorch feedback saver interface to collect
     matrix multiplication data with timing information and store it in a Dataset.
+
+    Supports two modes:
+    1. RANDOM: Generate random matrix shapes and collect data for specified operations
+    2. OPERATION_SHAPE_SET: Use predefined shapes from an OperationShapeSet
     """
 
-    def __init__(self, hardware_name: str = "unknown"):
+    def __init__(
+        self,
+        hardware_name: str = "unknown",
+        mode: CollectionMode = CollectionMode.RANDOM,
+        operations: Optional[List[str]] = None,
+        operation_shape_set: Optional[OperationShapeSet] = None,
+        # Random mode parameters
+        num_shapes: int = 100,
+        dtypes: Optional[List[torch.dtype]] = None,
+        seed: int = 42,
+        min_size: int = 32,
+        max_size: int = 4096,
+        power_of_two: bool = False,
+        include_rectangular: bool = True,
+        include_odd_sizes: bool = True,
+    ):
         """
         Initialize the MatmulDatasetCollector.
 
         Args:
             hardware_name: The name of the hardware being used.
+            mode: Collection mode (RANDOM or OPERATION_SHAPE_SET)
+            operations: List of operations to collect data for (e.g., ['mm', 'addmm'])
+            operation_shape_set: OperationShapeSet for OPERATION_SHAPE_SET mode
+            num_shapes: Number of random shapes to generate (RANDOM mode)
+            dtypes: List of dtypes to test
+            seed: Random seed for reproducibility (RANDOM mode)
+            min_size: Minimum matrix dimension (RANDOM mode)
+            max_size: Maximum matrix dimension (RANDOM mode)
+            power_of_two: Whether to generate only power-of-two sizes (RANDOM mode)
+            include_rectangular: Whether to include rectangular matrices (RANDOM mode)
+            include_odd_sizes: Whether to include odd-sized matrices (RANDOM mode)
         """
         self.hardware_name = hardware_name
+        self.mode = mode
+        self.operations = operations or ["mm", "addmm"]
+        self.operation_shape_set = operation_shape_set
+
+        # Random mode parameters
+        self.num_shapes = num_shapes
+        self.dtypes = dtypes or (
+            [torch.float16, torch.float32]
+            if torch.cuda.is_available()
+            else [torch.float32]
+        )
+        self.seed = seed
+        self.min_size = min_size
+        self.max_size = max_size
+        self.power_of_two = power_of_two
+        self.include_rectangular = include_rectangular
+        self.include_odd_sizes = include_odd_sizes
+
         self.dataset = Dataset(hardware=OrderedDict())
         self._is_collecting = False
+
+        # Validate parameters
+        if mode == CollectionMode.OPERATION_SHAPE_SET and operation_shape_set is None:
+            raise ValueError(
+                "operation_shape_set must be provided when mode is OPERATION_SHAPE_SET"
+            )
 
     def start_collection(self) -> None:
         """
@@ -62,37 +123,35 @@ class MatmulDatasetCollector:
     def _get_size_hints(self, mat1, mat2, m, n, k):
         """
         Get size hints for symbolic dimensions, similar to PyTorch inductor's get_size_hints.
-        
+
         Args:
             mat1: First matrix
             mat2: Second matrix
             m, n, k: Matrix dimensions (may be symbolic)
-            
+
         Returns:
             Tuple of (m, n, k) with integer values
         """
         from torch._inductor.virtualized import V
-        
+
         # Handle m and k from mat1
         if not isinstance(m, int) or not isinstance(k, int):
             try:
                 # Try to get size hints from the graph's sizevars
                 (m, k) = V.graph.sizevars.size_hints(
-                    mat1.layout.size, 
-                    fallback=inductor_config.unbacked_symint_fallback
+                    mat1.layout.size, fallback=inductor_config.unbacked_symint_fallback
                 )
             except (AttributeError, TypeError):
                 # If that fails, use default values
                 m = m if isinstance(m, int) else 1
                 k = k if isinstance(k, int) else 1
-        
+
         # Handle k and n from mat2
         if not isinstance(n, int) or not isinstance(k, int):
             try:
                 # Try to get size hints from the graph's sizevars
                 (k2, n) = V.graph.sizevars.size_hints(
-                    mat2.layout.size, 
-                    fallback=inductor_config.unbacked_symint_fallback
+                    mat2.layout.size, fallback=inductor_config.unbacked_symint_fallback
                 )
                 # Use k2 if k is not an int
                 if not isinstance(k, int):
@@ -102,11 +161,17 @@ class MatmulDatasetCollector:
                 n = n if isinstance(n, int) else 1
                 if not isinstance(k, int):
                     k = 1
-        
+
         return m, n, k
 
-    def _feedback_handler(self, timings: Dict, name: str, input_nodes: List, 
-                         choices: Any, profiled_time: float) -> None:
+    def _feedback_handler(
+        self,
+        timings: Dict,
+        name: str,
+        input_nodes: List,
+        choices: Any,
+        profiled_time: float,
+    ) -> None:
         """
         Handle feedback from PyTorch's feedback saver interface.
 
@@ -118,8 +183,10 @@ class MatmulDatasetCollector:
             profiled_time: Time spent profiling
         """
         # Debug logging
-        logger.debug(f"Feedback handler called with name: {name}, timings: {len(timings)}")
-        
+        logger.debug(
+            f"Feedback handler called with name: {name}, timings: {len(timings)}"
+        )
+
         # Only handle matrix multiplication operations
         if name not in ["mm", "addmm"]:
             logger.debug(f"Skipping operation: {name} (not mm or addmm)")
@@ -148,7 +215,7 @@ class MatmulDatasetCollector:
             K_dtype = mat2.layout.dtype
         else:
             return
-            
+
         # Get size hints for symbolic dimensions
         M, N, K = self._get_size_hints(mat1, mat2, M, N, K)
 
@@ -170,15 +237,17 @@ class MatmulDatasetCollector:
         # Process each timing result
         for choice, bench_time in timings.items():
             # Only process TritonTemplateCaller choices
-            if not isinstance(choice, torch._inductor.select_algorithm.TritonTemplateCaller):
+            if not isinstance(
+                choice, torch._inductor.select_algorithm.TritonTemplateCaller
+            ):
                 continue
 
             # Extract configuration details
             log_info = choice.log_info
             block_m, block_k, block_n = map(
-                int, log_info.get('tile_shape', '(0,0,0)').strip('()').split(',')
+                int, log_info.get("tile_shape", "(0,0,0)").strip("()").split(",")
             )
-            
+
             # Create TritonGEMMConfig instance
             config = TritonGEMMConfig(
                 name=f"{name}_config",
@@ -186,12 +255,12 @@ class MatmulDatasetCollector:
                 block_m=block_m,
                 block_n=block_n,
                 block_k=block_k,
-                group_m=log_info.get('GROUP_M', 1),
-                num_stages=log_info.get('num_stages', 1),
-                num_warps=log_info.get('num_warps', 4),
+                group_m=log_info.get("GROUP_M", 1),
+                num_stages=log_info.get("num_stages", 1),
+                num_warps=log_info.get("num_warps", 4),
                 # Other fields use default values
             )
-            
+
             # Add the timing to the dataset
             self.dataset.add_timing(
                 hardware_name=self.hardware_name,
@@ -213,7 +282,7 @@ class MatmulDatasetCollector:
     def to_table(self) -> Table:
         """
         Convert the dataset to a table by selecting the fastest configuration for each problem.
-        
+
         Returns:
             A Table with the fastest configuration for each problem.
         """
@@ -226,7 +295,7 @@ class MatmulDatasetCollector:
         Args:
             file_path: Path to save the data to.
         """
-        with open(file_path, 'w') as f:
+        with open(file_path, "w") as f:
             f.write(self.dataset.serialize())
         logger.info(f"Saved collected data to {file_path}")
 
@@ -237,9 +306,9 @@ class MatmulDatasetCollector:
         Args:
             file_path: Path to load the data from.
         """
-        with open(file_path, 'r') as f:
+        with open(file_path, "r") as f:
             content = f.read()
-        
+
         dataset = Dataset.deserialize(content)
         if dataset:
             self.dataset = dataset
@@ -255,7 +324,7 @@ class MatmulDatasetCollector:
             file_path: Path to save the table to.
         """
         table = self.to_table()
-        with open(file_path, 'w') as f:
+        with open(file_path, "w") as f:
             f.write(table.serialize())
         logger.info(f"Saved table to {file_path}")
 
@@ -271,3 +340,193 @@ class MatmulDatasetCollector:
         Context manager exit point.
         """
         self.stop_collection()
+
+    def _generate_shapes_and_dtypes(
+        self,
+    ) -> List[Tuple[Tuple[int, int, int], torch.dtype, str]]:
+        """
+        Generate shapes and dtypes based on the collection mode.
+
+        Returns:
+            List of tuples containing (shape, dtype, operation_name)
+        """
+        shapes_and_dtypes = []
+
+        if self.mode == CollectionMode.RANDOM:
+            # Generate random matrix sizes
+            sizes = generate_matrix_sizes(
+                num_shapes=self.num_shapes,
+                seed=self.seed,
+                min_size=self.min_size,
+                max_size=self.max_size,
+                power_of_two=self.power_of_two,
+                include_rectangular=self.include_rectangular,
+                include_odd_sizes=self.include_odd_sizes,
+            )
+
+            # Create combinations of sizes, dtypes, and operations
+            for size in sizes:
+                for dtype in self.dtypes:
+                    for op_name in self.operations:
+                        shapes_and_dtypes.append((size, dtype, op_name))
+
+        elif self.mode == CollectionMode.OPERATION_SHAPE_SET:
+            # Use shapes from the OperationShapeSet
+            for op_name in self.operations:
+                if op_name in self.operation_shape_set.operations:
+                    shapes = self.operation_shape_set.get_shapes_for_operation(op_name)
+                    for shape in shapes:
+                        # Convert MMShape to (M, K, N) tuple and extract dtype
+                        size = (shape.M, shape.K, shape.N)
+                        dtype = shape.M_dtype  # Use M_dtype as the primary dtype
+                        shapes_and_dtypes.append((size, dtype, op_name))
+                else:
+                    logger.warning(
+                        f"Operation '{op_name}' not found in OperationShapeSet"
+                    )
+
+        return shapes_and_dtypes
+
+    def _run_matrix_multiplication(
+        self,
+        size: Tuple[int, int, int],
+        dtype: torch.dtype,
+        op_name: str,
+        device: str,
+        search_mode: str,
+    ) -> None:
+        """
+        Run a single matrix multiplication operation.
+
+        Args:
+            size: Matrix size as (M, K, N) tuple
+            dtype: Data type for the matrices
+            op_name: Operation name ('mm', 'addmm', or 'bmm')
+            device: Device to run on
+            search_mode: Search mode for torch.compile
+        """
+        M, K, N = size
+
+        try:
+            if op_name == "mm":
+                # Create input matrices for mm: (M, K) x (K, N) -> (M, N)
+                a = torch.randn(M, K, device=device, dtype=dtype)
+                b = torch.randn(K, N, device=device, dtype=dtype)
+                
+                # Validate tensor shapes before compilation
+                logger.debug(f"Created tensors: a.shape={a.shape}, b.shape={b.shape}")
+                assert a.shape == (M, K), f"Tensor a shape mismatch: expected ({M}, {K}), got {a.shape}"
+                assert b.shape == (K, N), f"Tensor b shape mismatch: expected ({K}, {N}), got {b.shape}"
+
+                def mm_fn(x, y):
+                    return torch.mm(x, y)
+
+                compiled_fn = torch.compile(mm_fn, mode=search_mode)
+                result = compiled_fn(a, b)
+
+            elif op_name == "addmm":
+                # Create input matrices for addmm: bias(M, N) + (M, K) x (K, N) -> (M, N)
+                a = torch.randn(M, K, device=device, dtype=dtype)
+                b = torch.randn(K, N, device=device, dtype=dtype)
+                c = torch.randn(M, N, device=device, dtype=dtype)
+
+                def addmm_fn(bias, x, y):
+                    return torch.addmm(bias, x, y)
+
+                compiled_fn = torch.compile(addmm_fn, mode=search_mode)
+                result = compiled_fn(c, a, b)
+
+            elif op_name == "bmm":
+                # Create input matrices for bmm: (B, M, K) x (B, K, N) -> (B, M, N)
+                # For bmm, we'll use B=1 for simplicity
+                B = 1
+                a = torch.randn(B, M, K, device=device, dtype=dtype)
+                b = torch.randn(B, K, N, device=device, dtype=dtype)
+
+                def bmm_fn(x, y):
+                    return torch.bmm(x, y)
+
+                compiled_fn = torch.compile(bmm_fn, mode=search_mode)
+                result = compiled_fn(a, b)
+
+            else:
+                logger.warning(f"Unsupported operation: {op_name}")
+                return
+
+        except Exception as e:
+            logger.error(f"Error running {op_name} with size ({M}, {K}, {N}) and dtype {dtype}: {e}")
+            raise
+
+    def collect_data(
+        self,
+        search_mode: str = "max-autotune",
+        search_space: str = "EXHAUSTIVE",
+        device: Optional[str] = None,
+    ) -> None:
+        """
+        Collect matrix multiplication timing data based on the configured mode.
+
+        Args:
+            search_mode: Search mode for torch.compile
+            search_space: Search space for autotuning (EXHAUSTIVE or DEFAULT)
+            device: Device to run on (defaults to cuda if available, else cpu)
+        """
+        if device is None:
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+
+        logger.info(f"Collecting data on device: {device}")
+        logger.info(f"Collection mode: {self.mode.value}")
+        logger.info(f"Operations: {self.operations}")
+
+        # Set up PyTorch for compilation
+        torch.set_grad_enabled(False)
+
+        # Configure PyTorch inductor
+        from torch._inductor import config
+
+        config.fx_graph_cache = False
+        config.force_disable_caches = True
+        config.max_autotune_gemm_backends = "TRITON"
+        config.triton.num_decompose_k_splits = 0
+
+        # Set search space
+        if search_space == "EXHAUSTIVE":
+            os.environ["TORCHINDUCTOR_MAX_AUTOTUNE_GEMM_SEARCH_SPACE"] = "EXHAUSTIVE"
+            logger.info("Set search space to EXHAUSTIVE")
+        else:
+            os.environ["TORCHINDUCTOR_MAX_AUTOTUNE_GEMM_SEARCH_SPACE"] = "DEFAULT"
+            logger.info("Set search space to DEFAULT")
+
+        # Generate shapes and dtypes
+        shapes_and_dtypes = self._generate_shapes_and_dtypes()
+        total_operations = len(shapes_and_dtypes)
+
+        logger.info(f"Running {total_operations} matrix multiplications...")
+        start_time = time.time()
+
+        # Start collection
+        self.start_collection()
+
+        try:
+            # Run matrix multiplications
+            for i, (size, dtype, op_name) in enumerate(shapes_and_dtypes):
+                M, K, N = size
+                logger.info(
+                    f"[{i+1}/{total_operations}] Running {op_name} with size "
+                    f"({M}, {K}) x ({K}, {N}) and dtype {dtype}"
+                )
+
+                # Clear compilation cache to avoid shape conflicts
+                torch._dynamo.reset()
+                
+                self._run_matrix_multiplication(
+                    size, dtype, op_name, device, search_mode
+                )
+
+        finally:
+            # Stop collection
+            self.stop_collection()
+
+        # Calculate elapsed time
+        elapsed_time = time.time() - start_time
+        logger.info(f"Collection completed in {elapsed_time:.2f} seconds")

@@ -46,10 +46,10 @@ Diode is a framework for developing heuristics that plug into PyTorch's external
 
 4. Install the project in development mode:
    ```bash
-   pip install -e .
-   pip install -e ./diode_models
-   pip install -e ./diode_datasets
+   pip install -e ./diode-models
+   pip install -e ./diode-datasets
    pip install -e ./diode_common
+   pip install -e .
    ```
 
 5. Install development dependencies:
@@ -64,8 +64,8 @@ The project is organized into several packages:
 ```
 diode/
 ├── diode/                    # Core framework
-├── diode_models/            # Pre-trained models
-├── diode_datasets/          # Dataset utilities
+├── diode-models/            # Pre-trained models
+├── diode-datasets/          # Dataset utilities
 ├── diode_common/            # Shared utilities
 ├── examples/                # Usage examples
 ├── tests/                   # Test suite
@@ -110,16 +110,10 @@ We welcome several types of contributions:
 
 ### Linting and Formatting
 
-The project uses several linters and formatters:
+Run all linters:
 
 ```bash
-# Run all linters
-python fix_linters.py
-
-# Individual tools (if available)
-flake8 .
-mypy .
-ruff check .
+lintrunner
 ```
 
 ### Code Organization
@@ -222,8 +216,8 @@ Fixes #123
 
 When contributing pre-trained models or datasets:
 
-1. **Models**: Place in `diode_models/diode_models/<heuristic>/<hardware>/`
-2. **Datasets**: Add to `diode_datasets/diode_datasets/datasets/`
+1. **Models**: Place in `diode-models/diode_models/<heuristic>/<hardware>/`
+2. **Datasets**: Add to `diode-datasets/diode_datasets/datasets/`
 3. **Documentation**: Include clear documentation about:
    - Hardware compatibility
    - Performance characteristics

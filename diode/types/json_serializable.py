@@ -1,10 +1,12 @@
-from typing import OrderedDict, Any, TypeVar, Union, get_origin, get_args
-from typing_extensions import Self
-import torch
 import json
 import logging
-from dataclasses import dataclass, fields
 from collections import OrderedDict as CollectionsOrderedDict
+from dataclasses import dataclass, fields
+from typing import Any, get_args, get_origin, OrderedDict, TypeVar, Union
+
+import msgpack
+import torch
+from typing_extensions import Self
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +44,10 @@ class JSONSerializable:
                     )
             for k, v in inp.items():
                 v_type = cls.__dataclass_fields__[k].type
-                if get_origin(v_type) is OrderedDict or get_origin(v_type) is CollectionsOrderedDict:
+                if (
+                    get_origin(v_type) is OrderedDict
+                    or get_origin(v_type) is CollectionsOrderedDict
+                ):
                     k1_type, v1_type = get_args(v_type)
                     if isinstance(k1_type, type) and issubclass(
                         k1_type, JSONSerializable
@@ -158,3 +163,50 @@ class JSONSerializable:
         raise NotImplementedError(
             f"String representation not implemented for base {cls.__name__}"
         )
+
+    def to_msgpack(self) -> bytes:
+        """
+        Convert the object to MessagePack format.
+        Returns bytes that can be written to a file or transmitted over a network.
+        """
+        try:
+            return msgpack.packb(self.to_dict(), use_bin_type=True)
+        except Exception as e:
+            logger.error(
+                "Failed to serialize %s to MessagePack: %s", self.__class__.__name__, e
+            )
+            raise ValueError(
+                f"Failed to serialize {self.__class__.__name__} to MessagePack: {e}"
+            ) from e
+
+    @classmethod
+    def from_msgpack(cls, data: bytes) -> Self:
+        """
+        Create an object from MessagePack data.
+        Takes bytes and returns an instance of the class.
+        """
+        try:
+            decoded_dict = msgpack.unpackb(data, raw=False, strict_map_key=False)
+            return cls.from_dict(decoded_dict)
+        except Exception as e:
+            logger.error(
+                "Failed to deserialize %s from MessagePack: %s", cls.__name__, e
+            )
+            raise ValueError(
+                f"Failed to deserialize {cls.__name__} from MessagePack: {e}"
+            ) from e
+
+    def serialize_msgpack(self) -> bytes:
+        """
+        Serialize the object to MessagePack format.
+        Alias for to_msgpack() for consistency with existing serialize() method.
+        """
+        return self.to_msgpack()
+
+    @classmethod
+    def deserialize_msgpack(cls, data: bytes) -> Self:
+        """
+        Deserialize an object from MessagePack format.
+        Alias for from_msgpack() for consistency with existing deserialize() method.
+        """
+        return cls.from_msgpack(data)

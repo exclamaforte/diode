@@ -45,3 +45,17 @@ diode_models/diode_models/matmul/nvidia-h100/matmul_nvidia_h100_deep.pt
 ## Interface Locations
 - _inductor/choices.py
 - _inductor/config.py
+
+## Install
+
+### Option 1: Install from PyPi (Pending)
+```
+pip install torch-diode
+```
+
+### Option 2: Install from Source
+```
+git clone https://github.com/exclamaforte/diode.git
+cd diode
+pip install .
+```
