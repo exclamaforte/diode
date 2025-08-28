@@ -54,7 +54,6 @@ class TestKernelLUTPropertyBased(TestCase):
         # Verify the dict contains expected keys
         self.assertIn("name", config_dict)
         self.assertIn("grid", config_dict)
-        self.assertIn("version", config_dict)
 
         # Test round-trip: from_dict should reconstruct the original object
         reconstructed = TritonGEMMConfig.from_dict(config_dict)
@@ -103,7 +102,6 @@ class TestKernelLUTPropertyBased(TestCase):
         self.assertIn("M", problem_dict)
         self.assertIn("N", problem_dict)
         self.assertIn("K", problem_dict)
-        self.assertIn("version", problem_dict)
 
         # Test round-trip
         reconstructed = MMShape.from_dict(problem_dict)
@@ -138,7 +136,6 @@ class TestKernelLUTPropertyBased(TestCase):
         # Verify the dict contains expected keys
         self.assertIn("name", operation_dict)
         self.assertIn("solution", operation_dict)
-        self.assertIn("version", operation_dict)
 
         # Test round-trip
         reconstructed = Operation.from_dict(operation_dict)
@@ -169,7 +166,6 @@ class TestKernelLUTPropertyBased(TestCase):
 
         # Verify the dict contains expected keys
         self.assertIn("operation", hardware_dict)
-        self.assertIn("version", hardware_dict)
 
         # Test round-trip
         reconstructed = Hardware.from_dict(hardware_dict)
@@ -198,7 +194,6 @@ class TestKernelLUTPropertyBased(TestCase):
 
         # Verify the dict contains expected keys
         self.assertIn("hardware", table_dict)
-        self.assertIn("version", table_dict)
 
         # Test round-trip
         reconstructed = Table.from_dict(table_dict)
@@ -255,7 +250,6 @@ class TestKernelLUTPropertyBased(TestCase):
 
         # Serialize and check version is preserved
         config_dict = config.to_dict()
-        self.assertEqual(config_dict["version"], 42)
 
         # Round-trip should preserve version
         reconstructed = TritonGEMMConfig.from_dict(config_dict)
@@ -375,8 +369,6 @@ class TestKernelLUTPropertyBased(TestCase):
         config_dict = config.to_dict()
         problem_dict = problem.to_dict()
 
-        self.assertEqual(config_dict["version"], version)
-        self.assertEqual(problem_dict["version"], version)
 
 
 class TestLeafTypeClasses(TestCase):
@@ -398,7 +390,6 @@ class TestLeafTypeClasses(TestCase):
             "ordered_dict_field",
             "torch_dtype_field",
             "list_field",
-            "version",
         }
         self.assertTrue(expected_keys.issubset(set(obj_dict.keys())))
 
@@ -441,7 +432,6 @@ class TestLeafTypeClasses(TestCase):
             "dtype1",
             "dtype2",
             "dtype3",
-            "version",
         }
         self.assertTrue(expected_keys.issubset(set(obj_dict.keys())))
 
@@ -501,7 +491,7 @@ class TestLeafTypeClasses(TestCase):
         obj_dict = test_obj.to_dict()
 
         # Verify the dict contains expected keys
-        expected_keys = {"complex_dict", "dict_list", "version"}
+        expected_keys = {"complex_dict", "dict_list"}
         self.assertTrue(expected_keys.issubset(set(obj_dict.keys())))
 
         # Test round-trip

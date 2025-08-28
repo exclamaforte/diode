@@ -60,8 +60,8 @@ class TestKernelLUTParseMethodCalls(TestCase):
             out_stride=(1024 * 512, 512, 1),
         )
 
-        solution = Solution(name="test_solution", config=[config])
-        operation = Operation(name="mm", solution=OrderedDict([(problem, solution)]))
+        solution = Solution(config=[config])
+        operation = Operation(solution=OrderedDict([(problem, solution)]))
         hardware = Hardware(operation=OrderedDict([("mm", operation)]))
         table = Table(hardware=OrderedDict([("test_gpu", hardware)]))
 
@@ -134,9 +134,9 @@ class TestKernelLUTMalformedJSON(TestCase):
         )
 
         # Create a valid table for comparison
-        solution = Solution(name="valid_solution", config=[self.valid_config])
+        solution = Solution(config=[self.valid_config])
         operation = Operation(
-            name="mm", solution=OrderedDict([(self.valid_problem, solution)])
+            solution=OrderedDict([(self.valid_problem, solution)])
         )
         hardware = Hardware(operation=OrderedDict([("mm", operation)]))
         self.valid_table = Table(hardware=OrderedDict([("test_gpu", hardware)]))
@@ -204,7 +204,6 @@ class TestKernelLUTMalformedJSON(TestCase):
             '{"M": 1024, "N": 1024}',  # Missing K and dtypes
             '{"M": 1024, "N": 1024, "K": 512}',  # Missing dtypes
             # Table structure missing required fields
-            '{"version": 1}',  # Missing hardware
             '{"hardware": {}}',  # Empty hardware but valid structure
         ]
 
@@ -246,14 +245,14 @@ class TestKernelLUTMalformedJSON(TestCase):
 "num_stages": 2, "num_warps": 4, "EVEN_K": "true"}',  # EVEN_K should be bool
             # MMShape with wrong types
             '{"B": 1024, "M": "1024", "M_dtype": "float32", "N": 1024, "K_dtype": "float32", "K": 512,\
-"out_dtype": "float32", "version": 1, "out_size": (1, 1024, 1024), "out_stride": (1, 1024, 1)}',  # M should be int
+"out_dtype": "float32", "out_size": (1, 1024, 1024), "out_stride": (1, 1024, 1)}',  # M should be int
             '{"B": 1024, "M": 1024, "M_dtype": "invalid_dtype", "N": 1024, "K_dtype": "float32", "K": 512, \
-"out_dtype": "float32", "version": 1, "out_size": (1, 1024, 1024), "out_stride": (1, 1024, 1)}',  # invalid dtype
+"out_dtype": "float32", "out_size": (1, 1024, 1024), "out_stride": (1, 1024, 1)}',  # invalid dtype
             '{"B": 1024, "M": 1024, "M_dtype": "float32", "N": 1024.5, "K_dtype": "float32", "K": 512, \
-"out_dtype": "float32", "version": 1,  "out_size": (1, 1024, 1024), "out_stride": (1, 1024, 1)}',  # N should be int
+"out_dtype": "float32",  "out_size": (1, 1024, 1024), "out_stride": (1, 1024, 1)}',  # N should be int
             # Nested structure type errors
-            '{"hardware": "not_a_dict", "version": 1}',  # hardware should be dict
-            '{"hardware": {"gpu1": "not_a_hardware_object"}, "version": 1}',  # hardware values should be objects
+            '{"hardware": "not_a_dict"}',  # hardware should be dict
+            '{"hardware": {"gpu1": "not_a_hardware_object"}}',  # hardware values should be objects
         ]
 
         for i, malformed_json in enumerate(invalid_type_cases):

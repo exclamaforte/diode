@@ -339,7 +339,6 @@ class TestKernelLUTLookup(TestCase):
         solution_dict = solution.to_dict()
         self.assertIn("name", solution_dict)
         self.assertIn("config", solution_dict)
-        self.assertIn("version", solution_dict)
         self.assertEqual(len(solution_dict["config"]), 3)
 
         # Test round-trip serialization

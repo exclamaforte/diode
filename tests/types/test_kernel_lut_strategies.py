@@ -4,16 +4,17 @@ Common test strategies and data classes for kernel lookup table tests.
 """
 
 import json
+import unittest
 from collections import OrderedDict
 from dataclasses import dataclass, field
 from typing import Any
-
-import triton
-from hypothesis import assume, given, strategies as st
-from hypothesis.strategies import composite
+from unittest import TestCase
 
 import torch
+
+import triton
 from diode.types.json_serializable import JSONSerializable
+from diode.types.kernel_lut import convert_triton_configs_to_gemm_configs
 from diode.types.matmul_types import (
     Hardware,
     MMShape,
@@ -22,10 +23,9 @@ from diode.types.matmul_types import (
     Table,
     TritonGEMMConfig,
 )
-from diode.types.kernel_lut import convert_triton_configs_to_gemm_configs
+from hypothesis import assume, given, strategies as st
+from hypothesis.strategies import composite
 from torch.utils._ordered_set import OrderedSet
-import unittest
-from unittest import TestCase
 
 
 # Hypothesis strategies for generating test data
@@ -101,20 +101,11 @@ def operation_strategy(draw):
         problem = draw(mm_problem_strategy())
         config = draw(triton_gemm_config_strategy())
         # Create a Solution object containing the config
-        sol = Solution(name=f"solution_{len(solution)}", config=[config])
+        sol = Solution(config=[config])
         # Use the problem object directly as key since MMShape should be hashable
         solution[problem] = sol
 
-    return Operation(
-        name=draw(
-            st.text(
-                min_size=1,
-                max_size=20,
-                alphabet=st.characters(whitelist_categories=("Lu", "Ll")),
-            )
-        ),
-        solution=solution,
-    )
+    return Operation(solution=solution)
 
 
 @composite

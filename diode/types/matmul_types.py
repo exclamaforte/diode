@@ -1,12 +1,14 @@
-from dataclasses import dataclass, field, asdict
-from typing import Any, OrderedDict, Optional, Tuple, Union
-from diode.types.json_serializable import JSONSerializable
 import json
-import torch
 import logging
+from dataclasses import asdict, dataclass, field
+from typing import Any, Optional, OrderedDict, Tuple, Union
+
+import torch
+from diode.types.json_serializable import JSONSerializable
 from torch.utils._ordered_set import OrderedSet
 
 logger = logging.getLogger(__name__)
+
 
 @dataclass(kw_only=True)
 class TritonGEMMConfig(JSONSerializable):
@@ -127,7 +129,7 @@ class MMShape(JSONSerializable):
         d["out_dtype"] = str(d["out_dtype"]).split(".")[-1]
         d["out_size"] = list(d["out_size"])
         d["out_stride"] = list(d["out_stride"])
-        
+
         # Convert any non-JSON serializable types to strings or appropriate JSON types
         for k, v in list(d.items()):
             if isinstance(v, (tuple, list)):
@@ -168,7 +170,7 @@ class MMShape(JSONSerializable):
             elif not isinstance(v, (type(None), bool, int, float, str, list, dict)):
                 # Convert any other non-JSON serializable types to strings
                 d[k] = str(v)
-        
+
         d = OrderedDict((k, v) for k, v in d.items() if not k.startswith("_"))
         return json.dumps(d)
 
@@ -234,15 +236,12 @@ class MMShape(JSONSerializable):
 
 @dataclass(kw_only=True)
 class Solution(JSONSerializable):
-    # like mm or addmm
-    name: str
     # mapping
     config: list[TritonGEMMConfig]
 
 
 @dataclass(kw_only=True)
 class Operation(JSONSerializable):
-    name: str
     solution: OrderedDict[MMShape, Solution]
 
 
@@ -258,35 +257,36 @@ class ShapeSet(JSONSerializable):
     A collection of MMShape objects that can be serialized to JSON.
     This class is used to store and manage sets of matrix multiplication shapes.
     """
+
     shapes: list[MMShape] = field(default_factory=list)
-    
+
     def add_shape(self, shape: MMShape) -> None:
         """
         Add a shape to the collection.
-        
+
         Args:
             shape: The MMShape to add
         """
         self.shapes.append(shape)
-    
+
     def serialize(self) -> str:
         """
         Serialize the ShapeSet to a JSON string.
-        
+
         Returns:
             A JSON string representation of the ShapeSet
         """
         shapes_dict = {"shapes": [json.loads(shape.__str__()) for shape in self.shapes]}
         return json.dumps(shapes_dict, indent=2)
-    
+
     @classmethod
     def deserialize(cls, s: str):
         """
         Deserialize a JSON string into a ShapeSet.
-        
+
         Args:
             s: The JSON string to deserialize
-            
+
         Returns:
             A ShapeSet object
         """
@@ -294,13 +294,13 @@ class ShapeSet(JSONSerializable):
             data = json.loads(s)
             if "shapes" not in data:
                 raise KeyError("Missing required field: shapes")
-            
+
             shape_set = cls()
             for shape_data in data["shapes"]:
                 shape_str = json.dumps(shape_data)
                 shape = MMShape.parse(shape_str)
                 shape_set.add_shape(shape)
-            
+
             return shape_set
         except json.JSONDecodeError as e:
             logger.error("Failed to deserialize ShapeSet (JSON decode error): %s", e)
@@ -316,12 +316,13 @@ class OperationShapeSet(JSONSerializable):
     A collection of ShapeSets organized by operation name.
     This class maps operation names (like 'mm', 'addmm', 'bmm') to their corresponding ShapeSets.
     """
+
     operations: OrderedDict[str, ShapeSet] = field(default_factory=OrderedDict)
-    
+
     def add_shape(self, op_name: str, shape: MMShape) -> None:
         """
         Add a shape to the collection under a specific operation name.
-        
+
         Args:
             op_name: The operation name (e.g., 'mm', 'addmm', 'bmm')
             shape: The MMShape to add
@@ -329,52 +330,52 @@ class OperationShapeSet(JSONSerializable):
         if op_name not in self.operations:
             self.operations[op_name] = ShapeSet()
         self.operations[op_name].add_shape(shape)
-    
+
     def get_operation_names(self) -> list[str]:
         """
         Get all operation names in this collection.
-        
+
         Returns:
             List of operation names
         """
         return list(self.operations.keys())
-    
+
     def get_shapes_for_operation(self, op_name: str) -> list[MMShape]:
         """
         Get all shapes for a specific operation.
-        
+
         Args:
             op_name: The operation name
-            
+
         Returns:
             List of MMShape objects for the operation, or empty list if operation not found
         """
         if op_name in self.operations:
             return self.operations[op_name].shapes
         return []
-    
+
     def serialize(self) -> str:
         """
         Serialize the OperationShapeSet to a JSON string.
-        
+
         Returns:
             A JSON string representation of the OperationShapeSet
         """
         operations_dict = {}
         for op_name, shape_set in self.operations.items():
             operations_dict[op_name] = json.loads(shape_set.serialize())
-        
+
         result = {"operations": operations_dict}
         return json.dumps(result, indent=2)
-    
+
     @classmethod
     def deserialize(cls, s: str):
         """
         Deserialize a JSON string into an OperationShapeSet.
-        
+
         Args:
             s: The JSON string to deserialize
-            
+
         Returns:
             An OperationShapeSet object
         """
@@ -382,17 +383,19 @@ class OperationShapeSet(JSONSerializable):
             data = json.loads(s)
             if "operations" not in data:
                 raise KeyError("Missing required field: operations")
-            
+
             operation_shape_set = cls()
             for op_name, shape_set_data in data["operations"].items():
                 shape_set_str = json.dumps(shape_set_data)
                 shape_set = ShapeSet.deserialize(shape_set_str)
                 if shape_set is not None:
                     operation_shape_set.operations[op_name] = shape_set
-            
+
             return operation_shape_set
         except json.JSONDecodeError as e:
-            logger.error("Failed to deserialize OperationShapeSet (JSON decode error): %s", e)
+            logger.error(
+                "Failed to deserialize OperationShapeSet (JSON decode error): %s", e
+            )
             return None
         except Exception as e:
             logger.error("Failed to deserialize OperationShapeSet: %s", e)
@@ -402,9 +405,9 @@ class OperationShapeSet(JSONSerializable):
 @dataclass(kw_only=True)
 class Table(JSONSerializable):
     hardware: OrderedDict[str, Hardware]
-    _set_cache: OrderedDict[
-        tuple[str, str, MMShape], OrderedSet[TritonGEMMConfig]
-    ] = field(default_factory=OrderedDict)
+    _set_cache: OrderedDict[tuple[str, str, MMShape], OrderedSet[TritonGEMMConfig]] = (
+        field(default_factory=OrderedDict)
+    )
 
     def serialize(self) -> str:
         foo = self.to_dict()

@@ -39,7 +39,6 @@ class DatasetSolution(JSONSerializable):
     """
     A solution with timed configurations.
     """
-    name: str
     timed_configs: List[TimedConfig]
 
 
@@ -48,7 +47,6 @@ class DatasetOperation(JSONSerializable):
     """
     An operation with solutions for different problems.
     """
-    name: str
     solution: OrderedDict[MMShape, DatasetSolution]
 
 
@@ -110,13 +108,13 @@ class Dataset(JSONSerializable):
         
         # Get or create operation entry
         if op_name not in hardware.operation:
-            hardware.operation[op_name] = DatasetOperation(name=op_name, solution=OrderedDict())
-        
+            hardware.operation[op_name] = DatasetOperation(solution=OrderedDict())
+          
         operation = hardware.operation[op_name]
-        
+          
         # Get or create solution entry
         if problem not in operation.solution:
-            operation.solution[problem] = DatasetSolution(name=op_name, timed_configs=[])
+            operation.solution[problem] = DatasetSolution(timed_configs=[])
         
         solution = operation.solution[problem]
         
@@ -138,23 +136,22 @@ class Dataset(JSONSerializable):
             table.hardware[hw_name] = table_hw
             
             for op_name, operation in hardware.operation.items():
-                table_op = Operation(name=op_name, solution=OrderedDict())
+                table_op = Operation(solution=OrderedDict())
                 table_hw.operation[op_name] = table_op
-                
+                  
                 for problem, solution in operation.solution.items():
                     # Find the fastest configuration
                     if not solution.timed_configs:
                         continue
-                    
+                      
                     # Sort by time (ascending)
                     sorted_configs = sorted(solution.timed_configs, key=lambda tc: tc.time)
-                    
+                      
                     # Create a solution with the fastest config
                     table_solution = Solution(
-                        name=solution.name,
                         config=[tc.config for tc in sorted_configs]
                     )
-                    
+                      
                     table_op.solution[problem] = table_solution
         
         return table
