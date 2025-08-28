@@ -462,7 +462,6 @@ class TestTritonConfigConversion(TestCase):
         self.assertIsInstance(config.USE_FAST_ACCUM, bool)
         self.assertIsInstance(config.ACC_TYPE, str)
         self.assertIsInstance(config.version, int)
-        self.assertIsInstance(config._is_leaf, bool)
 
     def test_convert_configs_with_none_kwargs(self):
         """Test conversion when kwargs is None or missing."""

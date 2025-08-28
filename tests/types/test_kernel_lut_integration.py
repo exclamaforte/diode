@@ -575,7 +575,6 @@ class TestKernelLUTIntegration(TestCase):
                         self.assertIsInstance(prob.K, int)
                         self.assertIsInstance(prob.out_dtype, torch.dtype)
                         self.assertIsInstance(prob.version, int)
-                        self.assertIsInstance(prob._is_leaf, bool)
 
                         # Type check Solution fields including list preservation
                         self.assertIsInstance(sol, Solution)
@@ -599,7 +598,6 @@ class TestKernelLUTIntegration(TestCase):
                             self.assertIsInstance(config.USE_FAST_ACCUM, bool)
                             self.assertIsInstance(config.ACC_TYPE, str)
                             self.assertIsInstance(config.version, int)
-                            self.assertIsInstance(config._is_leaf, bool)
 
         # Test individual dtype preservation for all dtypes
         for dtype in dtypes_to_test:

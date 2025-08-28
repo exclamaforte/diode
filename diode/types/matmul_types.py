@@ -10,7 +10,6 @@ logger = logging.getLogger(__name__)
 
 @dataclass(kw_only=True)
 class TritonGEMMConfig(JSONSerializable):
-    _is_leaf: bool = True
     name: str
     grid: int
     block_m: int
@@ -93,7 +92,6 @@ class TritonGEMMConfig(JSONSerializable):
 
 @dataclass(kw_only=True)
 class MMShape(JSONSerializable):
-    _is_leaf: bool = True
     B: int
     M: int
     M_dtype: torch.dtype

@@ -153,8 +153,6 @@ def table_strategy(draw):
 class LeafTypeTestClass(JSONSerializable):
     """Test class that uses all LeafType values for comprehensive testing."""
 
-    _is_leaf: bool = True
-
     # Test all LeafType values
     none_field: None = None
     bool_field: bool = True

@@ -8,12 +8,12 @@ import logging
 import os
 import tempfile
 import threading
+import unittest
 from collections import OrderedDict
 from io import StringIO
+from unittest import TestCase
 
 import torch
-import unittest
-from unittest import TestCase
 
 from diode.types.matmul_types import (
     Hardware,
@@ -81,22 +81,12 @@ class TestKernelLUTParseMethodCalls(TestCase):
             self.assertIsNotNone(reconstructed_table)
             self.assertIsInstance(reconstructed_table, Table)
 
-            # Verify that parse methods were called for leaf classes
-            # TritonGEMMConfig.parse should be called for each config in the serialized data
-            self.assertTrue(
-                mock_triton_parse.called,
-                "TritonGEMMConfig.parse should be called for leaf class",
-            )
-            self.assertGreater(
-                mock_triton_parse.call_count,
-                0,
-                "TritonGEMMConfig.parse should be called at least once",
-            )
-
+            # Verify that parse methods were called for objects used as keys
             # MMShape.parse should be called for each problem key in the serialized data
+            # (MMShape objects are used as keys in OrderedDict, so they get serialized as strings)
             self.assertTrue(
                 mock_problem_parse.called,
-                "MMShape.parse should be called for leaf class",
+                "MMShape.parse should be called when MMShape is used as OrderedDict key",
             )
             self.assertGreater(
                 mock_problem_parse.call_count,
@@ -104,19 +94,12 @@ class TestKernelLUTParseMethodCalls(TestCase):
                 "MMShape.parse should be called at least once",
             )
 
-    def test_leaf_class_identification(self):
-        """Test that we can correctly identify which classes are leaf classes."""
-        # Test that leaf classes have _is_leaf = True
-        self.assertTrue(
-            TritonGEMMConfig._is_leaf, "TritonGEMMConfig should be a leaf class"
-        )
-        self.assertTrue(MMShape._is_leaf, "MMShape should be a leaf class")
-
-        # Test that non-leaf classes have _is_leaf = False
-        self.assertFalse(Solution._is_leaf, "Solution should not be a leaf class")
-        self.assertFalse(Operation._is_leaf, "Operation should not be a leaf class")
-        self.assertFalse(Hardware._is_leaf, "Hardware should not be a leaf class")
-        self.assertFalse(Table._is_leaf, "Table should not be a leaf class")
+            # TritonGEMMConfig.parse should NOT be called because TritonGEMMConfig objects
+            # are stored in lists, not used as keys, so they use from_dict instead of parse
+            self.assertFalse(
+                mock_triton_parse.called,
+                "TritonGEMMConfig.parse should NOT be called when stored in lists",
+            )
 
 
 class TestKernelLUTMalformedJSON(TestCase):

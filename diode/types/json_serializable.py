@@ -26,7 +26,6 @@ class JSONSerializable:
     # Incrementing version will invalidate all LUT entries, in the case of major perf update or
     # changes to the Ontology.
     version: int = 1
-    _is_leaf: bool = False
 
     @classmethod
     def from_dict(cls, inp: OrderedDict[str, Any] | str) -> Self:
@@ -36,12 +35,9 @@ class JSONSerializable:
         try:
             ret = OrderedDict()
             if isinstance(inp, str):
-                if cls._is_leaf:
-                    return cls.parse(inp)
-                else:
-                    raise NotImplementedError(
-                        f"String representation not implemented for base {cls.__name__}"
-                    )
+                raise NotImplementedError(
+                    f"String representation not implemented for base {cls.__name__}"
+                )
             for k, v in inp.items():
                 v_type = cls.__dataclass_fields__[k].type
                 if (
@@ -54,7 +50,11 @@ class JSONSerializable:
                     ):
 
                         def kp(tmpk: Any) -> Any:
-                            return k1_type.from_dict(tmpk)
+                            # Keys are serialized as strings, so parse them back
+                            if isinstance(tmpk, str):
+                                return k1_type.parse(tmpk)
+                            else:
+                                return k1_type.from_dict(tmpk)
 
                         k_process = kp
                     else:
@@ -112,35 +112,24 @@ class JSONSerializable:
         for field_obj in field_list:
             field_val = getattr(self, field_obj.name)
             if isinstance(field_val, JSONSerializable):
-                if field_val._is_leaf:
-                    ret[field_obj.name] = str(field_val)
-                else:
-                    ret[field_obj.name] = field_val.to_dict()
+                ret[field_obj.name] = field_val.to_dict()
             elif isinstance(field_val, list):
                 if len(field_val) == 0:
                     ret[field_obj.name] = []
                 elif isinstance(field_val[0], JSONSerializable):
-                    if field_val[0]._is_leaf:
-                        ret[field_obj.name] = [str(x) for x in field_val]
-                    else:
-                        ret[field_obj.name] = [x.to_dict() for x in field_val]
+                    ret[field_obj.name] = [x.to_dict() for x in field_val]
                 else:
                     ret[field_obj.name] = field_val
             elif isinstance(field_val, OrderedDict):
                 tmp: OrderedDict[Any, Any] = OrderedDict()
                 for k, v in field_val.items():
                     if isinstance(v, JSONSerializable):
-                        if v._is_leaf:
-                            new_v: Any = str(v)
-                        else:
-                            new_v = v.to_dict()
+                        new_v: Any = v.to_dict()
                     else:
                         new_v = v
                     if isinstance(k, JSONSerializable):
-                        if k._is_leaf:
-                            new_k: Any = str(k)
-                        else:
-                            new_k = k.to_dict()
+                        # Use string representation for JSONSerializable keys to maintain hashability
+                        new_k: Any = str(k)
                     else:
                         new_k = k
                     tmp[new_k] = new_v
@@ -170,7 +159,10 @@ class JSONSerializable:
         Returns bytes that can be written to a file or transmitted over a network.
         """
         try:
-            return msgpack.packb(self.to_dict(), use_bin_type=True)
+            # Convert to dict first, then make it MessagePack-compatible
+            data_dict = self.to_dict()
+            msgpack_compatible_dict = self._make_msgpack_compatible(data_dict)
+            return msgpack.packb(msgpack_compatible_dict, use_bin_type=True)
         except Exception as e:
             logger.error(
                 "Failed to serialize %s to MessagePack: %s", self.__class__.__name__, e
@@ -178,6 +170,21 @@ class JSONSerializable:
             raise ValueError(
                 f"Failed to serialize {self.__class__.__name__} to MessagePack: {e}"
             ) from e
+
+    def _make_msgpack_compatible(self, obj: Any) -> Any:
+        """
+        Convert objects to MessagePack-compatible format.
+        Recursively processes nested structures.
+        """
+        if isinstance(obj, torch.dtype):
+            # Convert torch.dtype to string representation
+            return {"__torch_dtype__": str(obj).split(".")[-1]}
+        elif isinstance(obj, dict):
+            return {k: self._make_msgpack_compatible(v) for k, v in obj.items()}
+        elif isinstance(obj, (list, tuple)):
+            return [self._make_msgpack_compatible(item) for item in obj]
+        else:
+            return obj
 
     @classmethod
     def from_msgpack(cls, data: bytes) -> Self:
@@ -187,7 +194,9 @@ class JSONSerializable:
         """
         try:
             decoded_dict = msgpack.unpackb(data, raw=False, strict_map_key=False)
-            return cls.from_dict(decoded_dict)
+            # Convert MessagePack-specific formats back to original objects
+            restored_dict = cls._restore_from_msgpack(decoded_dict)
+            return cls.from_dict(restored_dict)
         except Exception as e:
             logger.error(
                 "Failed to deserialize %s from MessagePack: %s", cls.__name__, e
@@ -195,6 +204,27 @@ class JSONSerializable:
             raise ValueError(
                 f"Failed to deserialize {cls.__name__} from MessagePack: {e}"
             ) from e
+
+    @classmethod
+    def _restore_from_msgpack(cls, obj: Any) -> Any:
+        """
+        Restore objects from MessagePack-compatible format.
+        Recursively processes nested structures.
+        """
+        if isinstance(obj, dict):
+            # Check if this is a torch.dtype marker
+            if len(obj) == 1 and "__torch_dtype__" in obj:
+                dtype_name = obj["__torch_dtype__"]
+                try:
+                    return getattr(torch, dtype_name)
+                except AttributeError:
+                    raise ValueError(f"Invalid torch dtype: {dtype_name}")
+            else:
+                return {k: cls._restore_from_msgpack(v) for k, v in obj.items()}
+        elif isinstance(obj, (list, tuple)):
+            return [cls._restore_from_msgpack(item) for item in obj]
+        else:
+            return obj
 
     def serialize_msgpack(self) -> bytes:
         """

@@ -76,7 +76,6 @@ class TestKernelLUTPropertyBased(TestCase):
         self.assertIsInstance(reconstructed.USE_FAST_ACCUM, bool)
         self.assertIsInstance(reconstructed.ACC_TYPE, str)
         self.assertIsInstance(reconstructed.version, int)
-        self.assertIsInstance(reconstructed._is_leaf, bool)
 
         # Compare all fields
         self.assertEqual(config.name, reconstructed.name)
@@ -120,7 +119,6 @@ class TestKernelLUTPropertyBased(TestCase):
         self.assertIsInstance(reconstructed.K, int)
         self.assertIsInstance(reconstructed.out_dtype, torch.dtype)
         self.assertIsInstance(reconstructed.version, int)
-        self.assertIsInstance(reconstructed._is_leaf, bool)
 
         # Compare all fields
         self.assertEqual(problem.B, reconstructed.B)
