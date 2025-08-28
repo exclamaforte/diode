@@ -15,6 +15,7 @@ import logging
 import os
 import random
 import sys
+
 import torch
 
 # Add the parent directory to the path so we can import the diode module
@@ -26,11 +27,7 @@ from diode.collection.data_collection_utils import (
     create_validation_dataset,
     run_collector_example,
 )
-from diode.model.model_utils import (
-    train_model,
-    validate_model,
-    run_model_example,
-)
+from diode.model.model_utils import run_model_example, train_model, validate_model
 from diode.types.matmul_types import OperationShapeSet
 
 # Configure logging
@@ -112,10 +109,57 @@ def main():
         choices=["EXHAUSTIVE", "DEFAULT"],
         help="Search space for autotuning",
     )
+    collect_parser.add_argument(
+        "--chunk-size",
+        type=int,
+        help="Number of shapes to collect before writing to a new file (default: 20 for EXHAUSTIVE, 100 for DEFAULT)",
+    )
+    collect_parser.add_argument(
+        "--log-normal",
+        action="store_true",
+        help="Use log normal distribution for matrix sizes",
+    )
+    collect_parser.add_argument(
+        "--log-normal-m-mean",
+        type=float,
+        default=6.5725472164323095,
+        help="Log normal mean for M dimension",
+    )
+    collect_parser.add_argument(
+        "--log-normal-m-std",
+        type=float,
+        default=2.556199441605505,
+        help="Log normal std for M dimension",
+    )
+    collect_parser.add_argument(
+        "--log-normal-n-mean",
+        type=float,
+        default=5.913930073563466,
+        help="Log normal mean for N dimension",
+    )
+    collect_parser.add_argument(
+        "--log-normal-n-std",
+        type=float,
+        default=1.66968141897024,
+        help="Log normal std for N dimension",
+    )
+    collect_parser.add_argument(
+        "--log-normal-k-mean",
+        type=float,
+        default=6.204916071423808,
+        help="Log normal mean for K dimension",
+    )
+    collect_parser.add_argument(
+        "--log-normal-k-std",
+        type=float,
+        default=2.1646646856090177,
+        help="Log normal std for K dimension",
+    )
 
     # Collect data from shapeset mode
     collect_shapeset_parser = subparsers.add_parser(
-        "collect-shapeset", help="Collect matrix multiplication timing data from an operation shapeset"
+        "collect-shapeset",
+        help="Collect matrix multiplication timing data from an operation shapeset",
     )
     collect_shapeset_parser.add_argument(
         "--shapeset",
@@ -161,22 +205,49 @@ def main():
         help="Path to save the validation data",
     )
     validate_data_parser.add_argument(
-        "--num-shapes", type=int, default=30, help="Number of matrix shapes to test"
+        "--shapeset",
+        type=str,
+        help="Path to the operation shapeset JSON file (if provided, will use shapeset instead of random generation)",
     )
     validate_data_parser.add_argument(
-        "--min-size", type=int, default=32, help="Minimum matrix dimension"
+        "--operations",
+        type=str,
+        nargs="+",
+        default=["mm", "addmm", "bmm"],
+        help="Operations to collect data for (only used with --shapeset)",
     )
     validate_data_parser.add_argument(
-        "--max-size", type=int, default=4096, help="Maximum matrix dimension"
+        "--num-shapes",
+        type=int,
+        default=30,
+        help="Number of matrix shapes to test (only used without --shapeset)",
     )
     validate_data_parser.add_argument(
-        "--power-of-two", action="store_true", help="Generate only power-of-two sizes"
+        "--min-size",
+        type=int,
+        default=32,
+        help="Minimum matrix dimension (only used without --shapeset)",
     )
     validate_data_parser.add_argument(
-        "--no-rectangular", action="store_true", help="Exclude rectangular matrices"
+        "--max-size",
+        type=int,
+        default=4096,
+        help="Maximum matrix dimension (only used without --shapeset)",
     )
     validate_data_parser.add_argument(
-        "--no-odd-sizes", action="store_true", help="Exclude odd-sized matrices"
+        "--power-of-two",
+        action="store_true",
+        help="Generate only power-of-two sizes (only used without --shapeset)",
+    )
+    validate_data_parser.add_argument(
+        "--no-rectangular",
+        action="store_true",
+        help="Exclude rectangular matrices (only used without --shapeset)",
+    )
+    validate_data_parser.add_argument(
+        "--no-odd-sizes",
+        action="store_true",
+        help="Exclude odd-sized matrices (only used without --shapeset)",
     )
     validate_data_parser.add_argument(
         "--search-mode",
@@ -190,6 +261,47 @@ def main():
         default="EXHAUSTIVE",
         choices=["EXHAUSTIVE", "DEFAULT"],
         help="Search space for autotuning",
+    )
+    validate_data_parser.add_argument(
+        "--log-normal",
+        action="store_true",
+        help="Use log normal distribution for matrix sizes (only used without --shapeset)",
+    )
+    validate_data_parser.add_argument(
+        "--log-normal-m-mean",
+        type=float,
+        default=6.5725472164323095,
+        help="Log normal mean for M dimension (only used without --shapeset)",
+    )
+    validate_data_parser.add_argument(
+        "--log-normal-m-std",
+        type=float,
+        default=2.556199441605505,
+        help="Log normal std for M dimension (only used without --shapeset)",
+    )
+    validate_data_parser.add_argument(
+        "--log-normal-n-mean",
+        type=float,
+        default=5.913930073563466,
+        help="Log normal mean for N dimension (only used without --shapeset)",
+    )
+    validate_data_parser.add_argument(
+        "--log-normal-n-std",
+        type=float,
+        default=1.66968141897024,
+        help="Log normal std for N dimension (only used without --shapeset)",
+    )
+    validate_data_parser.add_argument(
+        "--log-normal-k-mean",
+        type=float,
+        default=6.204916071423808,
+        help="Log normal mean for K dimension (only used without --shapeset)",
+    )
+    validate_data_parser.add_argument(
+        "--log-normal-k-std",
+        type=float,
+        default=2.1646646856090177,
+        help="Log normal std for K dimension (only used without --shapeset)",
     )
 
     # Train model mode
@@ -458,6 +570,47 @@ def main():
     collect_train_parser.add_argument(
         "--skip-training", action="store_true", help="Skip model training"
     )
+    collect_train_parser.add_argument(
+        "--log-normal",
+        action="store_true",
+        help="Use log normal distribution for matrix sizes",
+    )
+    collect_train_parser.add_argument(
+        "--log-normal-m-mean",
+        type=float,
+        default=6.5725472164323095,
+        help="Log normal mean for M dimension",
+    )
+    collect_train_parser.add_argument(
+        "--log-normal-m-std",
+        type=float,
+        default=2.556199441605505,
+        help="Log normal std for M dimension",
+    )
+    collect_train_parser.add_argument(
+        "--log-normal-n-mean",
+        type=float,
+        default=5.913930073563466,
+        help="Log normal mean for N dimension",
+    )
+    collect_train_parser.add_argument(
+        "--log-normal-n-std",
+        type=float,
+        default=1.66968141897024,
+        help="Log normal std for N dimension",
+    )
+    collect_train_parser.add_argument(
+        "--log-normal-k-mean",
+        type=float,
+        default=6.204916071423808,
+        help="Log normal mean for K dimension",
+    )
+    collect_train_parser.add_argument(
+        "--log-normal-k-std",
+        type=float,
+        default=2.1646646856090177,
+        help="Log normal std for K dimension",
+    )
 
     # Parse the arguments
     args = parser.parse_args()
@@ -468,37 +621,51 @@ def main():
 
     # Run the appropriate mode
     if args.mode == "collect":
+        # Set default chunk size based on search space if not provided
+        chunk_size = args.chunk_size
+        if chunk_size is None:
+            chunk_size = 20 if args.search_space == "EXHAUSTIVE" else 100
+
+        mode = "log_normal" if args.log_normal else "random"
         collect_data(
             output_file=args.output,
+            mode=mode,
             num_shapes=args.num_shapes,
             seed=args.seed,
             min_size=args.min_size,
             max_size=args.max_size,
             power_of_two=args.power_of_two,
-            include_rectangular=not args.no_rectangular,
-            include_odd_sizes=not args.no_odd_sizes,
             search_mode=args.search_mode,
             search_space=args.search_space,
             file_format=args.format,
+            chunk_size=chunk_size,
+            log_normal_m_mean=args.log_normal_m_mean,
+            log_normal_m_std=args.log_normal_m_std,
+            log_normal_n_mean=args.log_normal_n_mean,
+            log_normal_n_std=args.log_normal_n_std,
+            log_normal_k_mean=args.log_normal_k_mean,
+            log_normal_k_std=args.log_normal_k_std,
         )
 
     elif args.mode == "collect-shapeset":
         # Load the OperationShapeSet from the JSON file
         logger.info(f"Loading operation shapeset from: {args.shapeset}")
-        with open(args.shapeset, 'r') as f:
+        with open(args.shapeset, "r") as f:
             shapeset_content = f.read()
-        
+
         operation_shape_set = OperationShapeSet.deserialize(shapeset_content)
         if operation_shape_set is None:
             logger.error("Failed to deserialize operation shapeset")
             return 1
-        
+
         # Log information about the loaded shapeset
-        logger.info(f"Loaded operation shapeset with operations: {operation_shape_set.get_operation_names()}")
+        logger.info(
+            f"Loaded operation shapeset with operations: {operation_shape_set.get_operation_names()}"
+        )
         for op_name in operation_shape_set.get_operation_names():
             shapes = operation_shape_set.get_shapes_for_operation(op_name)
             logger.info(f"  {op_name}: {len(shapes)} shapes")
-        
+
         # Collect data using the operation shapeset
         collect_data(
             output_file=args.output,
@@ -511,19 +678,56 @@ def main():
         )
 
     elif args.mode == "create-validation":
-        create_validation_dataset(
-            output_file=args.output,
-            num_shapes=args.num_shapes,
-            seed=args.seed,
-            min_size=args.min_size,
-            max_size=args.max_size,
-            power_of_two=args.power_of_two,
-            include_rectangular=not args.no_rectangular,
-            include_odd_sizes=not args.no_odd_sizes,
-            search_mode=args.search_mode,
-            search_space=args.search_space,
-            file_format=args.format,
-        )
+        if args.shapeset:
+            # Load the OperationShapeSet from the JSON file
+            logger.info(f"Loading operation shapeset from: {args.shapeset}")
+            with open(args.shapeset, "r") as f:
+                shapeset_content = f.read()
+
+            operation_shape_set = OperationShapeSet.deserialize(shapeset_content)
+            if operation_shape_set is None:
+                logger.error("Failed to deserialize operation shapeset")
+                return 1
+
+            # Log information about the loaded shapeset
+            logger.info(
+                f"Loaded operation shapeset with operations: {operation_shape_set.get_operation_names()}"
+            )
+            for op_name in operation_shape_set.get_operation_names():
+                shapes = operation_shape_set.get_shapes_for_operation(op_name)
+                logger.info(f"  {op_name}: {len(shapes)} shapes")
+
+            # Use shapeset mode for validation dataset creation
+            collect_data(
+                output_file=args.output,
+                mode="operation_shape_set",
+                operations=args.operations,
+                operation_shape_set=operation_shape_set,
+                search_mode=args.search_mode,
+                search_space=args.search_space,
+                file_format=args.format,
+            )
+        else:
+            # Use random/log-normal generation for validation dataset creation
+            mode = "log_normal" if args.log_normal else "random"
+            create_validation_dataset(
+                output_file=args.output,
+                mode=mode,
+                num_shapes=args.num_shapes,
+                seed=args.seed,
+                min_size=args.min_size,
+                max_size=args.max_size,
+                power_of_two=args.power_of_two,
+                search_mode=args.search_mode,
+                search_space=args.search_space,
+                file_format=args.format,
+                log_normal_m_mean=args.log_normal_m_mean,
+                log_normal_m_std=args.log_normal_m_std,
+                log_normal_n_mean=args.log_normal_n_mean,
+                log_normal_n_std=args.log_normal_n_std,
+                log_normal_k_mean=args.log_normal_k_mean,
+                log_normal_k_std=args.log_normal_k_std,
+            )
 
     elif args.mode == "train":
         train_model(
@@ -609,32 +813,44 @@ def main():
 
         # Collect data if not skipped
         if not args.skip_collection:
+            mode = "log_normal" if args.log_normal else "random"
             collect_data(
                 output_file=args.dataset,
+                mode=mode,
                 num_shapes=args.num_shapes,
                 seed=args.seed,
                 min_size=args.min_size,
                 max_size=args.max_size,
                 power_of_two=args.power_of_two,
-                include_rectangular=not args.no_rectangular,
-                include_odd_sizes=not args.no_odd_sizes,
                 search_mode=args.search_mode,
                 search_space=args.search_space,
+                log_normal_m_mean=args.log_normal_m_mean,
+                log_normal_m_std=args.log_normal_m_std,
+                log_normal_n_mean=args.log_normal_n_mean,
+                log_normal_n_std=args.log_normal_n_std,
+                log_normal_k_mean=args.log_normal_k_mean,
+                log_normal_k_std=args.log_normal_k_std,
             )
 
         # Create validation dataset if not skipped
         if not args.skip_validation:
+            mode = "log_normal" if args.log_normal else "random"
             create_validation_dataset(
                 output_file=args.validation_dataset,
+                mode=mode,
                 num_shapes=args.validation_shapes,
                 seed=args.seed + 1,  # Use a different seed for validation
                 min_size=args.min_size,
                 max_size=args.max_size,
                 power_of_two=args.power_of_two,
-                include_rectangular=not args.no_rectangular,
-                include_odd_sizes=not args.no_odd_sizes,
                 search_mode=args.search_mode,
                 search_space=args.search_space,
+                log_normal_m_mean=args.log_normal_m_mean,
+                log_normal_m_std=args.log_normal_m_std,
+                log_normal_n_mean=args.log_normal_n_mean,
+                log_normal_n_std=args.log_normal_n_std,
+                log_normal_k_mean=args.log_normal_k_mean,
+                log_normal_k_std=args.log_normal_k_std,
             )
 
         # Train model if not skipped

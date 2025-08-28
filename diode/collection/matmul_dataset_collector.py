@@ -5,6 +5,7 @@ from collections import OrderedDict
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
+import numpy as np
 import torch
 
 # Import the size_hints function from PyTorch inductor
@@ -23,6 +24,7 @@ class CollectionMode(Enum):
 
     RANDOM = "random"
     OPERATION_SHAPE_SET = "operation_shape_set"
+    LOG_NORMAL = "log_normal"
 
 
 class MatmulDatasetCollector:
@@ -48,8 +50,13 @@ class MatmulDatasetCollector:
         min_size: int = 32,
         max_size: int = 4096,
         power_of_two: bool = False,
-        include_rectangular: bool = True,
-        include_odd_sizes: bool = True,
+        # Log normal mode parameters
+        log_normal_m_mean: float = 6.5725472164323095,
+        log_normal_m_std: float = 2.556199441605505,
+        log_normal_n_mean: float = 5.913930073563466,
+        log_normal_n_std: float = 1.66968141897024,
+        log_normal_k_mean: float = 6.204916071423808,
+        log_normal_k_std: float = 2.1646646856090177,
     ):
         """
         Initialize the MatmulDatasetCollector.
@@ -65,8 +72,6 @@ class MatmulDatasetCollector:
             min_size: Minimum matrix dimension (RANDOM mode)
             max_size: Maximum matrix dimension (RANDOM mode)
             power_of_two: Whether to generate only power-of-two sizes (RANDOM mode)
-            include_rectangular: Whether to include rectangular matrices (RANDOM mode)
-            include_odd_sizes: Whether to include odd-sized matrices (RANDOM mode)
         """
         self.hardware_name = hardware_name
         self.mode = mode
@@ -84,8 +89,14 @@ class MatmulDatasetCollector:
         self.min_size = min_size
         self.max_size = max_size
         self.power_of_two = power_of_two
-        self.include_rectangular = include_rectangular
-        self.include_odd_sizes = include_odd_sizes
+
+        # Log normal mode parameters
+        self.log_normal_m_mean = log_normal_m_mean
+        self.log_normal_m_std = log_normal_m_std
+        self.log_normal_n_mean = log_normal_n_mean
+        self.log_normal_n_std = log_normal_n_std
+        self.log_normal_k_mean = log_normal_k_mean
+        self.log_normal_k_std = log_normal_k_std
 
         self.dataset = Dataset(hardware=OrderedDict())
         self._is_collecting = False
@@ -341,6 +352,26 @@ class MatmulDatasetCollector:
         """
         self.stop_collection()
 
+    def _generate_log_normal_sizes(self) -> List[Tuple[int, int, int]]:
+        """
+        Generate matrix sizes using log normal distribution.
+
+        Returns:
+            List of (M, N, K) tuples sampled from log normal distributions
+        """
+        np.random.seed(self.seed)
+        sizes = []
+        
+        for _ in range(self.num_shapes):
+            # Sample M, N, K from separate log normal distributions
+            m = int(np.random.lognormal(self.log_normal_m_mean, self.log_normal_m_std))
+            n = int(np.random.lognormal(self.log_normal_n_mean, self.log_normal_n_std))
+            k = int(np.random.lognormal(self.log_normal_k_mean, self.log_normal_k_std))
+            
+            sizes.append((m, k, n))
+        
+        return sizes
+
     def _generate_shapes_and_dtypes(
         self,
     ) -> List[Tuple[Tuple[int, int, int], torch.dtype, str]]:
@@ -360,9 +391,17 @@ class MatmulDatasetCollector:
                 min_size=self.min_size,
                 max_size=self.max_size,
                 power_of_two=self.power_of_two,
-                include_rectangular=self.include_rectangular,
-                include_odd_sizes=self.include_odd_sizes,
             )
+
+            # Create combinations of sizes, dtypes, and operations
+            for size in sizes:
+                for dtype in self.dtypes:
+                    for op_name in self.operations:
+                        shapes_and_dtypes.append((size, dtype, op_name))
+
+        elif self.mode == CollectionMode.LOG_NORMAL:
+            # Generate log normal distributed matrix sizes
+            sizes = self._generate_log_normal_sizes()
 
             # Create combinations of sizes, dtypes, and operations
             for size in sizes:
@@ -372,18 +411,25 @@ class MatmulDatasetCollector:
 
         elif self.mode == CollectionMode.OPERATION_SHAPE_SET:
             # Use shapes from the OperationShapeSet
-            for op_name in self.operations:
-                if op_name in self.operation_shape_set.operations:
-                    shapes = self.operation_shape_set.get_shapes_for_operation(op_name)
-                    for shape in shapes:
-                        # Convert MMShape to (M, K, N) tuple and extract dtype
-                        size = (shape.M, shape.K, shape.N)
-                        dtype = shape.M_dtype  # Use M_dtype as the primary dtype
-                        shapes_and_dtypes.append((size, dtype, op_name))
-                else:
-                    logger.warning(
-                        f"Operation '{op_name}' not found in OperationShapeSet"
-                    )
+            if self.operation_shape_set is not None:
+                for op_name in self.operations:
+                    if op_name in self.operation_shape_set.operations:
+                        shapes = self.operation_shape_set.get_shapes_for_operation(
+                            op_name
+                        )
+                        for shape in shapes:
+                            # Convert MMShape to (M, K, N) tuple and extract dtype
+                            size = (shape.M, shape.K, shape.N)
+                            dtype = shape.M_dtype  # Use M_dtype as the primary dtype
+                            shapes_and_dtypes.append((size, dtype, op_name))
+                    else:
+                        logger.warning(
+                            f"Operation '{op_name}' not found in OperationShapeSet"
+                        )
+            else:
+                logger.error(
+                    "OperationShapeSet is None but mode is OPERATION_SHAPE_SET"
+                )
 
         return shapes_and_dtypes
 
@@ -412,11 +458,17 @@ class MatmulDatasetCollector:
                 # Create input matrices for mm: (M, K) x (K, N) -> (M, N)
                 a = torch.randn(M, K, device=device, dtype=dtype)
                 b = torch.randn(K, N, device=device, dtype=dtype)
-                
+
                 # Validate tensor shapes before compilation
                 logger.debug(f"Created tensors: a.shape={a.shape}, b.shape={b.shape}")
-                assert a.shape == (M, K), f"Tensor a shape mismatch: expected ({M}, {K}), got {a.shape}"
-                assert b.shape == (K, N), f"Tensor b shape mismatch: expected ({K}, {N}), got {b.shape}"
+                assert a.shape == (
+                    M,
+                    K,
+                ), f"Tensor a shape mismatch: expected ({M}, {K}), got {a.shape}"
+                assert b.shape == (
+                    K,
+                    N,
+                ), f"Tensor b shape mismatch: expected ({K}, {N}), got {b.shape}"
 
                 def mm_fn(x, y):
                     return torch.mm(x, y)
@@ -454,7 +506,9 @@ class MatmulDatasetCollector:
                 return
 
         except Exception as e:
-            logger.error(f"Error running {op_name} with size ({M}, {K}, {N}) and dtype {dtype}: {e}")
+            logger.error(
+                f"Error running {op_name} with size ({M}, {K}, {N}) and dtype {dtype}: {e}"
+            )
             raise
 
     def collect_data(
@@ -519,7 +573,7 @@ class MatmulDatasetCollector:
 
                 # Clear compilation cache to avoid shape conflicts
                 torch._dynamo.reset()
-                
+
                 self._run_matrix_multiplication(
                     size, dtype, op_name, device, search_mode
                 )

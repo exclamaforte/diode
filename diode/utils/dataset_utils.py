@@ -89,8 +89,6 @@ def generate_matrix_sizes(
     min_size: int = 32,
     max_size: int = 4096,
     power_of_two: bool = False,
-    include_rectangular: bool = True,
-    include_odd_sizes: bool = True,
     seed: int = 42,
 ) -> List[Tuple[int, int, int]]:
     """
@@ -101,8 +99,6 @@ def generate_matrix_sizes(
         min_size: Minimum matrix dimension
         max_size: Maximum matrix dimension
         power_of_two: Whether to generate only power-of-two sizes
-        include_rectangular: Whether to include rectangular matrices
-        include_odd_sizes: Whether to include odd-sized matrices
         seed: Random seed for reproducibility
 
     Returns:
@@ -112,37 +108,6 @@ def generate_matrix_sizes(
     torch.manual_seed(seed)
 
     sizes = []
-
-    # Add some common matrix sizes
-    common_sizes = [
-        (32, 32, 32),
-        (64, 64, 64),
-        (128, 128, 128),
-        (256, 256, 256),
-        (512, 512, 512),
-        (1024, 1024, 1024),
-    ]
-
-    sizes.extend(common_sizes)
-
-    # Add rectangular matrices if requested
-    if include_rectangular:
-        rectangular_sizes = [
-            (64, 128, 256),
-            (128, 256, 512),
-            (256, 512, 1024),
-            (512, 1024, 2048),
-        ]
-        sizes.extend(rectangular_sizes)
-
-    # Add odd sizes if requested
-    if include_odd_sizes:
-        odd_sizes = [
-            (35, 75, 123),
-            (111, 222, 333),
-            (555, 333, 111),
-        ]
-        sizes.extend(odd_sizes)
 
     # Generate random sizes to reach the desired number
     while len(sizes) < num_shapes:

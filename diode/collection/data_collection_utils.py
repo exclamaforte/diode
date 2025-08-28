@@ -5,10 +5,14 @@ Data collection utility functions for matrix multiplication operations.
 import logging
 import os
 import time
-import torch
 from typing import List, Optional, Tuple
 
-from diode.collection.matmul_dataset_collector import MatmulDatasetCollector, CollectionMode
+import torch
+
+from diode.collection.matmul_dataset_collector import (
+    CollectionMode,
+    MatmulDatasetCollector,
+)
 from diode.types.matmul_dataset import Dataset as MatmulDataset
 from diode.types.matmul_types import OperationShapeSet
 from diode.utils.dataset_utils import generate_matrix_sizes, print_dataset_statistics
@@ -71,11 +75,16 @@ def collect_data(
     min_size: int = 32,
     max_size: int = 4096,
     power_of_two: bool = False,
-    include_rectangular: bool = True,
-    include_odd_sizes: bool = True,
     search_mode: str = "max-autotune",
     search_space: str = "EXHAUSTIVE",
     file_format: str = "json",
+    chunk_size: Optional[int] = None,
+    log_normal_m_mean: float = 6.5725472164323095,
+    log_normal_m_std: float = 2.556199441605505,
+    log_normal_n_mean: float = 5.913930073563466,
+    log_normal_n_std: float = 1.66968141897024,
+    log_normal_k_mean: float = 6.204916071423808,
+    log_normal_k_std: float = 2.1646646856090177,
 ) -> str:
     """
     Collect matrix multiplication timing data using the enhanced MatmulDatasetCollector.
@@ -91,8 +100,6 @@ def collect_data(
         min_size: Minimum matrix dimension (random mode)
         max_size: Maximum matrix dimension (random mode)
         power_of_two: Whether to generate only power-of-two sizes (random mode)
-        include_rectangular: Whether to include rectangular matrices (random mode)
-        include_odd_sizes: Whether to include odd-sized matrices (random mode)
         search_mode: Search mode for torch.compile
         search_space: Search space for autotuning (EXHAUSTIVE or DEFAULT)
         file_format: File format for saving (json or msgpack)
@@ -115,7 +122,12 @@ def collect_data(
     logger.info(f"Collecting data on device: {device_name}")
 
     # Convert mode string to enum
-    collection_mode = CollectionMode.RANDOM if mode == "random" else CollectionMode.OPERATION_SHAPE_SET
+    if mode == "random":
+        collection_mode = CollectionMode.RANDOM
+    elif mode == "log_normal":
+        collection_mode = CollectionMode.LOG_NORMAL
+    else:
+        collection_mode = CollectionMode.OPERATION_SHAPE_SET
 
     # Create a collector with the enhanced parameters
     collector = MatmulDatasetCollector(
@@ -129,50 +141,73 @@ def collect_data(
         min_size=min_size,
         max_size=max_size,
         power_of_two=power_of_two,
-        include_rectangular=include_rectangular,
-        include_odd_sizes=include_odd_sizes,
+        log_normal_m_mean=log_normal_m_mean,
+        log_normal_m_std=log_normal_m_std,
+        log_normal_n_mean=log_normal_n_mean,
+        log_normal_n_std=log_normal_n_std,
+        log_normal_k_mean=log_normal_k_mean,
+        log_normal_k_std=log_normal_k_std,
     )
 
-    # Use the collector's built-in collect_data method
-    collector.collect_data(
-        search_mode=search_mode,
-        search_space=search_space,
-    )
+    # If chunking is disabled, use the original behavior
+    if chunk_size is None:
+        # Use the collector's built-in collect_data method
+        collector.collect_data(
+            search_mode=search_mode,
+            search_space=search_space,
+        )
 
-    # Save the collected dataset to a file
-    if file_format == "msgpack":
-        # Change extension to .msgpack if using msgpack format
-        if output_file.endswith('.json'):
-            output_file = output_file.replace('.json', '.msgpack')
-        # Save as MessagePack
-        dataset = collector.get_dataset()
-        with open(output_file, 'wb') as f:
-            f.write(dataset.to_msgpack())
-        logger.info(f"Saved collected dataset to {output_file} (MessagePack format)")
+        # Save the collected dataset to a file
+        if file_format == "msgpack":
+            # Change extension to .msgpack if using msgpack format
+            if output_file.endswith(".json"):
+                output_file = output_file.replace(".json", ".msgpack")
+            # Save as MessagePack
+            dataset = collector.get_dataset()
+            with open(output_file, "wb") as f:
+                f.write(dataset.to_msgpack())
+            logger.info(
+                f"Saved collected dataset to {output_file} (MessagePack format)"
+            )
+        else:
+            # Save as JSON (default)
+            collector.save_to_file(output_file)
+            logger.info(f"Saved collected dataset to {output_file} (JSON format)")
+
+        # Print statistics about the collected data
+        print_dataset_statistics(collector)
+
+        return output_file
     else:
-        # Save as JSON (default)
-        collector.save_to_file(output_file)
-        logger.info(f"Saved collected dataset to {output_file} (JSON format)")
-
-    # Print statistics about the collected data
-    print_dataset_statistics(collector)
-
-    return output_file
+        # Use chunked collection
+        return _collect_data_chunked(
+            collector=collector,
+            output_file=output_file,
+            chunk_size=chunk_size,
+            search_mode=search_mode,
+            search_space=search_space,
+            file_format=file_format,
+        )
 
 
 def create_validation_dataset(
     output_file: str,
+    mode: str = "random",
     num_shapes: int = 30,
     dtypes: Optional[List[torch.dtype]] = None,
     seed: int = 43,  # Different seed from training
     min_size: int = 32,
     max_size: int = 4096,
     power_of_two: bool = False,
-    include_rectangular: bool = True,
-    include_odd_sizes: bool = True,
     search_mode: str = "max-autotune",
     search_space: str = "EXHAUSTIVE",
     file_format: str = "json",
+    log_normal_m_mean: float = 6.5725472164323095,
+    log_normal_m_std: float = 2.556199441605505,
+    log_normal_n_mean: float = 5.913930073563466,
+    log_normal_n_std: float = 1.66968141897024,
+    log_normal_k_mean: float = 6.204916071423808,
+    log_normal_k_std: float = 2.1646646856090177,
 ) -> str:
     """
     Create a separate validation dataset for evaluating the model.
@@ -185,8 +220,6 @@ def create_validation_dataset(
         min_size: Minimum matrix dimension
         max_size: Maximum matrix dimension
         power_of_two: Whether to generate only power-of-two sizes
-        include_rectangular: Whether to include rectangular matrices
-        include_odd_sizes: Whether to include odd-sized matrices
         search_mode: Search mode for torch.compile
         search_space: Search space for autotuning (EXHAUSTIVE or DEFAULT)
         file_format: File format for saving (json or msgpack)
@@ -204,17 +237,22 @@ def create_validation_dataset(
     # Use the same collection function but with different parameters
     return collect_data(
         output_file=output_file,
+        mode=mode,
         num_shapes=num_shapes,
         dtypes=dtypes,
         seed=seed,
         min_size=min_size,
         max_size=max_size,
         power_of_two=power_of_two,
-        include_rectangular=include_rectangular,
-        include_odd_sizes=include_odd_sizes,
         search_mode=search_mode,
         search_space=search_space,
         file_format=file_format,
+        log_normal_m_mean=log_normal_m_mean,
+        log_normal_m_std=log_normal_m_std,
+        log_normal_n_mean=log_normal_n_mean,
+        log_normal_n_std=log_normal_n_std,
+        log_normal_k_mean=log_normal_k_mean,
+        log_normal_k_std=log_normal_k_std,
     )
 
 
@@ -298,3 +336,140 @@ def run_collector_example(
 
     # Print statistics about the collected data
     print_dataset_statistics(collector)
+
+
+def _collect_data_chunked(
+    collector: MatmulDatasetCollector,
+    output_file: str,
+    chunk_size: int,
+    search_mode: str,
+    search_space: str,
+    file_format: str,
+) -> str:
+    """
+    Collect data in chunks, saving to separate files when chunk size is reached.
+
+    Args:
+        collector: The MatmulDatasetCollector instance
+        output_file: Base output file path
+        chunk_size: Number of shapes to collect before writing to a new file
+        search_mode: Search mode for torch.compile
+        search_space: Search space for autotuning
+        file_format: File format for saving (json or msgpack)
+
+    Returns:
+        Path to the first chunk file
+    """
+    # Parse the output file to get base name and extension
+    base_name, ext = os.path.splitext(output_file)
+    if file_format == "msgpack" and ext == ".json":
+        ext = ".msgpack"
+
+    # Generate shapes and dtypes based on the collector's configuration
+    shapes_and_dtypes = collector._generate_shapes_and_dtypes()
+    total_operations = len(shapes_and_dtypes)
+
+    logger.info(f"Collecting {total_operations} operations in chunks of {chunk_size}")
+
+    # Set up PyTorch for compilation (similar to collector.collect_data)
+    torch.set_grad_enabled(False)
+
+    # Configure PyTorch inductor
+    from torch._inductor import config
+
+    config.fx_graph_cache = False
+    config.force_disable_caches = True
+    config.max_autotune_gemm_backends = "TRITON"
+    config.triton.num_decompose_k_splits = 0
+
+    # Set search space
+    if search_space == "EXHAUSTIVE":
+        config.max_autotune_gemm_search_space = "EXHAUSTIVE"
+        logger.info("Set search space to EXHAUSTIVE")
+    else:
+        config.max_autotune_gemm_search_space = "DEFAULT"
+        logger.info("Set search space to DEFAULT")
+
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    chunk_num = 0
+    current_chunk_count = 0
+    first_chunk_file = None
+
+    # Start collection
+    collector.start_collection()
+
+    try:
+        for i, (size, dtype, op_name) in enumerate(shapes_and_dtypes):
+            M, K, N = size
+            logger.info(
+                f"[{i+1}/{total_operations}] Running {op_name} with size "
+                f"({M}, {K}) x ({K}, {N}) and dtype {dtype} (chunk {chunk_num + 1}, item {current_chunk_count + 1}/{chunk_size})"
+            )
+
+            # Clear compilation cache to avoid shape conflicts
+            torch._dynamo.reset()
+
+            # Run the matrix multiplication
+            collector._run_matrix_multiplication(
+                size, dtype, op_name, device, search_mode
+            )
+
+            current_chunk_count += 1
+
+            # Check if we've reached the chunk size or if this is the last operation
+            if current_chunk_count >= chunk_size or i == total_operations - 1:
+                # Stop collection temporarily to save the current chunk
+                collector.stop_collection()
+
+                # Generate chunk filename
+                chunk_filename = f"{base_name}_{chunk_num + 1}{ext}"
+                if first_chunk_file is None:
+                    first_chunk_file = chunk_filename
+
+                # Save the current chunk
+                if file_format == "msgpack":
+                    dataset = collector.get_dataset()
+                    with open(chunk_filename, "wb") as f:
+                        f.write(dataset.to_msgpack())
+                    logger.info(
+                        f"Saved chunk {chunk_num + 1} to {chunk_filename} (MessagePack format)"
+                    )
+                else:
+                    collector.save_to_file(chunk_filename)
+                    logger.info(
+                        f"Saved chunk {chunk_num + 1} to {chunk_filename} (JSON format)"
+                    )
+
+                # Print statistics for this chunk
+                logger.info(f"Chunk {chunk_num + 1} statistics:")
+                print_dataset_statistics(collector)
+
+                # Reset for next chunk if not the last operation
+                if i < total_operations - 1:
+                    # Create a new collector for the next chunk
+                    collector = MatmulDatasetCollector(
+                        hardware_name=collector.hardware_name,
+                        mode=collector.mode,
+                        operations=collector.operations,
+                        operation_shape_set=collector.operation_shape_set,
+                        num_shapes=collector.num_shapes,
+                        dtypes=collector.dtypes,
+                        seed=collector.seed,
+                        min_size=collector.min_size,
+                        max_size=collector.max_size,
+                        power_of_two=collector.power_of_two,
+                    )
+
+                    # Start collection for the next chunk
+                    collector.start_collection()
+
+                    chunk_num += 1
+                    current_chunk_count = 0
+
+    finally:
+        # Ensure collection is stopped
+        if collector._is_collecting:
+            collector.stop_collection()
+
+    logger.info(f"Chunked collection completed. Created {chunk_num + 1} chunk files.")
+    return first_chunk_file or output_file

@@ -238,37 +238,6 @@ def test_generate_matrix_sizes_power_of_two():
         assert k & (k - 1) == 0, f"{k} is not a power of 2"
         assert n & (n - 1) == 0, f"{n} is not a power of 2"
 
-def test_generate_matrix_sizes_no_rectangular():
-    """Test the generate_matrix_sizes function with include_rectangular=False."""
-    # Call the function with include_rectangular=False
-    sizes = generate_matrix_sizes(num_shapes=10, include_rectangular=False)
-    
-    # Check that the rectangular sizes are not included
-    rectangular_sizes = [
-        (64, 128, 256),
-        (128, 256, 512),
-        (256, 512, 1024),
-        (512, 1024, 2048),
-    ]
-    
-    for rect_size in rectangular_sizes:
-        assert rect_size not in sizes
-
-def test_generate_matrix_sizes_no_odd():
-    """Test the generate_matrix_sizes function with include_odd_sizes=False."""
-    # Call the function with include_odd_sizes=False
-    sizes = generate_matrix_sizes(num_shapes=10, include_odd_sizes=False)
-    
-    # Check that the odd sizes are not included
-    odd_sizes = [
-        (35, 75, 123),
-        (111, 222, 333),
-        (555, 333, 111),
-    ]
-    
-    for odd_size in odd_sizes:
-        assert odd_size not in sizes
-
 def test_analyze_worst_predictions(mock_model, mock_dataloader):
     """Test the analyze_worst_predictions function."""
     # Set up the mock model to return predictions
