@@ -4,7 +4,7 @@
 #
 # This script performs the following steps:
 # 1. Creates a data directory
-# 2. Generates a training set using log normal distribution with exhaustive autotuning (1000 samples, writing every 20)
+# 2. Generates a training set using log normal distribution with exhaustive autotuning (1000 samples, writing every 5)
 # 3. Trains a deep model on the collected data
 # 4. Creates a validation set from operation_shapeset.json
 # 5. Compares the validation set to the trained model
@@ -16,10 +16,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TOOLKIT_PATH="${SCRIPT_DIR}/matmul_toolkit.py"
 PYTHON_CMD="${HOME}/.conda/envs/foo2/bin/python"
 
+# Set random seed for reproducibility
+SEED=41
+
 # Define paths
 DATA_DIR="${SCRIPT_DIR}/data"
-TRAIN_DATASET="${DATA_DIR}/train_dataset.json"
-VALIDATION_DATASET="${DATA_DIR}/validation_dataset.json"
+TRAIN_DATASET="${DATA_DIR}/seed_${SEED}_train_dataset.msgpack"
+VALIDATION_DATASET="${DATA_DIR}/validation_dataset.msgpack"
 MODEL_PATH="${DATA_DIR}/matmul_model.pt"
 LOG_DIR="${DATA_DIR}/logs"
 
@@ -51,18 +54,19 @@ echo ""
 
 # Step 2: Generate training set using log normal distribution with exhaustive autotuning
 echo "Step 2: Generating training dataset with log normal distribution and exhaustive autotuning"
-echo "Command: ${PYTHON_CMD} ${TOOLKIT_PATH} --format json collect --output ${TRAIN_DATASET} --num-shapes 1000 --log-normal --search-space EXHAUSTIVE --search-mode max-autotune --chunk-size 20"
+echo "Command: ${PYTHON_CMD} ${TOOLKIT_PATH} --format json --seed ${SEED} collect --output ${TRAIN_DATASET} --num-shapes 1000 --log-normal --search-space EXHAUSTIVE --search-mode max-autotune --chunk-size 5"
 echo ""
 
 ${PYTHON_CMD} "${TOOLKIT_PATH}" \
     --format json \
+    --seed "${SEED}" \
     collect \
     --output "${TRAIN_DATASET}" \
     --num-shapes 1000 \
     --log-normal \
     --search-space EXHAUSTIVE \
     --search-mode max-autotune \
-    --chunk-size 20
+    --chunk-size 5
 
 echo ""
 echo "✓ Training data collection completed"
@@ -71,10 +75,11 @@ echo ""
 
 # Step 3: Train deep model on the collected data
 echo "Step 3: Training deep model on collected data"
-echo "Command: ${PYTHON_CMD} ${TOOLKIT_PATH} train --dataset ${TRAIN_DATASET} --model ${MODEL_PATH} --model-type deep --batch-size 64 --num-epochs 100 --learning-rate 0.001 --log-dir ${LOG_DIR}"
+echo "Command: ${PYTHON_CMD} ${TOOLKIT_PATH} --seed ${SEED} train --dataset ${TRAIN_DATASET} --model ${MODEL_PATH} --model-type deep --batch-size 64 --num-epochs 100 --learning-rate 0.001 --log-dir ${LOG_DIR}"
 echo ""
 
 ${PYTHON_CMD} "${TOOLKIT_PATH}" \
+    --seed "${SEED}" \
     train \
     --dataset "${TRAIN_DATASET}" \
     --model "${MODEL_PATH}" \
@@ -91,11 +96,12 @@ echo ""
 
 # Step 4: Create validation set from operation_shapeset.json
 echo "Step 4: Creating validation dataset from operation_shapeset.json"
-echo "Command: ${PYTHON_CMD} ${TOOLKIT_PATH} --format json create-validation --output ${VALIDATION_DATASET} --shapeset ${OPERATION_SHAPESET_PATH} --operations mm addmm bmm --search-space EXHAUSTIVE --search-mode max-autotune"
+echo "Command: ${PYTHON_CMD} ${TOOLKIT_PATH} --format json --seed ${SEED} create-validation --output ${VALIDATION_DATASET} --shapeset ${OPERATION_SHAPESET_PATH} --operations mm addmm bmm --search-space EXHAUSTIVE --search-mode max-autotune"
 echo ""
 
 ${PYTHON_CMD} "${TOOLKIT_PATH}" \
     --format json \
+    --seed "${SEED}" \
     create-validation \
     --output "${VALIDATION_DATASET}" \
     --shapeset "${OPERATION_SHAPESET_PATH}" \
@@ -110,10 +116,11 @@ echo ""
 
 # Step 5: Compare validation set to the model
 echo "Step 5: Validating model performance on validation dataset"
-echo "Command: ${PYTHON_CMD} ${TOOLKIT_PATH} validate-model --model ${MODEL_PATH} --dataset ${VALIDATION_DATASET} --batch-size 64 --top-n-worst 10"
+echo "Command: ${PYTHON_CMD} ${TOOLKIT_PATH} --seed ${SEED} validate-model --model ${MODEL_PATH} --dataset ${VALIDATION_DATASET} --batch-size 64 --top-n-worst 10"
 echo ""
 
 ${PYTHON_CMD} "${TOOLKIT_PATH}" \
+    --seed "${SEED}" \
     validate-model \
     --model "${MODEL_PATH}" \
     --dataset "${VALIDATION_DATASET}" \

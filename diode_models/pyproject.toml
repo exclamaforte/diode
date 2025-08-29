@@ -6,19 +6,32 @@ build-backend = "setuptools.build_meta"
 name = "diode_models"
 version = "0.1.0"
 description = "Pre-trained models for the diode package"
+readme = "README.md"
+license = "MIT"
 authors = [
     {name = "Meta", email = "example@meta.com"},
 ]
 requires-python = ">=3.8"
+keywords = ["machine-learning", "pytorch", "torch", "pre-trained-models", "matmul", "optimization"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
 ]
+
+[project.urls]
+Homepage = "https://github.com/exclamaforte/diode"
+Repository = "https://github.com/exclamaforte/diode.git"
+Documentation = "https://github.com/exclamaforte/diode/tree/main/examples#readme"
+"Bug Tracker" = "https://github.com/exclamaforte/diode/issues"
+
 dependencies = [
     "torch>=2.0.0",
     "numpy>=1.20.0",
