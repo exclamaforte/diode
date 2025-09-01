@@ -14,7 +14,7 @@ from diode.types.matmul_dataset import Dataset
 
 from diode.types.matmul_types import MMShape, OperationShapeSet, Table, TritonGEMMConfig
 from diode.utils.dataset_utils import generate_matrix_sizes
-from torch._inductor.select_algorithm import add_feedback_saver, clear_feedback_saver
+from torch._inductor.select_algorithm import add_feedback_saver, clear_feedback_savers
 
 logger = logging.getLogger(__name__)
 
@@ -352,6 +352,24 @@ class MatmulDatasetCollector:
         """
         self.stop_collection()
 
+    def _round_small_dimension(self, dim: int) -> int:
+        """
+        Round small dimensions (< 2048) to the nearest multiple of 8.
+        If the result would be 0, round up to 8.
+
+        Args:
+            dim: The dimension to potentially round
+
+        Returns:
+            The rounded dimension
+        """
+        if dim < 2048:
+            # Round to nearest multiple of 8
+            rounded = round(dim / 8) * 8
+            # If rounding resulted in 0, use 8 instead
+            return max(8, rounded)
+        return dim
+
     def _generate_log_normal_sizes(self) -> List[Tuple[int, int, int]]:
         """
         Generate matrix sizes using log normal distribution.
@@ -367,6 +385,11 @@ class MatmulDatasetCollector:
             m = int(np.random.lognormal(self.log_normal_m_mean, self.log_normal_m_std))
             n = int(np.random.lognormal(self.log_normal_n_mean, self.log_normal_n_std))
             k = int(np.random.lognormal(self.log_normal_k_mean, self.log_normal_k_std))
+
+            # Round small dimensions to nearest multiple of 8
+            m = self._round_small_dimension(m)
+            n = self._round_small_dimension(n)
+            k = self._round_small_dimension(k)
 
             sizes.append((m, k, n))
 
