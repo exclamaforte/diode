@@ -361,15 +361,15 @@ class MatmulDatasetCollector:
         """
         np.random.seed(self.seed)
         sizes = []
-        
+
         for _ in range(self.num_shapes):
             # Sample M, N, K from separate log normal distributions
             m = int(np.random.lognormal(self.log_normal_m_mean, self.log_normal_m_std))
             n = int(np.random.lognormal(self.log_normal_n_mean, self.log_normal_n_std))
             k = int(np.random.lognormal(self.log_normal_k_mean, self.log_normal_k_std))
-            
+
             sizes.append((m, k, n))
-        
+
         return sizes
 
     def _generate_shapes_and_dtypes(
@@ -377,11 +377,15 @@ class MatmulDatasetCollector:
     ) -> List[Tuple[Tuple[int, int, int], torch.dtype, str]]:
         """
         Generate shapes and dtypes based on the collection mode.
+        For sample efficiency, randomly samples one dtype and one operation per shape.
 
         Returns:
             List of tuples containing (shape, dtype, operation_name)
         """
         shapes_and_dtypes = []
+
+        # Set up random number generator for consistent sampling
+        rng = np.random.RandomState(self.seed)
 
         if self.mode == CollectionMode.RANDOM:
             # Generate random matrix sizes
@@ -393,25 +397,27 @@ class MatmulDatasetCollector:
                 power_of_two=self.power_of_two,
             )
 
-            # Create combinations of sizes, dtypes, and operations
+            # Sample one dtype and one operation for each size
             for size in sizes:
-                for dtype in self.dtypes:
-                    for op_name in self.operations:
-                        shapes_and_dtypes.append((size, dtype, op_name))
+                dtype = rng.choice(self.dtypes)
+                op_name = rng.choice(self.operations)
+                shapes_and_dtypes.append((size, dtype, op_name))
 
         elif self.mode == CollectionMode.LOG_NORMAL:
             # Generate log normal distributed matrix sizes
             sizes = self._generate_log_normal_sizes()
 
-            # Create combinations of sizes, dtypes, and operations
+            # Sample one dtype and one operation for each size
             for size in sizes:
-                for dtype in self.dtypes:
-                    for op_name in self.operations:
-                        shapes_and_dtypes.append((size, dtype, op_name))
+                dtype = rng.choice(self.dtypes)
+                op_name = rng.choice(self.operations)
+                shapes_and_dtypes.append((size, dtype, op_name))
 
         elif self.mode == CollectionMode.OPERATION_SHAPE_SET:
             # Use shapes from the OperationShapeSet
             if self.operation_shape_set is not None:
+                # Collect all shapes from all operations first
+                all_shapes = []
                 for op_name in self.operations:
                     if op_name in self.operation_shape_set.operations:
                         shapes = self.operation_shape_set.get_shapes_for_operation(
@@ -421,11 +427,17 @@ class MatmulDatasetCollector:
                             # Convert MMShape to (M, K, N) tuple and extract dtype
                             size = (shape.M, shape.K, shape.N)
                             dtype = shape.M_dtype  # Use M_dtype as the primary dtype
-                            shapes_and_dtypes.append((size, dtype, op_name))
+                            all_shapes.append((size, dtype))
                     else:
                         logger.warning(
                             f"Operation '{op_name}' not found in OperationShapeSet"
                         )
+
+                # Sample one operation for each unique shape
+                unique_shapes = list(set(all_shapes))
+                for size, dtype in unique_shapes:
+                    op_name = rng.choice(self.operations)
+                    shapes_and_dtypes.append((size, dtype, op_name))
             else:
                 logger.error(
                     "OperationShapeSet is None but mode is OPERATION_SHAPE_SET"
