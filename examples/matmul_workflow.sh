@@ -17,7 +17,7 @@ TOOLKIT_PATH="${SCRIPT_DIR}/matmul_toolkit.py"
 PYTHON_CMD="${HOME}/.conda/envs/foo2/bin/python"
 
 # Set random seed for reproducibility
-SEED=41
+SEED=45
 
 # Define paths
 DATA_DIR="${SCRIPT_DIR}/data"
@@ -54,11 +54,11 @@ echo ""
 
 # Step 2: Generate training set using log normal distribution with exhaustive autotuning
 echo "Step 2: Generating training dataset with log normal distribution and exhaustive autotuning"
-echo "Command: ${PYTHON_CMD} ${TOOLKIT_PATH} --format json --seed ${SEED} collect --output ${TRAIN_DATASET} --num-shapes 1000 --log-normal --search-space EXHAUSTIVE --search-mode max-autotune --chunk-size 5"
+echo "Command: ${PYTHON_CMD} ${TOOLKIT_PATH} --format msgpack --seed ${SEED} collect --output ${TRAIN_DATASET} --num-shapes 1000 --log-normal --search-space EXHAUSTIVE --search-mode max-autotune --chunk-size 5"
 echo ""
 
 ${PYTHON_CMD} "${TOOLKIT_PATH}" \
-    --format json \
+    --format msgpack \
     --seed "${SEED}" \
     collect \
     --output "${TRAIN_DATASET}" \
@@ -96,11 +96,11 @@ echo ""
 
 # Step 4: Create validation set from operation_shapeset.json
 echo "Step 4: Creating validation dataset from operation_shapeset.json"
-echo "Command: ${PYTHON_CMD} ${TOOLKIT_PATH} --format json --seed ${SEED} create-validation --output ${VALIDATION_DATASET} --shapeset ${OPERATION_SHAPESET_PATH} --operations mm addmm bmm --search-space EXHAUSTIVE --search-mode max-autotune"
+echo "Command: ${PYTHON_CMD} ${TOOLKIT_PATH} --format msgpack --seed ${SEED} create-validation --output ${VALIDATION_DATASET} --shapeset ${OPERATION_SHAPESET_PATH} --operations mm addmm bmm --search-space EXHAUSTIVE --search-mode max-autotune"
 echo ""
 
 ${PYTHON_CMD} "${TOOLKIT_PATH}" \
-    --format json \
+    --format msgpack \
     --seed "${SEED}" \
     create-validation \
     --output "${VALIDATION_DATASET}" \

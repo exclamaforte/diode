@@ -127,7 +127,7 @@ class MatmulDatasetCollector:
             logger.warning("No collection in progress")
             return
 
-        clear_feedback_saver()
+        clear_feedback_savers()
         self._is_collecting = False
         logger.info("Stopped collecting matmul data")
 

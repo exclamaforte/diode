@@ -45,21 +45,21 @@ class TestMatmulDatasetCollector(unittest.TestCase):
         self.collector.start_collection()
         mock_add_feedback_saver.assert_called_once()
 
-    @patch('diode.collection.matmul_dataset_collector.clear_feedback_saver')
-    def test_stop_collection(self, mock_clear_feedback_saver):
+    @patch('diode.collection.matmul_dataset_collector.clear_feedback_savers')
+    def test_stop_collection(self, mock_clear_feedback_savers):
         """Test stopping collection."""
         # Set _is_collecting to True to simulate an active collection
         self.collector._is_collecting = True
         
         self.collector.stop_collection()
         
-        # Check that clear_feedback_saver was called
-        mock_clear_feedback_saver.assert_called_once()
+        # Check that clear_feedback_savers was called
+        mock_clear_feedback_savers.assert_called_once()
         self.assertFalse(self.collector._is_collecting)
         
-        # Stopping collection again should not call clear_feedback_saver again
+        # Stopping collection again should not call clear_feedback_savers again
         self.collector.stop_collection()
-        mock_clear_feedback_saver.assert_called_once()
+        mock_clear_feedback_savers.assert_called_once()
 
     def test_feedback_handler_mm(self):
         """Test the feedback handler with mm operation."""
@@ -371,7 +371,7 @@ class TestMatmulDatasetCollector(unittest.TestCase):
         mock_file().write.assert_called_once_with(serialized_table)
 
     @patch('diode.collection.matmul_dataset_collector.add_feedback_saver')
-    @patch('diode.collection.matmul_dataset_collector.clear_feedback_saver')
+    @patch('diode.collection.matmul_dataset_collector.clear_feedback_savers')
     def test_context_manager(self, mock_clear, mock_add):
         """Test using the collector as a context manager."""
         with self.collector as collector:
