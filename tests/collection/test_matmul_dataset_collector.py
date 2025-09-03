@@ -386,6 +386,152 @@ class TestMatmulDatasetCollector(unittest.TestCase):
         mock_clear.assert_called_once()
         self.assertFalse(self.collector._is_collecting)
 
+    def test_estimate_memory_usage(self):
+        """Test memory usage estimation for different operations and dtypes."""
+        # Test mm operation with float32
+        size = (1024, 512, 256)  # M, K, N
+        memory_usage = self.collector._estimate_memory_usage(size, torch.float32, "mm", "cuda")
+        
+        # Expected: (M*K + K*N + M*N) * 4 bytes * 1.5 overhead
+        # (1024*512 + 512*256 + 1024*256) * 4 * 1.5 = (524288 + 131072 + 262144) * 6 = 5505024
+        expected = (1024 * 512 + 512 * 256 + 1024 * 256) * 4 * 1.5
+        self.assertEqual(memory_usage, expected)
+        
+        # Test addmm operation with float16
+        memory_usage = self.collector._estimate_memory_usage(size, torch.float16, "addmm", "cuda")
+        
+        # Expected: (M*K + K*N + M*N + M*N) * 2 bytes * 1.5 overhead
+        expected = (1024 * 512 + 512 * 256 + 1024 * 256 + 1024 * 256) * 2 * 1.5
+        self.assertEqual(memory_usage, expected)
+        
+        # Test bmm operation with float64
+        memory_usage = self.collector._estimate_memory_usage(size, torch.float64, "bmm", "cuda")
+        
+        # Expected: (M*K + K*N + M*N) * 8 bytes * 1.5 overhead (same as mm for B=1)
+        expected = (1024 * 512 + 512 * 256 + 1024 * 256) * 8 * 1.5
+        self.assertEqual(memory_usage, expected)
+
+    @patch('torch.cuda.is_available', return_value=True)
+    @patch('torch.cuda.get_device_properties')
+    @patch('torch.cuda.memory_allocated')
+    def test_check_memory_feasible_cuda(self, mock_memory_allocated, mock_device_properties, mock_cuda_available):
+        """Test memory feasibility check for CUDA device."""
+        # Mock GPU properties
+        mock_props = MagicMock()
+        mock_props.total_memory = 16 * 1024 * 1024 * 1024  # 16GB
+        mock_device_properties.return_value = mock_props
+        mock_memory_allocated.return_value = 2 * 1024 * 1024 * 1024  # 2GB allocated
+        
+        # Test feasible operation (small size)
+        size = (128, 128, 128)
+        is_feasible = self.collector._check_memory_feasible(size, torch.float32, "mm", "cuda")
+        self.assertTrue(is_feasible)
+        
+        # Test infeasible operation (very large size)
+        size = (50000, 50000, 50000)  # Would require ~1.5TB
+        is_feasible = self.collector._check_memory_feasible(size, torch.float32, "mm", "cuda")
+        self.assertFalse(is_feasible)
+
+    def test_check_memory_feasible_cpu(self):
+        """Test memory feasibility check for CPU device."""
+        # Test feasible operation (reasonable size)
+        size = (1024, 1024, 1024)
+        is_feasible = self.collector._check_memory_feasible(size, torch.float32, "mm", "cpu")
+        self.assertTrue(is_feasible)
+        
+        # Test infeasible operation (extremely large size)
+        size = (100000, 100000, 100000)  # Would require ~120TB
+        is_feasible = self.collector._check_memory_feasible(size, torch.float32, "mm", "cpu")
+        self.assertFalse(is_feasible)
+
+    @patch('torch.cuda.is_available', return_value=True)
+    @patch('torch.cuda.get_device_properties')
+    @patch('torch.cuda.memory_allocated')
+    @patch('torch.randn')
+    @patch('torch.compile')
+    def test_run_matrix_multiplication_memory_skip(self, mock_compile, mock_randn, mock_memory_allocated, mock_device_properties, mock_cuda_available):
+        """Test that _run_matrix_multiplication skips operations when memory is insufficient."""
+        # Mock GPU properties with limited memory
+        mock_props = MagicMock()
+        mock_props.total_memory = 1 * 1024 * 1024 * 1024  # 1GB total
+        mock_device_properties.return_value = mock_props
+        mock_memory_allocated.return_value = 512 * 1024 * 1024  # 512MB allocated
+        
+        # Try to run a very large operation that should be skipped
+        size = (10000, 10000, 10000)  # Would require ~1.1TB
+        
+        # This should not raise an exception and should skip the operation
+        self.collector._run_matrix_multiplication(size, torch.float32, "mm", "cuda", "max-autotune")
+        
+        # Verify that torch.randn was never called (operation was skipped)
+        mock_randn.assert_not_called()
+        mock_compile.assert_not_called()
+
+    @patch('torch.cuda.is_available', return_value=True)
+    @patch('torch.cuda.get_device_properties')
+    @patch('torch.cuda.memory_allocated')
+    @patch('torch.randn')
+    @patch('torch.compile')
+    def test_run_matrix_multiplication_memory_proceed(self, mock_compile, mock_randn, mock_memory_allocated, mock_device_properties, mock_cuda_available):
+        """Test that _run_matrix_multiplication proceeds when memory is sufficient."""
+        # Mock GPU properties with plenty of memory
+        mock_props = MagicMock()
+        mock_props.total_memory = 16 * 1024 * 1024 * 1024  # 16GB total
+        mock_device_properties.return_value = mock_props
+        mock_memory_allocated.return_value = 1 * 1024 * 1024 * 1024  # 1GB allocated
+        
+        # Mock tensor creation
+        mock_tensor = MagicMock()
+        mock_tensor.shape = (128, 128)
+        mock_randn.return_value = mock_tensor
+        
+        # Mock compiled function
+        mock_compiled_fn = MagicMock()
+        mock_compile.return_value = mock_compiled_fn
+        
+        # Try to run a small operation that should proceed
+        size = (128, 128, 128)
+        
+        # This should proceed and call torch.randn and torch.compile
+        self.collector._run_matrix_multiplication(size, torch.float32, "mm", "cuda", "max-autotune")
+        
+        # Verify that torch.randn was called (operation proceeded)
+        self.assertEqual(mock_randn.call_count, 2)  # Two tensors for mm operation
+        mock_compile.assert_called_once()
+        mock_compiled_fn.assert_called_once()
+
+    @patch('diode.collection.matmul_dataset_collector.logger')
+    def test_memory_check_logging(self, mock_logger):
+        """Test that memory check failures are properly logged."""
+        # Test with a size that will definitely fail memory check
+        size = (100000, 100000, 100000)
+        
+        # Call _check_memory_feasible which should log a warning
+        is_feasible = self.collector._check_memory_feasible(size, torch.float32, "mm", "cpu")
+        
+        # Should return False
+        self.assertFalse(is_feasible)
+        
+        # Should not log anything for CPU (only logs for CUDA)
+        # Let's test CUDA logging with mocked CUDA functions
+        with patch('torch.cuda.get_device_properties') as mock_props, \
+            patch('torch.cuda.memory_allocated') as mock_allocated:
+            
+            mock_device_props = MagicMock()
+            mock_device_props.total_memory = 1 * 1024 * 1024 * 1024  # 1GB
+            mock_props.return_value = mock_device_props
+            mock_allocated.return_value = 0
+            
+            is_feasible = self.collector._check_memory_feasible(size, torch.float32, "mm", "cuda")
+            self.assertFalse(is_feasible)
+            
+            # Check that warning was logged
+            mock_logger.warning.assert_called()
+            warning_call = mock_logger.warning.call_args[0][0]
+            self.assertIn("Skipping mm with size (100000, 100000, 100000)", warning_call)
+            self.assertIn("estimated memory", warning_call)
+            self.assertIn("exceeds safe limit", warning_call)
+
 
 if __name__ == "__main__":
     unittest.main()
