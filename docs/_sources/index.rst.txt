@@ -5,8 +5,7 @@ Welcome to Diode's documentation!
 
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 1
 
    getting_started
    torch_compile_integration
