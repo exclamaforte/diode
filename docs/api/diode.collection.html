@@ -1,0 +1,436 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>diode.collection package &mdash; diode 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="diode.model package" href="diode.model.html" />
+    <link rel="prev" title="diode package" href="diode.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            diode
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">diode</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="diode.html">diode package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="diode.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">diode.collection package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="diode.model.html">diode.model package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="diode.types.html">diode.types package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="diode.utils.html">diode.utils package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="diode.html#module-diode">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">diode</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">diode</a></li>
+          <li class="breadcrumb-item"><a href="diode.html">diode package</a></li>
+      <li class="breadcrumb-item active">diode.collection package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/diode.collection.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="diode-collection-package">
+<h1>diode.collection package<a class="headerlink" href="#diode-collection-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-diode.collection.data_collection_utils">
+<span id="diode-collection-data-collection-utils-module"></span><h2>diode.collection.data_collection_utils module<a class="headerlink" href="#module-diode.collection.data_collection_utils" title="Link to this heading"></a></h2>
+<p>Data collection utility functions for matrix multiplication operations.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="diode.collection.data_collection_utils.run_matrix_multiplications">
+<span class="sig-prename descclassname"><span class="pre">diode.collection.data_collection_utils.</span></span><span class="sig-name descname"><span class="pre">run_matrix_multiplications</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sizes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtypes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cuda'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'max-autotune'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/diode/collection/data_collection_utils.html#run_matrix_multiplications"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diode.collection.data_collection_utils.run_matrix_multiplications" title="Link to this definition"></a></dt>
+<dd><p>Run matrix multiplication operations with the given sizes and dtypes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sizes</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]]</span>) – List of (M, K, N) tuples</p></li>
+<li><p><strong>dtypes</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensor_attributes.html#torch.dtype" title="(in PyTorch v2.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dtype</span></code></a>]</span>) – List of dtypes to test</p></li>
+<li><p><strong>device</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – Device to run on</p></li>
+<li><p><strong>search_mode</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – Search mode for torch.compile</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="diode.collection.data_collection_utils.collect_data">
+<span class="sig-prename descclassname"><span class="pre">diode.collection.data_collection_utils.</span></span><span class="sig-name descname"><span class="pre">collect_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'random'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operation_shape_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_shapes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">42</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4096</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power_of_two</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'max-autotune'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'EXHAUSTIVE'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'json'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_normal_m_mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6.5725472164323095</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_normal_m_std</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.556199441605505</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_normal_n_mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5.913930073563466</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_normal_n_std</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.66968141897024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_normal_k_mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6.204916071423808</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_normal_k_std</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.1646646856090177</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/diode/collection/data_collection_utils.html#collect_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diode.collection.data_collection_utils.collect_data" title="Link to this definition"></a></dt>
+<dd><p>Collect matrix multiplication timing data using the enhanced MatmulDatasetCollector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>output_file</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – Path to save the collected data</p></li>
+<li><p><strong>mode</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – Collection mode (“random” or “operation_shape_set”)</p></li>
+<li><p><strong>operations</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]</span>) – List of operations to collect data for (e.g., [‘mm’, ‘addmm’])</p></li>
+<li><p><strong>operation_shape_set</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference internal" href="diode.types.html#diode.types.matmul_types.OperationShapeSet" title="diode.types.matmul_types.OperationShapeSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">OperationShapeSet</span></code></a>]</span>) – OperationShapeSet for operation_shape_set mode</p></li>
+<li><p><strong>num_shapes</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>) – Number of matrix shapes to test (random mode)</p></li>
+<li><p><strong>dtypes</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensor_attributes.html#torch.dtype" title="(in PyTorch v2.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dtype</span></code></a>]]</span>) – List of dtypes to test</p></li>
+<li><p><strong>seed</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>) – Random seed for reproducibility (random mode)</p></li>
+<li><p><strong>min_size</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>) – Minimum matrix dimension (random mode)</p></li>
+<li><p><strong>max_size</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>) – Maximum matrix dimension (random mode)</p></li>
+<li><p><strong>power_of_two</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>) – Whether to generate only power-of-two sizes (random mode)</p></li>
+<li><p><strong>search_mode</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – Search mode for torch.compile</p></li>
+<li><p><strong>search_space</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – Search space for autotuning (EXHAUSTIVE or DEFAULT)</p></li>
+<li><p><strong>file_format</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – File format for saving (json or msgpack)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Path to the saved dataset file</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="diode.collection.data_collection_utils.create_validation_dataset">
+<span class="sig-prename descclassname"><span class="pre">diode.collection.data_collection_utils.</span></span><span class="sig-name descname"><span class="pre">create_validation_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'random'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_shapes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">43</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4096</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power_of_two</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'max-autotune'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'EXHAUSTIVE'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'json'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_normal_m_mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6.5725472164323095</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_normal_m_std</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.556199441605505</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_normal_n_mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5.913930073563466</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_normal_n_std</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.66968141897024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_normal_k_mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6.204916071423808</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_normal_k_std</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.1646646856090177</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/diode/collection/data_collection_utils.html#create_validation_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diode.collection.data_collection_utils.create_validation_dataset" title="Link to this definition"></a></dt>
+<dd><p>Create a separate validation dataset for evaluating the model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>output_file</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – Path to save the validation data</p></li>
+<li><p><strong>num_shapes</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>) – Number of matrix shapes to test</p></li>
+<li><p><strong>dtypes</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensor_attributes.html#torch.dtype" title="(in PyTorch v2.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dtype</span></code></a>]]</span>) – List of dtypes to test</p></li>
+<li><p><strong>seed</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>) – Random seed for reproducibility (different from training)</p></li>
+<li><p><strong>min_size</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>) – Minimum matrix dimension</p></li>
+<li><p><strong>max_size</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>) – Maximum matrix dimension</p></li>
+<li><p><strong>power_of_two</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>) – Whether to generate only power-of-two sizes</p></li>
+<li><p><strong>search_mode</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – Search mode for torch.compile</p></li>
+<li><p><strong>search_space</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – Search space for autotuning (EXHAUSTIVE or DEFAULT)</p></li>
+<li><p><strong>file_format</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – File format for saving (json or msgpack)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Path to the saved validation dataset file</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="diode.collection.data_collection_utils.run_collector_example">
+<span class="sig-prename descclassname"><span class="pre">diode.collection.data_collection_utils.</span></span><span class="sig-name descname"><span class="pre">run_collector_example</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'.'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_context_manager</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_shapes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/diode/collection/data_collection_utils.html#run_collector_example"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diode.collection.data_collection_utils.run_collector_example" title="Link to this definition"></a></dt>
+<dd><p>Run an example demonstrating how to use the MatmulDatasetCollector class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>output_dir</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – Directory to save output files</p></li>
+<li><p><strong>use_context_manager</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>) – Whether to use the collector as a context manager</p></li>
+<li><p><strong>num_shapes</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>) – Number of matrix shapes to test</p></li>
+<li><p><strong>dtypes</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensor_attributes.html#torch.dtype" title="(in PyTorch v2.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dtype</span></code></a>]]</span>) – List of dtypes to test</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="diode.collection.data_collection_utils.convert_json_to_msgpack">
+<span class="sig-prename descclassname"><span class="pre">diode.collection.data_collection_utils.</span></span><span class="sig-name descname"><span class="pre">convert_json_to_msgpack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/diode/collection/data_collection_utils.html#convert_json_to_msgpack"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diode.collection.data_collection_utils.convert_json_to_msgpack" title="Link to this definition"></a></dt>
+<dd><p>Convert a list of JSON files to their equivalent MessagePack files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_files</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span>) – List of JSON file paths to convert</p></li>
+<li><p><strong>output_dir</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span>) – Output directory for MessagePack files (default: same directory as input files)</p></li>
+<li><p><strong>overwrite</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>) – Whether to overwrite existing MessagePack files if they exist</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-diode.collection.matmul_dataset_collector">
+<span id="diode-collection-matmul-dataset-collector-module"></span><h2>diode.collection.matmul_dataset_collector module<a class="headerlink" href="#module-diode.collection.matmul_dataset_collector" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="diode.collection.matmul_dataset_collector.CollectionMode">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">diode.collection.matmul_dataset_collector.</span></span><span class="sig-name descname"><span class="pre">CollectionMode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/diode/collection/matmul_dataset_collector.html#CollectionMode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diode.collection.matmul_dataset_collector.CollectionMode" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></a></p>
+<p>Enumeration for data collection modes.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="diode.collection.matmul_dataset_collector.CollectionMode.RANDOM">
+<span class="sig-name descname"><span class="pre">RANDOM</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'random'</span></em><a class="headerlink" href="#diode.collection.matmul_dataset_collector.CollectionMode.RANDOM" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="diode.collection.matmul_dataset_collector.CollectionMode.OPERATION_SHAPE_SET">
+<span class="sig-name descname"><span class="pre">OPERATION_SHAPE_SET</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'operation_shape_set'</span></em><a class="headerlink" href="#diode.collection.matmul_dataset_collector.CollectionMode.OPERATION_SHAPE_SET" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="diode.collection.matmul_dataset_collector.CollectionMode.LOG_NORMAL">
+<span class="sig-name descname"><span class="pre">LOG_NORMAL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'log_normal'</span></em><a class="headerlink" href="#diode.collection.matmul_dataset_collector.CollectionMode.LOG_NORMAL" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="diode.collection.matmul_dataset_collector.MatmulDatasetCollector">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">diode.collection.matmul_dataset_collector.</span></span><span class="sig-name descname"><span class="pre">MatmulDatasetCollector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hardware_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'unknown'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">CollectionMode.RANDOM</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operation_shape_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_shapes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">42</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4096</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power_of_two</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_normal_m_mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6.5725472164323095</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_normal_m_std</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.556199441605505</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_normal_n_mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5.913930073563466</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_normal_n_std</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.66968141897024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_normal_k_mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6.204916071423808</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_normal_k_std</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.1646646856090177</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/diode/collection/matmul_dataset_collector.html#MatmulDatasetCollector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diode.collection.matmul_dataset_collector.MatmulDatasetCollector" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A class that hooks into the PyTorch feedback saver interface to collect
+matrix multiplication data with timing information and store it in a Dataset.</p>
+<p>Supports two modes:
+1. RANDOM: Generate random matrix shapes and collect data for specified operations
+2. OPERATION_SHAPE_SET: Use predefined shapes from an OperationShapeSet</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="diode.collection.matmul_dataset_collector.MatmulDatasetCollector.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hardware_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'unknown'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">CollectionMode.RANDOM</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operation_shape_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_shapes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtypes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">42</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4096</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power_of_two</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_normal_m_mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6.5725472164323095</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_normal_m_std</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.556199441605505</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_normal_n_mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5.913930073563466</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_normal_n_std</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.66968141897024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_normal_k_mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6.204916071423808</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_normal_k_std</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.1646646856090177</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/diode/collection/matmul_dataset_collector.html#MatmulDatasetCollector.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diode.collection.matmul_dataset_collector.MatmulDatasetCollector.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize the MatmulDatasetCollector.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hardware_name</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – The name of the hardware being used.</p></li>
+<li><p><strong>mode</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#diode.collection.matmul_dataset_collector.CollectionMode" title="diode.collection.matmul_dataset_collector.CollectionMode"><code class="xref py py-class docutils literal notranslate"><span class="pre">CollectionMode</span></code></a></span>) – Collection mode (RANDOM or OPERATION_SHAPE_SET)</p></li>
+<li><p><strong>operations</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]</span>) – List of operations to collect data for (e.g., [‘mm’, ‘addmm’])</p></li>
+<li><p><strong>operation_shape_set</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference internal" href="diode.types.html#diode.types.matmul_types.OperationShapeSet" title="diode.types.matmul_types.OperationShapeSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">OperationShapeSet</span></code></a>]</span>) – OperationShapeSet for OPERATION_SHAPE_SET mode</p></li>
+<li><p><strong>num_shapes</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>) – Number of random shapes to generate (RANDOM mode)</p></li>
+<li><p><strong>dtypes</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.pytorch.org/docs/stable/tensor_attributes.html#torch.dtype" title="(in PyTorch v2.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dtype</span></code></a>]]</span>) – List of dtypes to test</p></li>
+<li><p><strong>seed</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>) – Random seed for reproducibility (RANDOM mode)</p></li>
+<li><p><strong>min_size</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>) – Minimum matrix dimension (RANDOM mode)</p></li>
+<li><p><strong>max_size</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span>) – Maximum matrix dimension (RANDOM mode)</p></li>
+<li><p><strong>power_of_two</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span>) – Whether to generate only power-of-two sizes (RANDOM mode)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="diode.collection.matmul_dataset_collector.MatmulDatasetCollector.start_collection">
+<span class="sig-name descname"><span class="pre">start_collection</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/diode/collection/matmul_dataset_collector.html#MatmulDatasetCollector.start_collection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diode.collection.matmul_dataset_collector.MatmulDatasetCollector.start_collection" title="Link to this definition"></a></dt>
+<dd><p>Start collecting data by hooking into the feedback saver interface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="diode.collection.matmul_dataset_collector.MatmulDatasetCollector.stop_collection">
+<span class="sig-name descname"><span class="pre">stop_collection</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/diode/collection/matmul_dataset_collector.html#MatmulDatasetCollector.stop_collection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diode.collection.matmul_dataset_collector.MatmulDatasetCollector.stop_collection" title="Link to this definition"></a></dt>
+<dd><p>Stop collecting data by removing the feedback saver hook.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="diode.collection.matmul_dataset_collector.MatmulDatasetCollector.get_dataset">
+<span class="sig-name descname"><span class="pre">get_dataset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/diode/collection/matmul_dataset_collector.html#MatmulDatasetCollector.get_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diode.collection.matmul_dataset_collector.MatmulDatasetCollector.get_dataset" title="Link to this definition"></a></dt>
+<dd><p>Get the collected data as a Dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="diode.types.html#diode.types.matmul_dataset.Dataset" title="diode.types.matmul_dataset.Dataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dataset</span></code></a></span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The Dataset containing all collected data.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="diode.collection.matmul_dataset_collector.MatmulDatasetCollector.to_table">
+<span class="sig-name descname"><span class="pre">to_table</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/diode/collection/matmul_dataset_collector.html#MatmulDatasetCollector.to_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diode.collection.matmul_dataset_collector.MatmulDatasetCollector.to_table" title="Link to this definition"></a></dt>
+<dd><p>Convert the dataset to a table by selecting the fastest configuration for each problem.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="diode.types.html#diode.types.matmul_types.Table" title="diode.types.matmul_types.Table"><code class="xref py py-class docutils literal notranslate"><span class="pre">Table</span></code></a></span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A Table with the fastest configuration for each problem.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="diode.collection.matmul_dataset_collector.MatmulDatasetCollector.save_to_file">
+<span class="sig-name descname"><span class="pre">save_to_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/diode/collection/matmul_dataset_collector.html#MatmulDatasetCollector.save_to_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diode.collection.matmul_dataset_collector.MatmulDatasetCollector.save_to_file" title="Link to this definition"></a></dt>
+<dd><p>Save the collected data to a file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>file_path</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – Path to save the data to.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="diode.collection.matmul_dataset_collector.MatmulDatasetCollector.load_from_file">
+<span class="sig-name descname"><span class="pre">load_from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/diode/collection/matmul_dataset_collector.html#MatmulDatasetCollector.load_from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diode.collection.matmul_dataset_collector.MatmulDatasetCollector.load_from_file" title="Link to this definition"></a></dt>
+<dd><p>Load data from a file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>file_path</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – Path to load the data from.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="diode.collection.matmul_dataset_collector.MatmulDatasetCollector.save_table_to_file">
+<span class="sig-name descname"><span class="pre">save_table_to_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/diode/collection/matmul_dataset_collector.html#MatmulDatasetCollector.save_table_to_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diode.collection.matmul_dataset_collector.MatmulDatasetCollector.save_table_to_file" title="Link to this definition"></a></dt>
+<dd><p>Convert the dataset to a table and save it to a file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>file_path</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – Path to save the table to.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="diode.collection.matmul_dataset_collector.MatmulDatasetCollector.__enter__">
+<span class="sig-name descname"><span class="pre">__enter__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/diode/collection/matmul_dataset_collector.html#MatmulDatasetCollector.__enter__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diode.collection.matmul_dataset_collector.MatmulDatasetCollector.__enter__" title="Link to this definition"></a></dt>
+<dd><p>Context manager entry point.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="diode.collection.matmul_dataset_collector.MatmulDatasetCollector.__exit__">
+<span class="sig-name descname"><span class="pre">__exit__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exc_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exc_val</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exc_tb</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/diode/collection/matmul_dataset_collector.html#MatmulDatasetCollector.__exit__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diode.collection.matmul_dataset_collector.MatmulDatasetCollector.__exit__" title="Link to this definition"></a></dt>
+<dd><p>Context manager exit point.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="diode.collection.matmul_dataset_collector.MatmulDatasetCollector.collect_data">
+<span class="sig-name descname"><span class="pre">collect_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">search_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'max-autotune'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_space</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'EXHAUSTIVE'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/diode/collection/matmul_dataset_collector.html#MatmulDatasetCollector.collect_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diode.collection.matmul_dataset_collector.MatmulDatasetCollector.collect_data" title="Link to this definition"></a></dt>
+<dd><p>Collect matrix multiplication timing data based on the configured mode.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>search_mode</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – Search mode for torch.compile</p></li>
+<li><p><strong>search_space</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span>) – Search space for autotuning (EXHAUSTIVE or DEFAULT)</p></li>
+<li><p><strong>device</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span>) – Device to run on (defaults to cuda if available, else cpu)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-diode.collection">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-diode.collection" title="Link to this heading"></a></h2>
+<p>Collection module for diode package.</p>
+<p>This module contains utilities for collecting and managing matrix multiplication
+performance data.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="diode.html" class="btn btn-neutral float-left" title="diode package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="diode.model.html" class="btn btn-neutral float-right" title="diode.model package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Author Name.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
