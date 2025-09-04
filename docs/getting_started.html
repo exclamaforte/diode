@@ -1,0 +1,535 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Getting Started with Diode &mdash; diode 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="diode" href="api/modules.html" />
+    <link rel="prev" title="Welcome to Diode’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            diode
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Started with Diode</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-1-data-collection">Step 1: Data Collection</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#setting-up-the-data-collector">Setting Up the Data Collector</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#collection-modes">Collection Modes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#running-data-collection">Running Data Collection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#understanding-the-collection-process">Understanding the Collection Process</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#step-2-model-training">Step 2: Model Training</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#model-architecture">Model Architecture</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#step-3-creating-a-validation-dataset">Step 3: Creating a Validation Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#step-4-model-validation">Step 4: Model Validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#complete-workflow-script">Complete Workflow Script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#advanced-configuration">Advanced Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#custom-collection-parameters">Custom Collection Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#memory-management">Memory Management</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#tips-for-success">Tips for Success</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#common-issues">Common Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/modules.html">diode</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">diode</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Getting Started with Diode</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/getting_started.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="getting-started-with-diode">
+<h1>Getting Started with Diode<a class="headerlink" href="#getting-started-with-diode" title="Link to this heading"></a></h1>
+<p>This comprehensive guide will walk you through the complete process of creating a machine learning model from scratch using the Diode toolkit. You’ll learn how to generate a dataset of matrix multiplication performance data and train a model to predict optimal configurations.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>The Diode workflow involves four main steps:</p>
+<ol class="arabic simple">
+<li><p><strong>Data Collection</strong>: Generate matrix multiplication performance data using PyTorch’s autotuning capabilities</p></li>
+<li><p><strong>Model Training</strong>: Train a deep learning model on the collected data</p></li>
+<li><p><strong>Validation Dataset Creation</strong>: Create a separate validation dataset from predefined operation shapes</p></li>
+<li><p><strong>Model Validation</strong>: Evaluate the trained model’s performance on the validation dataset</p></li>
+</ol>
+</section>
+<section id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading"></a></h2>
+<p>Before starting, ensure you have:</p>
+<ul class="simple">
+<li><p>A CUDA-compatible GPU (recommended for training)</p></li>
+<li><p>PyTorch with CUDA support installed</p></li>
+<li><p>The Diode toolkit properly installed</p></li>
+<li><p>Access to the matmul_toolkit.py script</p></li>
+</ul>
+</section>
+<section id="step-1-data-collection">
+<h2>Step 1: Data Collection<a class="headerlink" href="#step-1-data-collection" title="Link to this heading"></a></h2>
+<p>The first step is to generate a training dataset by collecting matrix multiplication performance data. Diode uses PyTorch’s feedback saver interface to automatically collect timing information for different matrix multiplication configurations.</p>
+<section id="setting-up-the-data-collector">
+<h3>Setting Up the Data Collector<a class="headerlink" href="#setting-up-the-data-collector" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">MatmulDatasetCollector</span></code> class provides flexible data collection capabilities:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">diode.collection.matmul_dataset_collector</span><span class="w"> </span><span class="kn">import</span> <span class="n">MatmulDatasetCollector</span><span class="p">,</span> <span class="n">CollectionMode</span>
+
+<span class="c1"># Initialize the collector with log-normal distribution mode</span>
+<span class="n">collector</span> <span class="o">=</span> <span class="n">MatmulDatasetCollector</span><span class="p">(</span>
+    <span class="n">hardware_name</span><span class="o">=</span><span class="s2">&quot;your_gpu_name&quot;</span><span class="p">,</span>
+    <span class="n">mode</span><span class="o">=</span><span class="n">CollectionMode</span><span class="o">.</span><span class="n">LOG_NORMAL</span><span class="p">,</span>
+    <span class="n">operations</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;mm&quot;</span><span class="p">,</span> <span class="s2">&quot;addmm&quot;</span><span class="p">,</span> <span class="s2">&quot;bmm&quot;</span><span class="p">],</span>
+    <span class="n">num_shapes</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+    <span class="n">seed</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+    <span class="c1"># Log-normal distribution parameters for realistic matrix sizes</span>
+    <span class="n">log_normal_m_mean</span><span class="o">=</span><span class="mf">6.5725472164323095</span><span class="p">,</span>
+    <span class="n">log_normal_m_std</span><span class="o">=</span><span class="mf">2.556199441605505</span><span class="p">,</span>
+    <span class="n">log_normal_n_mean</span><span class="o">=</span><span class="mf">5.913930073563466</span><span class="p">,</span>
+    <span class="n">log_normal_n_std</span><span class="o">=</span><span class="mf">1.66968141897024</span><span class="p">,</span>
+    <span class="n">log_normal_k_mean</span><span class="o">=</span><span class="mf">6.204916071423808</span><span class="p">,</span>
+    <span class="n">log_normal_k_std</span><span class="o">=</span><span class="mf">2.1646646856090177</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="collection-modes">
+<h3>Collection Modes<a class="headerlink" href="#collection-modes" title="Link to this heading"></a></h3>
+<p>Diode supports three collection modes:</p>
+<ol class="arabic simple">
+<li><p><strong>LOG_NORMAL</strong>: Uses log-normal distributions to generate realistic matrix sizes based on production workloads</p></li>
+<li><p><strong>RANDOM</strong>: Generates uniformly random matrix sizes within specified bounds</p></li>
+<li><p><strong>OPERATION_SHAPE_SET</strong>: Uses predefined shapes from a configuration file</p></li>
+</ol>
+</section>
+<section id="running-data-collection">
+<h3>Running Data Collection<a class="headerlink" href="#running-data-collection" title="Link to this heading"></a></h3>
+<p>Use the matmul_toolkit.py script to collect training data:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>matmul_toolkit.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--format<span class="w"> </span>msgpack<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--seed<span class="w"> </span><span class="m">50</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>collect<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--output<span class="w"> </span>train_dataset.msgpack<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--num-shapes<span class="w"> </span><span class="m">1000</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--log-normal<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--search-space<span class="w"> </span>EXHAUSTIVE<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--search-mode<span class="w"> </span>max-autotune<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--chunk-size<span class="w"> </span><span class="m">5</span>
+</pre></div>
+</div>
+<p>Key parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--format</span> <span class="pre">msgpack</span></code>: Use MessagePack format for efficient serialization</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--seed</span> <span class="pre">50</span></code>: Set random seed for reproducibility</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--num-shapes</span> <span class="pre">1000</span></code>: Generate 1000 different matrix configurations</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--log-normal</span></code>: Use log-normal distribution for realistic sizes</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--search-space</span> <span class="pre">EXHAUSTIVE</span></code>: Use exhaustive search for optimal configurations</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--search-mode</span> <span class="pre">max-autotune</span></code>: Use PyTorch’s max-autotune mode</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--chunk-size</span> <span class="pre">5</span></code>: Write data every 5 operations to prevent data loss</p></li>
+</ul>
+</section>
+<section id="understanding-the-collection-process">
+<h3>Understanding the Collection Process<a class="headerlink" href="#understanding-the-collection-process" title="Link to this heading"></a></h3>
+<p>The data collection process works by:</p>
+<ol class="arabic simple">
+<li><p>Generating matrix shapes based on the selected mode</p></li>
+<li><p>Creating random tensors with the specified dimensions and data types</p></li>
+<li><p>Compiling matrix multiplication operations with PyTorch’s autotuning</p></li>
+<li><p>Capturing timing data for different Triton GEMM configurations through the feedback saver interface</p></li>
+<li><p>Storing the results in a structured dataset format</p></li>
+</ol>
+<p>The collector automatically handles memory management and validates tensor shapes to prevent out-of-memory errors:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">_check_memory_feasible</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">op_name</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if operation fits in available GPU memory&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">device</span> <span class="o">==</span> <span class="s2">&quot;cpu&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="c1"># Get available GPU memory</span>
+    <span class="n">total_memory</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">get_device_properties</span><span class="p">(</span><span class="n">device</span><span class="p">)</span><span class="o">.</span><span class="n">total_memory</span>
+    <span class="n">allocated_memory</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">memory_allocated</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+    <span class="n">available_memory</span> <span class="o">=</span> <span class="n">total_memory</span> <span class="o">-</span> <span class="n">allocated_memory</span>
+
+    <span class="c1"># Estimate required memory for this operation</span>
+    <span class="n">estimated_memory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_estimate_memory_usage</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">op_name</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">estimated_memory</span> <span class="o">&lt;=</span> <span class="n">available_memory</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="step-2-model-training">
+<h2>Step 2: Model Training<a class="headerlink" href="#step-2-model-training" title="Link to this heading"></a></h2>
+<p>Once you have collected training data, train a deep learning model to predict optimal GEMM configurations:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>matmul_toolkit.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--seed<span class="w"> </span><span class="m">50</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>train<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--data-dir<span class="w"> </span>./data<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--model<span class="w"> </span>matmul_model.pt<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--model-type<span class="w"> </span>deep<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--batch-size<span class="w"> </span><span class="m">64</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--num-epochs<span class="w"> </span><span class="m">1000</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--learning-rate<span class="w"> </span><span class="m">0</span>.001<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--log-dir<span class="w"> </span>./logs
+</pre></div>
+</div>
+<p>Training parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--model-type</span> <span class="pre">deep</span></code>: Use a deep neural network architecture</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--batch-size</span> <span class="pre">64</span></code>: Process 64 samples per batch</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--num-epochs</span> <span class="pre">1000</span></code>: Train for 1000 epochs</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--learning-rate</span> <span class="pre">0.001</span></code>: Set the learning rate</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--log-dir</span></code>: Directory to save training logs and metrics</p></li>
+</ul>
+<p>The model learns to predict optimal Triton GEMM configurations based on matrix dimensions, data types, and hardware characteristics.</p>
+<section id="model-architecture">
+<h3>Model Architecture<a class="headerlink" href="#model-architecture" title="Link to this heading"></a></h3>
+<p>Diode provides two neural network architectures for timing prediction:</p>
+<p><strong>Standard Model (MatmulTimingModel)</strong></p>
+<p>The standard model uses a feedforward neural network with the following architecture:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">MatmulTimingModel</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">problem_feature_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">config_feature_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">hidden_dims</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">256</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">64</span><span class="p">],</span>
+        <span class="n">dropout_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span>
+    <span class="p">):</span>
+</pre></div>
+</div>
+<p>Architecture components:</p>
+<ul class="simple">
+<li><p><strong>Input Layer</strong>: Concatenates problem features (matrix dimensions, data types) and configuration features (Triton GEMM parameters)</p></li>
+<li><p><strong>Hidden Layers</strong>: Multiple fully connected layers with ReLU activation, batch normalization, and dropout</p></li>
+<li><p><strong>Output Layer</strong>: Single neuron predicting log execution time</p></li>
+<li><p><strong>Regularization</strong>: Dropout and batch normalization to prevent overfitting</p></li>
+</ul>
+<p><strong>Deep Model (DeepMatmulTimingModel)</strong></p>
+<p>The deep model uses residual connections for training deeper networks:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">DeepMatmulTimingModel</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">problem_feature_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">config_feature_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">hidden_dim</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span>
+        <span class="n">num_layers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="n">dropout_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span>
+    <span class="p">):</span>
+</pre></div>
+</div>
+<p>Key features:</p>
+<ul class="simple">
+<li><p><strong>Residual Blocks</strong>: Each block contains two linear layers with skip connections</p></li>
+<li><p><strong>Deeper Architecture</strong>: 10+ layers with consistent hidden dimensions</p></li>
+<li><p><strong>Better Gradient Flow</strong>: Residual connections help train deeper networks effectively</p></li>
+</ul>
+<p><strong>Residual Block Implementation</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">ResidualBlock</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="n">identity</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">block</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">+=</span> <span class="n">identity</span>  <span class="c1"># Skip connection</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span>
+</pre></div>
+</div>
+<p>The residual blocks enable training much deeper networks while maintaining stable gradients throughout the network depth.</p>
+</section>
+</section>
+<section id="step-3-creating-a-validation-dataset">
+<h2>Step 3: Creating a Validation Dataset<a class="headerlink" href="#step-3-creating-a-validation-dataset" title="Link to this heading"></a></h2>
+<p>Create a separate validation dataset using predefined operation shapes to evaluate model performance:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>matmul_toolkit.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--format<span class="w"> </span>msgpack<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--seed<span class="w"> </span><span class="m">50</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>create-validation<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--output<span class="w"> </span>validation_dataset.msgpack<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--shapeset<span class="w"> </span>operation_shapeset.json<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--operations<span class="w"> </span>mm<span class="w"> </span>addmm<span class="w"> </span>bmm<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--search-space<span class="w"> </span>EXHAUSTIVE<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--search-mode<span class="w"> </span>max-autotune
+</pre></div>
+</div>
+<p>This step:</p>
+<ul class="simple">
+<li><p>Loads predefined matrix shapes from <code class="docutils literal notranslate"><span class="pre">operation_shapeset.json</span></code></p></li>
+<li><p>Runs autotuning to find optimal configurations for these shapes</p></li>
+<li><p>Creates a validation dataset with known ground truth performance data</p></li>
+</ul>
+</section>
+<section id="step-4-model-validation">
+<h2>Step 4: Model Validation<a class="headerlink" href="#step-4-model-validation" title="Link to this heading"></a></h2>
+<p>Finally, evaluate your trained model against the validation dataset:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>matmul_toolkit.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--seed<span class="w"> </span><span class="m">50</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>validate-model<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--model<span class="w"> </span>matmul_model.pt<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--dataset<span class="w"> </span>validation_dataset.msgpack<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--batch-size<span class="w"> </span><span class="m">64</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--top-n-worst<span class="w"> </span><span class="m">10</span>
+</pre></div>
+</div>
+<p>This validation step:</p>
+<ul class="simple">
+<li><p>Loads the trained model and validation dataset</p></li>
+<li><p>Makes predictions for each validation sample</p></li>
+<li><p>Compares predictions against ground truth timing data</p></li>
+<li><p>Reports accuracy metrics and identifies the worst-performing predictions</p></li>
+</ul>
+</section>
+<section id="complete-workflow-script">
+<h2>Complete Workflow Script<a class="headerlink" href="#complete-workflow-script" title="Link to this heading"></a></h2>
+<p>Here’s a complete bash script that orchestrates the entire process:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/bash</span>
+
+<span class="nb">set</span><span class="w"> </span>-e<span class="w">  </span><span class="c1"># Exit on any error</span>
+
+<span class="c1"># Configuration</span>
+<span class="nv">SEED</span><span class="o">=</span><span class="m">50</span>
+<span class="nv">DATA_DIR</span><span class="o">=</span><span class="s2">&quot;./data&quot;</span>
+<span class="nv">TRAIN_DATASET</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">DATA_DIR</span><span class="si">}</span><span class="s2">/seed_</span><span class="si">${</span><span class="nv">SEED</span><span class="si">}</span><span class="s2">_train_dataset.msgpack&quot;</span>
+<span class="nv">VALIDATION_DATASET</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">DATA_DIR</span><span class="si">}</span><span class="s2">/validation/validation_dataset.msgpack&quot;</span>
+<span class="nv">MODEL_PATH</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">DATA_DIR</span><span class="si">}</span><span class="s2">/matmul_model.pt&quot;</span>
+<span class="nv">LOG_DIR</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">DATA_DIR</span><span class="si">}</span><span class="s2">/logs&quot;</span>
+<span class="nv">NUM_SHAPES</span><span class="o">=</span><span class="m">1000</span>
+<span class="nv">NUM_EPOCHS</span><span class="o">=</span><span class="m">1000</span>
+<span class="nv">PYTHON_CMD</span><span class="o">=</span><span class="s2">&quot;python&quot;</span>
+<span class="nv">TOOLKIT_PATH</span><span class="o">=</span><span class="s2">&quot;matmul_toolkit.py&quot;</span>
+<span class="nv">OPERATION_SHAPESET_PATH</span><span class="o">=</span><span class="s2">&quot;operation_shapeset.json&quot;</span>
+
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Starting Diode workflow...&quot;</span>
+
+<span class="c1"># Step 1: Create data directory</span>
+mkdir<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">DATA_DIR</span><span class="si">}</span><span class="s2">&quot;</span>
+mkdir<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">DATA_DIR</span><span class="si">}</span><span class="s2">/validation&quot;</span>
+
+<span class="c1"># Step 2: Generate training dataset</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Collecting training data...&quot;</span>
+<span class="si">${</span><span class="nv">PYTHON_CMD</span><span class="si">}</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">TOOLKIT_PATH</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--format<span class="w"> </span>msgpack<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--seed<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">SEED</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>collect<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--output<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">TRAIN_DATASET</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--num-shapes<span class="w"> </span><span class="si">${</span><span class="nv">NUM_SHAPES</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--log-normal<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--search-space<span class="w"> </span>EXHAUSTIVE<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--search-mode<span class="w"> </span>max-autotune<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--chunk-size<span class="w"> </span><span class="m">5</span>
+
+<span class="c1"># Step 3: Train model</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Training model...&quot;</span>
+<span class="si">${</span><span class="nv">PYTHON_CMD</span><span class="si">}</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">TOOLKIT_PATH</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--seed<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">SEED</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>train<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--data-dir<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">DATA_DIR</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--model<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">MODEL_PATH</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--model-type<span class="w"> </span>deep<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--batch-size<span class="w"> </span><span class="m">64</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--num-epochs<span class="w"> </span><span class="si">${</span><span class="nv">NUM_EPOCHS</span><span class="si">}</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--learning-rate<span class="w"> </span><span class="m">0</span>.001<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--log-dir<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">LOG_DIR</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<span class="c1"># Step 4: Create validation dataset</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Creating validation dataset...&quot;</span>
+<span class="si">${</span><span class="nv">PYTHON_CMD</span><span class="si">}</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">TOOLKIT_PATH</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--format<span class="w"> </span>msgpack<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--seed<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">SEED</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>create-validation<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--output<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">VALIDATION_DATASET</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--shapeset<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">OPERATION_SHAPESET_PATH</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--operations<span class="w"> </span>mm<span class="w"> </span>addmm<span class="w"> </span>bmm<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--search-space<span class="w"> </span>EXHAUSTIVE<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--search-mode<span class="w"> </span>max-autotune
+
+<span class="c1"># Step 5: Validate model</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Validating model...&quot;</span>
+<span class="si">${</span><span class="nv">PYTHON_CMD</span><span class="si">}</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">TOOLKIT_PATH</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--seed<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">SEED</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>validate-model<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--model<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">MODEL_PATH</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--dataset<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">VALIDATION_DATASET</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--batch-size<span class="w"> </span><span class="m">64</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--top-n-worst<span class="w"> </span><span class="m">10</span>
+
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Workflow completed successfully!&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="advanced-configuration">
+<h2>Advanced Configuration<a class="headerlink" href="#advanced-configuration" title="Link to this heading"></a></h2>
+<section id="custom-collection-parameters">
+<h3>Custom Collection Parameters<a class="headerlink" href="#custom-collection-parameters" title="Link to this heading"></a></h3>
+<p>For more control over data collection, you can customize the log-normal distribution parameters:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Custom parameters for different workload characteristics</span>
+<span class="n">collector</span> <span class="o">=</span> <span class="n">MatmulDatasetCollector</span><span class="p">(</span>
+    <span class="n">mode</span><span class="o">=</span><span class="n">CollectionMode</span><span class="o">.</span><span class="n">LOG_NORMAL</span><span class="p">,</span>
+    <span class="c1"># Larger matrices (shift mean higher)</span>
+    <span class="n">log_normal_m_mean</span><span class="o">=</span><span class="mf">7.0</span><span class="p">,</span>
+    <span class="n">log_normal_n_mean</span><span class="o">=</span><span class="mf">6.5</span><span class="p">,</span>
+    <span class="n">log_normal_k_mean</span><span class="o">=</span><span class="mf">6.8</span><span class="p">,</span>
+    <span class="c1"># Smaller variance for more consistent sizes</span>
+    <span class="n">log_normal_m_std</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span>
+    <span class="n">log_normal_n_std</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span>
+    <span class="n">log_normal_k_std</span><span class="o">=</span><span class="mf">1.8</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="memory-management">
+<h3>Memory Management<a class="headerlink" href="#memory-management" title="Link to this heading"></a></h3>
+<p>The collector includes automatic memory management to prevent out-of-memory errors:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">_estimate_memory_usage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">op_name</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Estimate the memory usage in bytes for a matrix multiplication operation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">M</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="n">size</span>
+
+    <span class="c1"># Get the size of the dtype in bytes</span>
+    <span class="k">if</span> <span class="n">dtype</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">float16</span><span class="p">:</span>
+        <span class="n">dtype_size</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="k">elif</span> <span class="n">dtype</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">:</span>
+        <span class="n">dtype_size</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="c1"># ... other dtypes</span>
+
+    <span class="k">if</span> <span class="n">op_name</span> <span class="o">==</span> <span class="s2">&quot;mm&quot;</span><span class="p">:</span>
+        <span class="c1"># Two input matrices: (M, K) and (K, N), plus output (M, N)</span>
+        <span class="n">memory_usage</span> <span class="o">=</span> <span class="p">(</span><span class="n">M</span> <span class="o">*</span> <span class="n">K</span> <span class="o">+</span> <span class="n">K</span> <span class="o">*</span> <span class="n">N</span> <span class="o">+</span> <span class="n">M</span> <span class="o">*</span> <span class="n">N</span><span class="p">)</span> <span class="o">*</span> <span class="n">dtype_size</span>
+    <span class="k">elif</span> <span class="n">op_name</span> <span class="o">==</span> <span class="s2">&quot;addmm&quot;</span><span class="p">:</span>
+        <span class="c1"># Three input matrices plus output</span>
+        <span class="n">memory_usage</span> <span class="o">=</span> <span class="p">(</span><span class="n">M</span> <span class="o">*</span> <span class="n">K</span> <span class="o">+</span> <span class="n">K</span> <span class="o">*</span> <span class="n">N</span> <span class="o">+</span> <span class="n">M</span> <span class="o">*</span> <span class="n">N</span> <span class="o">+</span> <span class="n">M</span> <span class="o">*</span> <span class="n">N</span><span class="p">)</span> <span class="o">*</span> <span class="n">dtype_size</span>
+
+    <span class="c1"># Add overhead for intermediate computations</span>
+    <span class="n">memory_usage</span> <span class="o">*=</span> <span class="mf">1.1</span>
+
+    <span class="k">return</span> <span class="n">memory_usage</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="tips-for-success">
+<h2>Tips for Success<a class="headerlink" href="#tips-for-success" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><strong>Start Small</strong>: Begin with a smaller number of shapes (100-200) to validate your setup</p></li>
+<li><p><strong>Monitor Memory</strong>: Keep an eye on GPU memory usage during collection</p></li>
+<li><p><strong>Save Frequently</strong>: Use the <code class="docutils literal notranslate"><span class="pre">--chunk-size</span></code> parameter to save data periodically</p></li>
+<li><p><strong>Reproducibility</strong>: Always set a random seed for consistent results</p></li>
+<li><p><strong>Hardware Consistency</strong>: Collect training and validation data on the same hardware</p></li>
+</ol>
+</section>
+<section id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading"></a></h2>
+<section id="common-issues">
+<h3>Common Issues<a class="headerlink" href="#common-issues" title="Link to this heading"></a></h3>
+<p><strong>Out of Memory Errors</strong>: Reduce <code class="docutils literal notranslate"><span class="pre">--num-shapes</span></code> or increase <code class="docutils literal notranslate"><span class="pre">--chunk-size</span></code> to write data more frequently.</p>
+<p><strong>Compilation Failures</strong>: Some matrix sizes may fail to compile. The collector automatically skips these and continues.</p>
+<p><strong>Slow Collection</strong>: Use <code class="docutils literal notranslate"><span class="pre">--search-space</span> <span class="pre">DEFAULT</span></code> for faster collection at the cost of some accuracy.</p>
+<p><strong>Missing Dependencies</strong>: Ensure you have the latest PyTorch with CUDA support and all required packages installed.</p>
+</section>
+</section>
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
+<p>After completing this workflow, you can:</p>
+<ul class="simple">
+<li><p>Experiment with different model architectures</p></li>
+<li><p>Collect data for specific workloads using OPERATION_SHAPE_SET mode</p></li>
+<li><p>Integrate the trained model into your own applications</p></li>
+<li><p>Analyze the collected data to understand performance patterns</p></li>
+</ul>
+<p>For more advanced usage, see the API documentation and examples in the repository.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to Diode’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="api/modules.html" class="btn btn-neutral float-right" title="diode" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Author Name.
+      <span class="lastupdated">Last updated on Sep 04, 2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -7,6 +7,7 @@ Diode is a machine learning toolkit for matrix multiplication operation performa
    :maxdepth: 2
    :caption: Contents:
 
+   getting_started
    api/modules
 
 
