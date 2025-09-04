@@ -7,7 +7,7 @@ Welcome to Diode's documentation!
 .. toctree::
    :maxdepth: 1
 
-   getting_started
    torch_compile_integration
+   getting_started
    api/modules
    genindex
