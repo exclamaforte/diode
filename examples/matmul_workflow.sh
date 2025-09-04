@@ -17,14 +17,16 @@ TOOLKIT_PATH="${SCRIPT_DIR}/matmul_toolkit.py"
 PYTHON_CMD="${HOME}/.conda/envs/foo2/bin/python"
 
 # Set random seed for reproducibility
-SEED=45
+SEED=50
 
 # Define paths
 DATA_DIR="${SCRIPT_DIR}/data"
 TRAIN_DATASET="${DATA_DIR}/seed_${SEED}_train_dataset.msgpack"
-VALIDATION_DATASET="${DATA_DIR}/validation_dataset.msgpack"
+VALIDATION_DATASET="${DATA_DIR}/validation/validation_dataset.msgpack"
 MODEL_PATH="${DATA_DIR}/matmul_model.pt"
-LOG_DIR="${DATA_DIR}/logs"
+LOG_DIR="${DAtA_DIR}/logs"
+NUM_SHAPES=0
+NUM_EPOCHS=1
 
 # Path to operation_shapeset.json
 OPERATION_SHAPESET_PATH="${SCRIPT_DIR}/../diode_datasets/diode_datasets/datasets/operation_shapeset.json"
@@ -54,7 +56,7 @@ echo ""
 
 # Step 2: Generate training set using log normal distribution with exhaustive autotuning
 echo "Step 2: Generating training dataset with log normal distribution and exhaustive autotuning"
-echo "Command: ${PYTHON_CMD} ${TOOLKIT_PATH} --format msgpack --seed ${SEED} collect --output ${TRAIN_DATASET} --num-shapes 1000 --log-normal --search-space EXHAUSTIVE --search-mode max-autotune --chunk-size 5"
+echo "Command: ${PYTHON_CMD} ${TOOLKIT_PATH} --format msgpack --seed ${SEED} collect --output ${TRAIN_DATASET} --num-shapes ${NUM_SHAPES} --log-normal --search-space EXHAUSTIVE --search-mode max-autotune --chunk-size 5"
 echo ""
 
 ${PYTHON_CMD} "${TOOLKIT_PATH}" \
@@ -62,7 +64,7 @@ ${PYTHON_CMD} "${TOOLKIT_PATH}" \
     --seed "${SEED}" \
     collect \
     --output "${TRAIN_DATASET}" \
-    --num-shapes 1000 \
+    --num-shapes ${NUM_SHAPES} \
     --log-normal \
     --search-space EXHAUSTIVE \
     --search-mode max-autotune \
@@ -75,17 +77,17 @@ echo ""
 
 # Step 3: Train deep model on the collected data
 echo "Step 3: Training deep model on collected data"
-echo "Command: ${PYTHON_CMD} ${TOOLKIT_PATH} --seed ${SEED} train --dataset ${TRAIN_DATASET} --model ${MODEL_PATH} --model-type deep --batch-size 64 --num-epochs 100 --learning-rate 0.001 --log-dir ${LOG_DIR}"
+echo "Command: ${PYTHON_CMD} ${TOOLKIT_PATH} --seed ${SEED} train --data-dir ${DATA_DIR} --model ${MODEL_PATH} --model-type deep --batch-size 64 --num-epochs ${NUM_EPOCHS} --learning-rate 0.001 --log-dir ${LOG_DIR}"
 echo ""
 
 ${PYTHON_CMD} "${TOOLKIT_PATH}" \
     --seed "${SEED}" \
     train \
-    --dataset "${TRAIN_DATASET}" \
+    --data-dir "${DATA_DIR}" \
     --model "${MODEL_PATH}" \
     --model-type deep \
     --batch-size 64 \
-    --num-epochs 100 \
+    --num-epochs ${NUM_EPOCHS} \
     --learning-rate 0.001 \
     --log-dir "${LOG_DIR}"
 
