@@ -18,10 +18,9 @@ Prerequisites
 
 Before starting, ensure you have:
 
-* A CUDA-compatible GPU (recommended for training)
-* PyTorch with CUDA support installed
-* The Diode toolkit properly installed
-* Access to the matmul_toolkit.py script
+* Access to your target hardware
+* PyTorch nightlies
+* The Diode toolkit
 
 Step 1: Data Collection
 -----------------------
@@ -44,13 +43,6 @@ The ``MatmulDatasetCollector`` class provides flexible data collection capabilit
         operations=["mm", "addmm", "bmm"],
         num_shapes=1000,
         seed=50,
-        # Log-normal distribution parameters for realistic matrix sizes
-        log_normal_m_mean=6.5725472164323095,
-        log_normal_m_std=2.556199441605505,
-        log_normal_n_mean=5.913930073563466,
-        log_normal_n_std=1.66968141897024,
-        log_normal_k_mean=6.204916071423808,
-        log_normal_k_std=2.1646646856090177,
     )
 
 Collection Modes
@@ -88,7 +80,7 @@ Key parameters:
 * ``--log-normal``: Use log-normal distribution for realistic sizes
 * ``--search-space EXHAUSTIVE``: Use exhaustive search for optimal configurations
 * ``--search-mode max-autotune``: Use PyTorch's max-autotune mode
-* ``--chunk-size 5``: Write data every 5 operations to prevent data loss
+* ``--chunk-size 5``: Write data every 5 operations to prevent data during collection
 
 Understanding the Collection Process
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -100,25 +92,6 @@ The data collection process works by:
 3. Compiling matrix multiplication operations with PyTorch's autotuning
 4. Capturing timing data for different Triton GEMM configurations through the feedback saver interface
 5. Storing the results in a structured dataset format
-
-The collector automatically handles memory management and validates tensor shapes to prevent out-of-memory errors:
-
-.. code-block:: python
-
-    def _check_memory_feasible(self, size, dtype, op_name, device):
-        """Check if operation fits in available GPU memory"""
-        if device == "cpu":
-            return True
-
-        # Get available GPU memory
-        total_memory = torch.cuda.get_device_properties(device).total_memory
-        allocated_memory = torch.cuda.memory_allocated(device)
-        available_memory = total_memory - allocated_memory
-
-        # Estimate required memory for this operation
-        estimated_memory = self._estimate_memory_usage(size, dtype, op_name, device)
-
-        return estimated_memory <= available_memory
 
 Step 2: Model Training
 ----------------------
@@ -151,7 +124,7 @@ The model learns to predict optimal Triton GEMM configurations based on matrix d
 Model Architecture
 ~~~~~~~~~~~~~~~~~~
 
-Diode provides two neural network architectures for timing prediction:
+Diode provides two simple neural network architectures for timing prediction. These are not meant to be state-of-the-art models, but rather serve as a starting point for further experimentation and development:
 
 **Standard Model (MatmulTimingModel)**
 
@@ -359,39 +332,7 @@ For more control over data collection, you can customize the log-normal distribu
         log_normal_k_std=1.8,
     )
 
-Memory Management
-~~~~~~~~~~~~~~~~~
-
-The collector includes automatic memory management to prevent out-of-memory errors:
-
-.. code-block:: python
-
-    def _estimate_memory_usage(self, size, dtype, op_name, device):
-        """
-        Estimate the memory usage in bytes for a matrix multiplication operation.
-        """
-        M, K, N = size
-
-        # Get the size of the dtype in bytes
-        if dtype == torch.float16:
-            dtype_size = 2
-        elif dtype == torch.float32:
-            dtype_size = 4
-        # ... other dtypes
-
-        if op_name == "mm":
-            # Two input matrices: (M, K) and (K, N), plus output (M, N)
-            memory_usage = (M * K + K * N + M * N) * dtype_size
-        elif op_name == "addmm":
-            # Three input matrices plus output
-            memory_usage = (M * K + K * N + M * N + M * N) * dtype_size
-
-        # Add overhead for intermediate computations
-        memory_usage *= 1.1
-
-        return memory_usage
-
-Tips for Success
+Tips
 ----------------
 
 1. **Start Small**: Begin with a smaller number of shapes (100-200) to validate your setup
@@ -399,20 +340,6 @@ Tips for Success
 3. **Save Frequently**: Use the ``--chunk-size`` parameter to save data periodically
 4. **Reproducibility**: Always set a random seed for consistent results
 5. **Hardware Consistency**: Collect training and validation data on the same hardware
-
-Troubleshooting
----------------
-
-Common Issues
-~~~~~~~~~~~~~
-
-**Out of Memory Errors**: Reduce ``--num-shapes`` or increase ``--chunk-size`` to write data more frequently.
-
-**Compilation Failures**: Some matrix sizes may fail to compile. The collector automatically skips these and continues.
-
-**Slow Collection**: Use ``--search-space DEFAULT`` for faster collection at the cost of some accuracy.
-
-**Missing Dependencies**: Ensure you have the latest PyTorch with CUDA support and all required packages installed.
 
 Next Steps
 ----------

@@ -1,7 +1,7 @@
 Welcome to Diode's documentation!
 =======================================
 
-Diode is a machine learning toolkit for matrix multiplication operation performance prediction and optimization.
+`diode` is a framework that makes it easy to develop heuristics that plug into the external interfaces of torch and torch.compile. It allows users to both gather data from torch and train Machine Learning models on the gathered data.
 
 .. toctree::
    :maxdepth: 2

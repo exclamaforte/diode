@@ -67,14 +67,9 @@
 <li class="toctree-l2"><a class="reference internal" href="#complete-workflow-script">Complete Workflow Script</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#advanced-configuration">Advanced Configuration</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#custom-collection-parameters">Custom Collection Parameters</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#memory-management">Memory Management</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#tips-for-success">Tips for Success</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#common-issues">Common Issues</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="#tips">Tips</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#next-steps">Next Steps</a></li>
 </ul>
 </li>
@@ -122,10 +117,9 @@
 <h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading"></a></h2>
 <p>Before starting, ensure you have:</p>
 <ul class="simple">
-<li><p>A CUDA-compatible GPU (recommended for training)</p></li>
-<li><p>PyTorch with CUDA support installed</p></li>
-<li><p>The Diode toolkit properly installed</p></li>
-<li><p>Access to the matmul_toolkit.py script</p></li>
+<li><p>Access to your target hardware</p></li>
+<li><p>PyTorch nightlies</p></li>
+<li><p>The Diode toolkit</p></li>
 </ul>
 </section>
 <section id="step-1-data-collection">
@@ -143,13 +137,6 @@
     <span class="n">operations</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;mm&quot;</span><span class="p">,</span> <span class="s2">&quot;addmm&quot;</span><span class="p">,</span> <span class="s2">&quot;bmm&quot;</span><span class="p">],</span>
     <span class="n">num_shapes</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
     <span class="n">seed</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
-    <span class="c1"># Log-normal distribution parameters for realistic matrix sizes</span>
-    <span class="n">log_normal_m_mean</span><span class="o">=</span><span class="mf">6.5725472164323095</span><span class="p">,</span>
-    <span class="n">log_normal_m_std</span><span class="o">=</span><span class="mf">2.556199441605505</span><span class="p">,</span>
-    <span class="n">log_normal_n_mean</span><span class="o">=</span><span class="mf">5.913930073563466</span><span class="p">,</span>
-    <span class="n">log_normal_n_std</span><span class="o">=</span><span class="mf">1.66968141897024</span><span class="p">,</span>
-    <span class="n">log_normal_k_mean</span><span class="o">=</span><span class="mf">6.204916071423808</span><span class="p">,</span>
-    <span class="n">log_normal_k_std</span><span class="o">=</span><span class="mf">2.1646646856090177</span><span class="p">,</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -186,7 +173,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">--log-normal</span></code>: Use log-normal distribution for realistic sizes</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--search-space</span> <span class="pre">EXHAUSTIVE</span></code>: Use exhaustive search for optimal configurations</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--search-mode</span> <span class="pre">max-autotune</span></code>: Use PyTorch’s max-autotune mode</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--chunk-size</span> <span class="pre">5</span></code>: Write data every 5 operations to prevent data loss</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--chunk-size</span> <span class="pre">5</span></code>: Write data every 5 operations to prevent data during collection</p></li>
 </ul>
 </section>
 <section id="understanding-the-collection-process">
@@ -199,23 +186,6 @@
 <li><p>Capturing timing data for different Triton GEMM configurations through the feedback saver interface</p></li>
 <li><p>Storing the results in a structured dataset format</p></li>
 </ol>
-<p>The collector automatically handles memory management and validates tensor shapes to prevent out-of-memory errors:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">_check_memory_feasible</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">op_name</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if operation fits in available GPU memory&quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">device</span> <span class="o">==</span> <span class="s2">&quot;cpu&quot;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">True</span>
-
-    <span class="c1"># Get available GPU memory</span>
-    <span class="n">total_memory</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">get_device_properties</span><span class="p">(</span><span class="n">device</span><span class="p">)</span><span class="o">.</span><span class="n">total_memory</span>
-    <span class="n">allocated_memory</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">memory_allocated</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
-    <span class="n">available_memory</span> <span class="o">=</span> <span class="n">total_memory</span> <span class="o">-</span> <span class="n">allocated_memory</span>
-
-    <span class="c1"># Estimate required memory for this operation</span>
-    <span class="n">estimated_memory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_estimate_memory_usage</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">op_name</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">estimated_memory</span> <span class="o">&lt;=</span> <span class="n">available_memory</span>
-</pre></div>
-</div>
 </section>
 </section>
 <section id="step-2-model-training">
@@ -244,7 +214,7 @@
 <p>The model learns to predict optimal Triton GEMM configurations based on matrix dimensions, data types, and hardware characteristics.</p>
 <section id="model-architecture">
 <h3>Model Architecture<a class="headerlink" href="#model-architecture" title="Link to this heading"></a></h3>
-<p>Diode provides two neural network architectures for timing prediction:</p>
+<p>Diode provides two simple neural network architectures for timing prediction. These are not meant to be state-of-the-art models, but rather serve as a starting point for further experimentation and development:</p>
 <p><strong>Standard Model (MatmulTimingModel)</strong></p>
 <p>The standard model uses a feedforward neural network with the following architecture:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">MatmulTimingModel</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
@@ -435,39 +405,9 @@ mkdir<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;</
 </pre></div>
 </div>
 </section>
-<section id="memory-management">
-<h3>Memory Management<a class="headerlink" href="#memory-management" title="Link to this heading"></a></h3>
-<p>The collector includes automatic memory management to prevent out-of-memory errors:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">_estimate_memory_usage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">op_name</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Estimate the memory usage in bytes for a matrix multiplication operation.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">M</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="n">size</span>
-
-    <span class="c1"># Get the size of the dtype in bytes</span>
-    <span class="k">if</span> <span class="n">dtype</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">float16</span><span class="p">:</span>
-        <span class="n">dtype_size</span> <span class="o">=</span> <span class="mi">2</span>
-    <span class="k">elif</span> <span class="n">dtype</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">:</span>
-        <span class="n">dtype_size</span> <span class="o">=</span> <span class="mi">4</span>
-    <span class="c1"># ... other dtypes</span>
-
-    <span class="k">if</span> <span class="n">op_name</span> <span class="o">==</span> <span class="s2">&quot;mm&quot;</span><span class="p">:</span>
-        <span class="c1"># Two input matrices: (M, K) and (K, N), plus output (M, N)</span>
-        <span class="n">memory_usage</span> <span class="o">=</span> <span class="p">(</span><span class="n">M</span> <span class="o">*</span> <span class="n">K</span> <span class="o">+</span> <span class="n">K</span> <span class="o">*</span> <span class="n">N</span> <span class="o">+</span> <span class="n">M</span> <span class="o">*</span> <span class="n">N</span><span class="p">)</span> <span class="o">*</span> <span class="n">dtype_size</span>
-    <span class="k">elif</span> <span class="n">op_name</span> <span class="o">==</span> <span class="s2">&quot;addmm&quot;</span><span class="p">:</span>
-        <span class="c1"># Three input matrices plus output</span>
-        <span class="n">memory_usage</span> <span class="o">=</span> <span class="p">(</span><span class="n">M</span> <span class="o">*</span> <span class="n">K</span> <span class="o">+</span> <span class="n">K</span> <span class="o">*</span> <span class="n">N</span> <span class="o">+</span> <span class="n">M</span> <span class="o">*</span> <span class="n">N</span> <span class="o">+</span> <span class="n">M</span> <span class="o">*</span> <span class="n">N</span><span class="p">)</span> <span class="o">*</span> <span class="n">dtype_size</span>
-
-    <span class="c1"># Add overhead for intermediate computations</span>
-    <span class="n">memory_usage</span> <span class="o">*=</span> <span class="mf">1.1</span>
-
-    <span class="k">return</span> <span class="n">memory_usage</span>
-</pre></div>
-</div>
 </section>
-</section>
-<section id="tips-for-success">
-<h2>Tips for Success<a class="headerlink" href="#tips-for-success" title="Link to this heading"></a></h2>
+<section id="tips">
+<h2>Tips<a class="headerlink" href="#tips" title="Link to this heading"></a></h2>
 <ol class="arabic simple">
 <li><p><strong>Start Small</strong>: Begin with a smaller number of shapes (100-200) to validate your setup</p></li>
 <li><p><strong>Monitor Memory</strong>: Keep an eye on GPU memory usage during collection</p></li>
@@ -475,16 +415,6 @@ mkdir<span class="w"> </span>-p<span class="w"> </span><span class="s2">&quot;</
 <li><p><strong>Reproducibility</strong>: Always set a random seed for consistent results</p></li>
 <li><p><strong>Hardware Consistency</strong>: Collect training and validation data on the same hardware</p></li>
 </ol>
-</section>
-<section id="troubleshooting">
-<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading"></a></h2>
-<section id="common-issues">
-<h3>Common Issues<a class="headerlink" href="#common-issues" title="Link to this heading"></a></h3>
-<p><strong>Out of Memory Errors</strong>: Reduce <code class="docutils literal notranslate"><span class="pre">--num-shapes</span></code> or increase <code class="docutils literal notranslate"><span class="pre">--chunk-size</span></code> to write data more frequently.</p>
-<p><strong>Compilation Failures</strong>: Some matrix sizes may fail to compile. The collector automatically skips these and continues.</p>
-<p><strong>Slow Collection</strong>: Use <code class="docutils literal notranslate"><span class="pre">--search-space</span> <span class="pre">DEFAULT</span></code> for faster collection at the cost of some accuracy.</p>
-<p><strong>Missing Dependencies</strong>: Ensure you have the latest PyTorch with CUDA support and all required packages installed.</p>
-</section>
 </section>
 <section id="next-steps">
 <h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
