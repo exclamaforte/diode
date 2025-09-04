@@ -10,11 +10,11 @@ Welcome to Diode's documentation!
    torch_compile_integration
    getting_started
    api/modules
+   :ref:`genindex`
 
 
 Indices and tables
 ==================
 
-* :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
