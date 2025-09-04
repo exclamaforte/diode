@@ -24,10 +24,11 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 # Import utility functions from the refactored modules
 from diode.collection.data_collection_utils import (
     collect_data,
+    convert_json_to_msgpack,
     create_validation_dataset,
     run_collector_example,
 )
-from diode.model.model_utils import run_model_example, train_model, validate_model
+from diode.model.model_utils import run_model_example, train_model, train_model_from_directory, validate_model
 from diode.types.matmul_types import OperationShapeSet
 
 # Configure logging
@@ -308,9 +309,16 @@ def main():
     train_parser = subparsers.add_parser(
         "train", help="Train a model on collected data"
     )
-    train_parser.add_argument(
-        "--dataset", type=str, required=True, help="Path to the dataset file"
+    
+    # Create mutually exclusive group for dataset input
+    dataset_group = train_parser.add_mutually_exclusive_group(required=True)
+    dataset_group.add_argument(
+        "--dataset", type=str, help="Path to a single dataset file"
     )
+    dataset_group.add_argument(
+        "--data-dir", type=str, help="Directory containing multiple data files (JSON/MessagePack)"
+    )
+    
     train_parser.add_argument(
         "--model",
         type=str,
@@ -360,6 +368,13 @@ def main():
     train_parser.add_argument("--op-name", type=str, help="Operation name to filter by")
     train_parser.add_argument(
         "--log-dir", type=str, default="logs", help="Directory to save logs"
+    )
+    train_parser.add_argument(
+        "--file-extensions",
+        type=str,
+        nargs="+",
+        default=["json", "msgpack"],
+        help="File extensions to look for in the directory (only used with --data-dir)",
     )
 
     # Validate model mode
@@ -612,6 +627,28 @@ def main():
         help="Log normal std for K dimension",
     )
 
+    # Convert JSON to MessagePack mode
+    convert_parser = subparsers.add_parser(
+        "convert-json-to-msgpack", help="Convert JSON files to MessagePack format"
+    )
+    convert_parser.add_argument(
+        "--input-files",
+        type=str,
+        nargs="+",
+        required=True,
+        help="List of JSON files to convert to MessagePack",
+    )
+    convert_parser.add_argument(
+        "--output-dir",
+        type=str,
+        help="Output directory for MessagePack files (default: same directory as input files)",
+    )
+    convert_parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="Overwrite existing MessagePack files if they exist",
+    )
+
     # Parse the arguments
     args = parser.parse_args()
 
@@ -730,23 +767,45 @@ def main():
             )
 
     elif args.mode == "train":
-        train_model(
-            dataset_path=args.dataset,
-            model_path=args.model,
-            model_type=args.model_type,
-            batch_size=args.batch_size,
-            num_epochs=args.num_epochs,
-            learning_rate=args.learning_rate,
-            weight_decay=args.weight_decay,
-            patience=args.patience,
-            hidden_dim=args.hidden_dim,
-            num_layers=args.num_layers,
-            hardware_name=args.hardware_name,
-            op_name=args.op_name,
-            seed=args.seed,
-            device=args.device,
-            log_dir=args.log_dir,
-        )
+        if args.dataset:
+            # Train from a single dataset file
+            train_model(
+                dataset_path=args.dataset,
+                model_path=args.model,
+                model_type=args.model_type,
+                batch_size=args.batch_size,
+                num_epochs=args.num_epochs,
+                learning_rate=args.learning_rate,
+                weight_decay=args.weight_decay,
+                patience=args.patience,
+                hidden_dim=args.hidden_dim,
+                num_layers=args.num_layers,
+                hardware_name=args.hardware_name,
+                op_name=args.op_name,
+                seed=args.seed,
+                device=args.device,
+                log_dir=args.log_dir,
+            )
+        elif args.data_dir:
+            # Train from all files in a directory
+            train_model_from_directory(
+                data_dir=args.data_dir,
+                model_path=args.model,
+                model_type=args.model_type,
+                batch_size=args.batch_size,
+                num_epochs=args.num_epochs,
+                learning_rate=args.learning_rate,
+                weight_decay=args.weight_decay,
+                patience=args.patience,
+                hidden_dim=args.hidden_dim,
+                num_layers=args.num_layers,
+                hardware_name=args.hardware_name,
+                op_name=args.op_name,
+                seed=args.seed,
+                device=args.device,
+                log_dir=args.log_dir,
+                file_extensions=args.file_extensions,
+            )
 
     elif args.mode == "validate-model":
         validate_model(
@@ -879,6 +938,13 @@ def main():
                     batch_size=args.batch_size,
                     device=args.device,
                 )
+
+    elif args.mode == "convert-json-to-msgpack":
+        convert_json_to_msgpack(
+            input_files=args.input_files,
+            output_dir=args.output_dir,
+            overwrite=args.overwrite,
+        )
 
 
 if __name__ == "__main__":

@@ -4,17 +4,19 @@ Model utility functions for training and evaluation.
 
 import logging
 import os
-import torch
 from typing import Dict, List, Optional, Tuple
 
-from diode.types.matmul_dataset import Dataset as MatmulDataset
+import torch
+from diode.model.directory_dataset_loader import create_directory_dataloaders
 from diode.model.matmul_dataset_loader import create_dataloaders
 from diode.model.matmul_model_trainer import (
+    analyze_worst_predictions,
     MatmulModelTrainer,
     train_model_from_dataset,
-    analyze_worst_predictions,
 )
 from diode.model.matmul_timing_model import DeepMatmulTimingModel, MatmulTimingModel
+
+from diode.types.matmul_dataset import Dataset as MatmulDataset
 from diode.utils.dataset_utils import print_dataset_statistics
 from diode.utils.visualization_utils import plot_training_history
 
@@ -99,6 +101,7 @@ def train_model(
         log_transform=True,
         num_workers=4,
         seed=seed,
+        debug=True,  # Enable debug mode to check data quality
     )
 
     # Get the feature dimensions
@@ -416,3 +419,136 @@ def run_model_example(
     print(f"Test RMSE (exp): {torch.exp(rmse):.6f}")
 
     logger.info("Example completed")
+
+
+def train_model_from_directory(
+    data_dir: str,
+    model_path: str,
+    model_type: str = "deep",
+    batch_size: int = 64,
+    num_epochs: int = 100,
+    learning_rate: float = 0.001,
+    weight_decay: float = 1e-5,
+    patience: int = 10,
+    hidden_dim: int = 128,
+    num_layers: int = 10,
+    hardware_name: Optional[str] = None,
+    op_name: Optional[str] = None,
+    seed: int = 42,
+    device: str = "cuda" if torch.cuda.is_available() else "cpu",
+    log_dir: str = "logs",
+    file_extensions: Optional[List[str]] = None,
+) -> Tuple[torch.nn.Module, Dict[str, List[float]]]:
+    """
+    Train a model on all data files found in a directory.
+
+    This function automatically discovers and loads all JSON and MessagePack files
+    from the specified directory, combines them into a single dataset, and trains
+    a model on the combined data.
+
+    Args:
+        data_dir: Directory containing the data files (JSON and/or MessagePack)
+        model_path: Path to save the trained model
+        model_type: Type of model to train ("base" or "deep")
+        batch_size: Batch size for training
+        num_epochs: Number of epochs to train for
+        learning_rate: Learning rate for the optimizer
+        weight_decay: Weight decay for the optimizer
+        patience: Number of epochs to wait for improvement before early stopping
+        hidden_dim: Hidden dimension of the model
+        num_layers: Number of layers in the model
+        hardware_name: Optional hardware name to filter by
+        op_name: Optional operation name to filter by
+        seed: Random seed for reproducibility
+        device: Device to train on
+        log_dir: Directory to save logs
+        file_extensions: List of file extensions to look for (default: ['json', 'msgpack'])
+
+    Returns:
+        Tuple of (trained model, training history)
+    """
+    # Set the random seed for reproducibility
+    torch.manual_seed(seed)
+
+    # Create directories if they don't exist
+    os.makedirs(
+        (
+            os.path.dirname(os.path.abspath(model_path))
+            if os.path.dirname(model_path)
+            else "."
+        ),
+        exist_ok=True,
+    )
+    os.makedirs(log_dir, exist_ok=True)
+
+    # Create dataloaders from directory
+    logger.info(f"Loading all data files from directory: {data_dir}")
+    train_dataloader, val_dataloader, test_dataloader = create_directory_dataloaders(
+        data_dir=data_dir,
+        batch_size=batch_size,
+        hardware_name=hardware_name,
+        op_name=op_name,
+        log_transform=True,
+        num_workers=4,
+        seed=seed,
+        file_extensions=file_extensions,
+    )
+
+    # Get the feature dimensions
+    problem_feature_dim = train_dataloader.dataset.dataset.problem_feature_dim
+    config_feature_dim = train_dataloader.dataset.dataset.config_feature_dim
+
+    # Create the model
+    logger.info(
+        f"Creating {model_type} model with {problem_feature_dim} problem features and {config_feature_dim} config features"
+    )
+    if model_type == "base":
+        model = MatmulTimingModel(
+            problem_feature_dim=problem_feature_dim,
+            config_feature_dim=config_feature_dim,
+        )
+    else:  # "deep"
+        model = DeepMatmulTimingModel(
+            problem_feature_dim=problem_feature_dim,
+            config_feature_dim=config_feature_dim,
+            hidden_dim=hidden_dim,
+            num_layers=num_layers,
+        )
+
+    # Count the number of parameters
+    num_params = sum(p.numel() for p in model.parameters())
+    logger.info(f"Model has {num_params} parameters")
+
+    # Create the trainer
+    trainer = MatmulModelTrainer(
+        model=model,
+        train_dataloader=train_dataloader,
+        val_dataloader=val_dataloader,
+        test_dataloader=test_dataloader,
+        learning_rate=learning_rate,
+        weight_decay=weight_decay,
+        device=device,
+    )
+
+    # Train the model
+    logger.info(f"Training model for {num_epochs} epochs")
+    history = trainer.train(
+        num_epochs=num_epochs,
+        patience=patience,
+        checkpoint_path=model_path,
+        verbose=True,
+    )
+
+    # Plot the training history
+    history_plot_path = os.path.join(log_dir, f"matmul_timing_{model_type}_history.png")
+    plot_training_history(history, history_plot_path)
+
+    # Evaluate the model on the test set
+    test_loss = trainer._evaluate(test_dataloader, "Test")
+    rmse = torch.sqrt(torch.tensor(test_loss))
+
+    logger.info(f"Test Loss (MSE): {test_loss:.6f}")
+    logger.info(f"Test RMSE: {rmse:.6f}")
+    logger.info(f"Test RMSE (exp): {torch.exp(torch.tensor(rmse)):.6f}")
+
+    return model, history

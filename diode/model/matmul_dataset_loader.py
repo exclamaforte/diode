@@ -28,6 +28,7 @@ class MatmulTimingDataset(Dataset):
         hardware_name: Optional[str] = None,
         op_name: Optional[str] = None,
         log_transform: bool = True,
+        debug: bool = False,
     ):
         """
         Initialize the dataset.
@@ -37,11 +38,13 @@ class MatmulTimingDataset(Dataset):
             hardware_name: Optional hardware name to filter by
             op_name: Optional operation name to filter by
             log_transform: Whether to apply log transform to the timing values
+            debug: Whether to enable debug logging and checks
         """
         self.dataset = dataset
         self.hardware_name = hardware_name
         self.op_name = op_name
         self.log_transform = log_transform
+        self.debug = debug
         
         # Extract the data
         self.problem_features = []
@@ -54,6 +57,10 @@ class MatmulTimingDataset(Dataset):
         self.problem_features = torch.tensor(self.problem_features, dtype=torch.float32)
         self.config_features = torch.tensor(self.config_features, dtype=torch.float32)
         self.timings = torch.tensor(self.timings, dtype=torch.float32).reshape(-1, 1)
+        
+        # Debug checks
+        if self.debug:
+            self._debug_data_quality()
         
         logger.info(f"Loaded {len(self)} samples from the dataset")
     
@@ -156,9 +163,26 @@ class MatmulTimingDataset(Dataset):
                         # Extract timing
                         timing = time
                         
+                        # Check for invalid timing values before log transform
+                        if timing <= 0:
+                            if self.debug:
+                                logger.warning(f"Invalid timing value: {timing} - skipping this sample")
+                            continue  # Skip this sample
+                        
+                        if not torch.isfinite(torch.tensor(timing, dtype=torch.float32)):
+                            if self.debug:
+                                logger.warning(f"Non-finite timing value: {timing} - skipping this sample")
+                            continue  # Skip this sample
+                        
                         # Apply log transform if specified
                         if self.log_transform:
                             timing = torch.log(torch.tensor(timing, dtype=torch.float32))
+                            
+                            # Check if log transform produced NaN/Inf
+                            if not torch.isfinite(timing):
+                                if self.debug:
+                                    logger.warning(f"Log transform produced non-finite value for timing {time} - skipping this sample")
+                                continue  # Skip this sample
                         
                         # Add to the lists
                         self.problem_features.append(problem_feature)
@@ -339,6 +363,58 @@ class MatmulTimingDataset(Dataset):
             Dimension of the config features
         """
         return self.config_features.shape[1]
+    
+    def _debug_data_quality(self) -> None:
+        """
+        Debug method to check data quality for NaN/Inf values.
+        """
+        logger.info("=== DATA QUALITY DEBUG ===")
+        
+        # Check problem features
+        problem_nan_count = torch.isnan(self.problem_features).sum().item()
+        problem_inf_count = torch.isinf(self.problem_features).sum().item()
+        logger.info(f"Problem features: {problem_nan_count} NaN values, {problem_inf_count} Inf values")
+        
+        if problem_nan_count > 0:
+            nan_mask = torch.isnan(self.problem_features)
+            nan_indices = torch.where(nan_mask)
+            logger.warning(f"Problem feature NaN locations: {list(zip(nan_indices[0].tolist(), nan_indices[1].tolist()))[:10]}")
+        
+        # Check config features
+        config_nan_count = torch.isnan(self.config_features).sum().item()
+        config_inf_count = torch.isinf(self.config_features).sum().item()
+        logger.info(f"Config features: {config_nan_count} NaN values, {config_inf_count} Inf values")
+        
+        if config_nan_count > 0:
+            nan_mask = torch.isnan(self.config_features)
+            nan_indices = torch.where(nan_mask)
+            logger.warning(f"Config feature NaN locations: {list(zip(nan_indices[0].tolist(), nan_indices[1].tolist()))[:10]}")
+        
+        # Check timings
+        timing_nan_count = torch.isnan(self.timings).sum().item()
+        timing_inf_count = torch.isinf(self.timings).sum().item()
+        timing_negative_count = (self.timings <= 0).sum().item()
+        logger.info(f"Timings: {timing_nan_count} NaN values, {timing_inf_count} Inf values, {timing_negative_count} negative/zero values")
+        
+        if timing_nan_count > 0:
+            nan_indices = torch.where(torch.isnan(self.timings))
+            logger.warning(f"Timing NaN locations: {nan_indices[0].tolist()[:10]}")
+        
+        if timing_negative_count > 0:
+            neg_indices = torch.where(self.timings <= 0)
+            logger.warning(f"Negative/zero timing locations: {neg_indices[0].tolist()[:10]}")
+        
+        # Statistics
+        logger.info(f"Problem features - min: {self.problem_features.min():.6f}, max: {self.problem_features.max():.6f}")
+        logger.info(f"Config features - min: {self.config_features.min():.6f}, max: {self.config_features.max():.6f}")
+        logger.info(f"Timings - min: {self.timings.min():.6f}, max: {self.timings.max():.6f}")
+        
+        # Check for extreme values
+        problem_extreme_high = (self.problem_features > 1e6).sum().item()
+        config_extreme_high = (self.config_features > 1e6).sum().item()
+        logger.info(f"Extreme high values (>1e6): problem={problem_extreme_high}, config={config_extreme_high}")
+        
+        logger.info("=== END DATA QUALITY DEBUG ===")
 
 
 def create_dataloaders(
@@ -351,6 +427,7 @@ def create_dataloaders(
     log_transform: bool = True,
     num_workers: int = 4,
     seed: int = 42,
+    debug: bool = False,
 ) -> Tuple[DataLoader, DataLoader, DataLoader]:
     """
     Create train, validation, and test dataloaders from a MatmulDataset.
@@ -365,6 +442,7 @@ def create_dataloaders(
         log_transform: Whether to apply log transform to the timing values
         num_workers: Number of workers for the dataloaders
         seed: Random seed for reproducibility
+        debug: Whether to enable debug logging and checks
         
     Returns:
         Tuple of (train_dataloader, val_dataloader, test_dataloader)
@@ -378,6 +456,7 @@ def create_dataloaders(
         hardware_name=hardware_name,
         op_name=op_name,
         log_transform=log_transform,
+        debug=debug,
     )
     
     # Calculate the sizes of the splits

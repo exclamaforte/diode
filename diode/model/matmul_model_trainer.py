@@ -638,6 +638,7 @@ def train_model_from_dataset(
         log_transform=config.log_transform,
         num_workers=num_workers,
         seed=config.seed,
+        debug=True,  # Enable debug mode to check data quality
     )
 
     # Get the feature dimensions

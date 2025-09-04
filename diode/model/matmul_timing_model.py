@@ -63,6 +63,21 @@ class MatmulTimingModel(nn.Module):
         layers.append(nn.Linear(hidden_dims[-1], 1))
         
         self.model = nn.Sequential(*layers)
+        
+        # Initialize weights to avoid NaN issues
+        self._init_weights()
+    
+    def _init_weights(self):
+        """Initialize weights to avoid NaN issues during training."""
+        for module in self.modules():
+            if isinstance(module, nn.Linear):
+                # Use Xavier/Glorot initialization for better gradient flow
+                nn.init.xavier_uniform_(module.weight, gain=1.0)
+                if module.bias is not None:
+                    nn.init.constant_(module.bias, 0)
+            elif isinstance(module, nn.BatchNorm1d):
+                nn.init.constant_(module.weight, 1)
+                nn.init.constant_(module.bias, 0)
     
     def forward(self, problem_features: torch.Tensor, config_features: torch.Tensor) -> torch.Tensor:
         """
@@ -188,6 +203,21 @@ class DeepMatmulTimingModel(nn.Module):
         
         # Output layer
         self.output_layer = nn.Linear(hidden_dim, 1)
+        
+        # Initialize weights to avoid NaN issues
+        self._init_weights()
+    
+    def _init_weights(self):
+        """Initialize weights to avoid NaN issues during training."""
+        for module in self.modules():
+            if isinstance(module, nn.Linear):
+                # Use Xavier/Glorot initialization for better gradient flow
+                nn.init.xavier_uniform_(module.weight, gain=1.0)
+                if module.bias is not None:
+                    nn.init.constant_(module.bias, 0)
+            elif isinstance(module, nn.BatchNorm1d):
+                nn.init.constant_(module.weight, 1)
+                nn.init.constant_(module.bias, 0)
     
     def forward(self, problem_features: torch.Tensor, config_features: torch.Tensor) -> torch.Tensor:
         """

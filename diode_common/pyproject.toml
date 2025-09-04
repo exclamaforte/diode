@@ -9,7 +9,7 @@ description = "Common functionality shared between diode and diode_models packag
 readme = "README.md"
 license = "MIT"
 authors = [
-    {name = "Meta", email = "example@meta.com"},
+    {name = "Gabriel Ferns", email = "gabeferns@meta.com"},
 ]
 requires-python = ">=3.8"
 keywords = ["machine-learning", "pytorch", "torch", "common", "utilities", "shared"]
@@ -17,7 +17,6 @@ classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
@@ -25,16 +24,15 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
+dependencies = [
+    "torch>=2.0.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/exclamaforte/diode"
 Repository = "https://github.com/exclamaforte/diode.git"
 Documentation = "https://github.com/exclamaforte/diode/tree/main/examples#readme"
 "Bug Tracker" = "https://github.com/exclamaforte/diode/issues"
-
-dependencies = [
-    "torch>=2.0.0",
-]
 
 [tool.setuptools]
 packages = ["diode_common"]

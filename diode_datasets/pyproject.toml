@@ -9,7 +9,7 @@ description = "Generated datasets from ourselves and the community for the diode
 readme = "README.md"
 license = "MIT"
 authors = [
-    {name = "Meta", email = "example@meta.com"},
+    {name = "Gabriel Ferns", email = "gabeferns@meta.com"},
 ]
 requires-python = ">=3.8"
 keywords = ["machine-learning", "pytorch", "torch", "datasets", "matmul", "community"]

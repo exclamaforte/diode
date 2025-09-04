@@ -16,11 +16,9 @@ Warning: code is in pre-Alpha
 - Data collection: Gather data from torch external interfaces.
 - Stable Type Definitions: storing data from the external interfaces.
 - Model Training Code: Train ML models on the gathered data and contribute back to the `torch` community.
-- Caching code: Create Lookup Tables (LUT) to ensure maximum performance.
 
 ## Common Herustic Types
 - ML Models: Collect and train on data directly from `torch`.
-- Lookup Tables: Build a json based lookup table that's editable by external tools like `jq`.
 - Custom Logic: Come with your own ideas/functions.
 
 ## Featured Heruistics

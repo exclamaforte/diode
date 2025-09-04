@@ -363,12 +363,10 @@ class MatmulDatasetCollector:
         Returns:
             The rounded dimension
         """
-        if dim < 2048:
-            # Round to nearest multiple of 8
-            rounded = round(dim / 8) * 8
-            # If rounding resulted in 0, use 8 instead
-            return max(8, rounded)
-        return dim
+        # Round to nearest multiple of 8
+        rounded = round(dim / 8) * 8
+        # If rounding resulted in 0, use 8 instead
+        return max(8, rounded)
 
     def _generate_log_normal_sizes(self) -> List[Tuple[int, int, int]]:
         """
@@ -468,6 +466,110 @@ class MatmulDatasetCollector:
 
         return shapes_and_dtypes
 
+    def _estimate_memory_usage(
+        self,
+        size: Tuple[int, int, int],
+        dtype: torch.dtype,
+        op_name: str,
+        device: str,
+    ) -> float:
+        """
+        Estimate the memory usage in bytes for a matrix multiplication operation.
+        
+        Args:
+            size: Matrix size as (M, K, N) tuple
+            dtype: Data type for the matrices
+            op_name: Operation name ('mm', 'addmm', or 'bmm')
+            device: Device to run on
+            
+        Returns:
+            Estimated memory usage in bytes
+        """
+        M, K, N = size
+        
+        # Get the size of the dtype in bytes
+        if dtype == torch.float16:
+            dtype_size = 2
+        elif dtype == torch.float32:
+            dtype_size = 4
+        elif dtype == torch.float64:
+            dtype_size = 8
+        elif dtype == torch.int8:
+            dtype_size = 1
+        elif dtype == torch.int16:
+            dtype_size = 2
+        elif dtype == torch.int32:
+            dtype_size = 4
+        elif dtype == torch.int64:
+            dtype_size = 8
+        else:
+            # Default to float32 size
+            dtype_size = 4
+            
+        if op_name == "mm":
+            # Two input matrices: (M, K) and (K, N), plus output (M, N)
+            memory_usage = (M * K + K * N + M * N) * dtype_size
+        elif op_name == "addmm":
+            # Three input matrices: (M, K), (K, N), (M, N), plus output (M, N)
+            memory_usage = (M * K + K * N + M * N + M * N) * dtype_size
+        elif op_name == "bmm":
+            # Two input matrices: (1, M, K) and (1, K, N), plus output (1, M, N)
+            # Using B=1 as in the implementation
+            memory_usage = (M * K + K * N + M * N) * dtype_size
+        else:
+            # Default estimation
+            memory_usage = (M * K + K * N + M * N) * dtype_size
+            
+        # Add some overhead for intermediate computations
+        memory_usage *= 1.1
+        
+        return memory_usage
+
+    def _check_memory_feasible(
+        self,
+        size: Tuple[int, int, int],
+        dtype: torch.dtype,
+        op_name: str,
+        device: str,
+    ) -> bool:
+        """
+        Check if the matrix multiplication operation is feasible given available memory.
+        
+        Args:
+            size: Matrix size as (M, K, N) tuple
+            dtype: Data type for the matrices
+            op_name: Operation name ('mm', 'addmm', or 'bmm')
+            device: Device to run on
+            
+        Returns:
+            True if the operation is feasible, False otherwise
+        """
+        if device == "cpu":
+            return True
+        try:
+            # Get available GPU memory
+            total_memory = torch.cuda.get_device_properties(device).total_memory
+            allocated_memory = torch.cuda.memory_allocated(device)
+            available_memory = total_memory - allocated_memory
+            
+            # Estimate required memory for this operation
+            estimated_memory = self._estimate_memory_usage(size, dtype, op_name, device)
+            
+            is_feasible = estimated_memory <= available_memory
+            
+            if not is_feasible:
+                M, K, N = size
+                logger.warning(
+                    f"Skipping {op_name} with size ({M}, {K}, {N}) and dtype {dtype}: "
+                    f"estimated memory {estimated_memory / (1024**3):.2f} GB exceeds "
+                    f"safe limit {available_memory / (1024**3):.2f} GB"
+                )
+            
+            return is_feasible
+        except Exception as e:
+            logger.warning(f"Could not check GPU memory, proceeding with operation: {e}")
+            return True
+
     def _run_matrix_multiplication(
         self,
         size: Tuple[int, int, int],
@@ -487,6 +589,11 @@ class MatmulDatasetCollector:
             search_mode: Search mode for torch.compile
         """
         M, K, N = size
+
+        # Check if the operation is memory-feasible before proceeding
+        if not self._check_memory_feasible(size, dtype, op_name, device):
+            logger.info(f"Skipping {op_name} with size ({M}, {K}, {N}) due to memory constraints")
+            return
 
         try:
             if op_name == "mm":
@@ -508,8 +615,15 @@ class MatmulDatasetCollector:
                 def mm_fn(x, y):
                     return torch.mm(x, y)
 
-                compiled_fn = torch.compile(mm_fn, mode=search_mode)
-                result = compiled_fn(a, b)
+                try:
+                    compiled_fn = torch.compile(mm_fn, mode=search_mode)
+                    result = compiled_fn(a, b)
+                except Exception as compile_error:
+                    logger.error(
+                        f"Failed to compile/run {op_name} with size ({M}, {K}, {N}) and dtype {dtype} "
+                        f"during exhaustive autotuning: {compile_error}"
+                    )
+                    return
 
             elif op_name == "addmm":
                 # Create input matrices for addmm: bias(M, N) + (M, K) x (K, N) -> (M, N)
@@ -520,8 +634,15 @@ class MatmulDatasetCollector:
                 def addmm_fn(bias, x, y):
                     return torch.addmm(bias, x, y)
 
-                compiled_fn = torch.compile(addmm_fn, mode=search_mode)
-                result = compiled_fn(c, a, b)
+                try:
+                    compiled_fn = torch.compile(addmm_fn, mode=search_mode)
+                    result = compiled_fn(c, a, b)
+                except Exception as compile_error:
+                    logger.error(
+                        f"Failed to compile/run {op_name} with size ({M}, {K}, {N}) and dtype {dtype} "
+                        f"during exhaustive autotuning: {compile_error}"
+                    )
+                    return
 
             elif op_name == "bmm":
                 # Create input matrices for bmm: (B, M, K) x (B, K, N) -> (B, M, N)
@@ -533,8 +654,15 @@ class MatmulDatasetCollector:
                 def bmm_fn(x, y):
                     return torch.bmm(x, y)
 
-                compiled_fn = torch.compile(bmm_fn, mode=search_mode)
-                result = compiled_fn(a, b)
+                try:
+                    compiled_fn = torch.compile(bmm_fn, mode=search_mode)
+                    result = compiled_fn(a, b)
+                except Exception as compile_error:
+                    logger.error(
+                        f"Failed to compile/run {op_name} with size ({M}, {K}, {N}) and dtype {dtype} "
+                        f"during exhaustive autotuning: {compile_error}"
+                    )
+                    return
 
             else:
                 logger.warning(f"Unsupported operation: {op_name}")
@@ -542,9 +670,9 @@ class MatmulDatasetCollector:
 
         except Exception as e:
             logger.error(
-                f"Error running {op_name} with size ({M}, {K}, {N}) and dtype {dtype}: {e}"
+                f"Error creating tensors for {op_name} with size ({M}, {K}, {N}) and dtype {dtype}: {e}"
             )
-            raise
+            return
 
     def collect_data(
         self,
