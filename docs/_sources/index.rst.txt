@@ -8,6 +8,7 @@ Welcome to Diode's documentation!
    :caption: Contents:
 
    getting_started
+   torch_compile_integration
    api/modules
 
 

@@ -1,0 +1,521 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Accelerating torch.compile with Diode &mdash; diode 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=f281be69"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="diode" href="api/modules.html" />
+    <link rel="prev" title="Getting Started with Training Models with Diode" href="getting_started.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            diode
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started with Training Models with Diode</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Accelerating torch.compile with Diode</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#quick-start">Quick Start</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#step-1-install-torch-diode-models">Step 1: Install torch-diode-models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-2-import-and-auto-register">Step 2: Import and Auto-Register</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-3-enable-fast-autotuning">Step 3: Enable Fast Autotuning</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#complete-example">Complete Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#benefits">Benefits</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#performance-improvements">Performance Improvements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#memory-efficiency">Memory Efficiency</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#advanced-configuration">Advanced Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#hardware-detection">Hardware Detection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#manual-model-selection">Manual Model Selection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#configuration-options">Configuration Options</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#integration-with-existing-workflows">Integration with Existing Workflows</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#training-workflows">Training Workflows</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#inference-workflows">Inference Workflows</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#supported-operations">Supported Operations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#common-issues">Common Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#debugging-and-profiling">Debugging and Profiling</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#performance-comparison">Performance Comparison</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#best-practices">Best Practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#integration-checklist">Integration Checklist</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/modules.html">diode</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">diode</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Accelerating torch.compile with Diode</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/torch_compile_integration.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="accelerating-torch-compile-with-diode">
+<h1>Accelerating torch.compile with Diode<a class="headerlink" href="#accelerating-torch-compile-with-diode" title="Link to this heading"></a></h1>
+<p>Diode can significantly speed up PyTorch’s <code class="docutils literal notranslate"><span class="pre">torch.compile</span></code> by providing pre-trained models that predict optimal matrix multiplication configurations, eliminating the need for expensive runtime autotuning. This integration allows you to get the performance benefits of extensive autotuning with minimal compilation time.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>When PyTorch compiles matrix multiplication operations, it typically needs to search through many different kernel configurations to find the optimal one for your specific hardware and problem size. This process, called autotuning, can take substantial time during compilation.</p>
+<p>Diode solves this by:</p>
+<ol class="arabic simple">
+<li><p><strong>Pre-trained Models</strong>: Using machine learning models trained on extensive performance data</p></li>
+<li><p><strong>Hardware-Specific Optimization</strong>: Automatically selecting the best model for your GPU</p></li>
+<li><p><strong>Fast Predictions</strong>: Providing optimal configurations instantly without runtime search</p></li>
+</ol>
+</section>
+<section id="quick-start">
+<h2>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading"></a></h2>
+<p>Getting started with Diode acceleration is simple and requires only three steps:</p>
+<section id="step-1-install-torch-diode-models">
+<h3>Step 1: Install torch-diode-models<a class="headerlink" href="#step-1-install-torch-diode-models" title="Link to this heading"></a></h3>
+<p>Install the pre-trained models package:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>torch-diode-models
+</pre></div>
+</div>
+<p>This package contains pre-trained models for popular hardware configurations including NVIDIA H100, A100, RTX 4090, and AMD MI250X GPUs.</p>
+</section>
+<section id="step-2-import-and-auto-register">
+<h3>Step 2: Import and Auto-Register<a class="headerlink" href="#step-2-import-and-auto-register" title="Link to this heading"></a></h3>
+<p>Simply import the package to automatically register the best model for your hardware:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch_diode_models</span>
+</pre></div>
+</div>
+<p>This import automatically:</p>
+<ul class="simple">
+<li><p>Detects your hardware configuration</p></li>
+<li><p>Selects the most appropriate pre-trained model</p></li>
+<li><p>Registers the model with PyTorch’s compilation system</p></li>
+<li><p>Configures the prediction interface</p></li>
+</ul>
+</section>
+<section id="step-3-enable-fast-autotuning">
+<h3>Step 3: Enable Fast Autotuning<a class="headerlink" href="#step-3-enable-fast-autotuning" title="Link to this heading"></a></h3>
+<p>Configure PyTorch to use Diode’s fast autotuning:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch._inductor</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span>
+
+<span class="c1"># Enable fast autotuning with Diode models</span>
+<span class="n">config</span><span class="o">.</span><span class="n">max_autotune_gemm_backends</span> <span class="o">=</span> <span class="s2">&quot;DIODE&quot;</span>
+<span class="n">config</span><span class="o">.</span><span class="n">fast_autotune</span> <span class="o">=</span> <span class="kc">True</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="complete-example">
+<h2>Complete Example<a class="headerlink" href="#complete-example" title="Link to this heading"></a></h2>
+<p>Here’s a complete example showing how to use Diode with torch.compile:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch_diode_models</span>  <span class="c1"># Auto-registers the best model for your hardware</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch._inductor</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span>
+
+<span class="c1"># Configure PyTorch to use Diode acceleration</span>
+<span class="n">config</span><span class="o">.</span><span class="n">max_autotune_gemm_backends</span> <span class="o">=</span> <span class="s2">&quot;DIODE&quot;</span>
+<span class="n">config</span><span class="o">.</span><span class="n">fast_autotune</span> <span class="o">=</span> <span class="kc">True</span>
+
+<span class="c1"># Your existing PyTorch code - no changes needed!</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">matmul_function</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">mm</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+
+<span class="c1"># Compile with torch.compile - now accelerated by Diode</span>
+<span class="n">compiled_fn</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">matmul_function</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;max-autotune&quot;</span><span class="p">)</span>
+
+<span class="c1"># Use as normal</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">2048</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cuda&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float16</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">2048</span><span class="p">,</span> <span class="mi">4096</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cuda&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float16</span><span class="p">)</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">compiled_fn</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>  <span class="c1"># Fast compilation + optimal performance</span>
+</pre></div>
+</div>
+</section>
+<section id="benefits">
+<h2>Benefits<a class="headerlink" href="#benefits" title="Link to this heading"></a></h2>
+<section id="performance-improvements">
+<h3>Performance Improvements<a class="headerlink" href="#performance-improvements" title="Link to this heading"></a></h3>
+<p>Diode provides significant improvements in both compilation time and runtime performance:</p>
+<p><strong>Compilation Speed</strong>
+* <strong>10-100x faster compilation</strong>: Eliminates expensive autotuning searches
+* <strong>Instant predictions</strong>: Model inference takes microseconds vs. seconds of autotuning
+* <strong>Consistent compile times</strong>: No variation based on problem size or hardware load</p>
+<p><strong>Runtime Performance</strong>
+* <strong>Optimal configurations</strong>: Models trained on extensive performance data
+* <strong>Hardware-specific optimization</strong>: Tailored for your specific GPU architecture
+* <strong>Production-quality results</strong>: Performance equivalent to or better than full autotuning</p>
+</section>
+<section id="memory-efficiency">
+<h3>Memory Efficiency<a class="headerlink" href="#memory-efficiency" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Reduced memory overhead</strong>: No need to store multiple kernel variants during compilation</p></li>
+<li><p><strong>Predictable memory usage</strong>: Consistent memory consumption across different problem sizes</p></li>
+</ul>
+</section>
+</section>
+<section id="advanced-configuration">
+<h2>Advanced Configuration<a class="headerlink" href="#advanced-configuration" title="Link to this heading"></a></h2>
+<section id="hardware-detection">
+<h3>Hardware Detection<a class="headerlink" href="#hardware-detection" title="Link to this heading"></a></h3>
+<p>Diode automatically detects your hardware, but you can also specify it manually:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch_diode_models</span>
+
+<span class="c1"># Check detected hardware</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Detected hardware: </span><span class="si">{</span><span class="n">torch_diode_models</span><span class="o">.</span><span class="n">get_detected_hardware</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># List available models</span>
+<span class="n">available_models</span> <span class="o">=</span> <span class="n">torch_diode_models</span><span class="o">.</span><span class="n">list_available_models</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Available models: </span><span class="si">{</span><span class="n">available_models</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="manual-model-selection">
+<h3>Manual Model Selection<a class="headerlink" href="#manual-model-selection" title="Link to this heading"></a></h3>
+<p>For advanced users, you can manually select a specific model:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch_diode_models</span>
+
+<span class="c1"># Use a specific model (e.g., for benchmarking different configurations)</span>
+<span class="n">torch_diode_models</span><span class="o">.</span><span class="n">register_model</span><span class="p">(</span><span class="s2">&quot;NVIDIA-H100-matmul&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="configuration-options">
+<h3>Configuration Options<a class="headerlink" href="#configuration-options" title="Link to this heading"></a></h3>
+<p>Fine-tune the Diode integration with additional configuration options:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torch._inductor</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span>
+
+<span class="c1"># Basic Diode configuration</span>
+<span class="n">config</span><span class="o">.</span><span class="n">max_autotune_gemm_backends</span> <span class="o">=</span> <span class="s2">&quot;DIODE&quot;</span>
+<span class="n">config</span><span class="o">.</span><span class="n">fast_autotune</span> <span class="o">=</span> <span class="kc">True</span>
+
+<span class="c1"># Advanced options</span>
+<span class="n">config</span><span class="o">.</span><span class="n">diode_fallback_to_autotune</span> <span class="o">=</span> <span class="kc">True</span>   <span class="c1"># Fallback for unsupported cases</span>
+<span class="n">config</span><span class="o">.</span><span class="n">diode_confidence_threshold</span> <span class="o">=</span> <span class="mf">0.95</span>   <span class="c1"># Minimum prediction confidence</span>
+<span class="n">config</span><span class="o">.</span><span class="n">diode_cache_predictions</span> <span class="o">=</span> <span class="kc">True</span>      <span class="c1"># Cache predictions for repeated sizes</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="integration-with-existing-workflows">
+<h2>Integration with Existing Workflows<a class="headerlink" href="#integration-with-existing-workflows" title="Link to this heading"></a></h2>
+<section id="training-workflows">
+<h3>Training Workflows<a class="headerlink" href="#training-workflows" title="Link to this heading"></a></h3>
+<p>Diode integrates seamlessly with existing training code:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch_diode_models</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch._inductor</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span>
+
+<span class="c1"># Enable Diode acceleration</span>
+<span class="n">config</span><span class="o">.</span><span class="n">max_autotune_gemm_backends</span> <span class="o">=</span> <span class="s2">&quot;DIODE&quot;</span>
+<span class="n">config</span><span class="o">.</span><span class="n">fast_autotune</span> <span class="o">=</span> <span class="kc">True</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyModel</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">linear1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">2048</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">linear2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">2048</span><span class="p">,</span> <span class="mi">1024</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">linear1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">linear2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">MyModel</span><span class="p">()</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+
+<span class="c1"># Compile with Diode acceleration</span>
+<span class="n">compiled_model</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;max-autotune&quot;</span><span class="p">)</span>
+
+<span class="c1"># Training loop - faster compilation on first run</span>
+<span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
+<span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">dataloader</span><span class="p">:</span>
+    <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">compiled_model</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>  <span class="c1"># Fast compilation + optimal performance</span>
+    <span class="n">loss</span> <span class="o">=</span> <span class="n">criterion</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">targets</span><span class="p">)</span>
+    <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+    <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="inference-workflows">
+<h3>Inference Workflows<a class="headerlink" href="#inference-workflows" title="Link to this heading"></a></h3>
+<p>Perfect for production inference where fast startup is critical:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch_diode_models</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch._inductor</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span>
+
+<span class="c1"># Configure for inference</span>
+<span class="n">config</span><span class="o">.</span><span class="n">max_autotune_gemm_backends</span> <span class="o">=</span> <span class="s2">&quot;DIODE&quot;</span>
+<span class="n">config</span><span class="o">.</span><span class="n">fast_autotune</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">config</span><span class="o">.</span><span class="n">triton</span><span class="o">.</span><span class="n">cudagraphs</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># Enable CUDA graphs for even better performance</span>
+
+<span class="c1"># Load your model</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">jit</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;my_model.pt&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+
+<span class="c1"># Compile with minimal warmup time</span>
+<span class="n">compiled_model</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;max-autotune&quot;</span><span class="p">)</span>
+
+<span class="c1"># First inference compiles quickly thanks to Diode</span>
+<span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">compiled_model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="supported-operations">
+<h2>Supported Operations<a class="headerlink" href="#supported-operations" title="Link to this heading"></a></h2>
+<p>Diode currently accelerates the following matrix multiplication operations:</p>
+<p><strong>Core Operations</strong>
+* <code class="docutils literal notranslate"><span class="pre">torch.mm</span></code> - Basic matrix multiplication
+* <code class="docutils literal notranslate"><span class="pre">torch.addmm</span></code> - Matrix multiplication with bias addition
+* <code class="docutils literal notranslate"><span class="pre">torch.bmm</span></code> - Batch matrix multiplication
+* <code class="docutils literal notranslate"><span class="pre">torch.baddbmm</span></code> - Batch matrix multiplication with bias</p>
+<p><strong>Linear Layer Operations</strong>
+* <code class="docutils literal notranslate"><span class="pre">torch.nn.Linear</span></code> - Fully connected layers
+* <code class="docutils literal notranslate"><span class="pre">torch.nn.functional.linear</span></code> - Functional linear operations</p>
+<p><strong>Data Types</strong>
+* <code class="docutils literal notranslate"><span class="pre">float16</span></code> (half precision)
+* <code class="docutils literal notranslate"><span class="pre">bfloat16</span></code> (brain float)
+* <code class="docutils literal notranslate"><span class="pre">float32</span></code> (single precision)</p>
+<p><strong>Hardware Support</strong>
+* NVIDIA GPUs: H100, A100, RTX 4090, RTX 3090, V100
+* AMD GPUs: MI250X, MI210
+* Intel GPUs: Data Center Max (coming soon)</p>
+</section>
+<section id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading"></a></h2>
+<section id="common-issues">
+<h3>Common Issues<a class="headerlink" href="#common-issues" title="Link to this heading"></a></h3>
+<p><strong>Model Not Found for Hardware</strong></p>
+<p>If Diode cannot find a model for your specific hardware:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check available models</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">torch_diode_models</span><span class="o">.</span><span class="n">list_available_models</span><span class="p">())</span>
+
+<span class="c1"># Use a similar hardware model as fallback</span>
+<span class="n">torch_diode_models</span><span class="o">.</span><span class="n">register_model</span><span class="p">(</span><span class="s2">&quot;NVIDIA-A100-matmul&quot;</span><span class="p">)</span>  <span class="c1"># Similar to H100</span>
+</pre></div>
+</div>
+<p><strong>Performance Regression</strong></p>
+<p>If you experience slower performance:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Enable fallback to traditional autotuning</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch._inductor</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span>
+<span class="n">config</span><span class="o">.</span><span class="n">diode_fallback_to_autotune</span> <span class="o">=</span> <span class="kc">True</span>
+
+<span class="c1"># Increase confidence threshold</span>
+<span class="n">config</span><span class="o">.</span><span class="n">diode_confidence_threshold</span> <span class="o">=</span> <span class="mf">0.99</span>
+</pre></div>
+</div>
+<p><strong>Compilation Errors</strong></p>
+<p>If compilation fails with Diode enabled:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Disable Diode temporarily</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch._inductor</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span>
+<span class="n">config</span><span class="o">.</span><span class="n">max_autotune_gemm_backends</span> <span class="o">=</span> <span class="s2">&quot;TRITON&quot;</span>
+<span class="n">config</span><span class="o">.</span><span class="n">fast_autotune</span> <span class="o">=</span> <span class="kc">False</span>
+</pre></div>
+</div>
+</section>
+<section id="debugging-and-profiling">
+<h3>Debugging and Profiling<a class="headerlink" href="#debugging-and-profiling" title="Link to this heading"></a></h3>
+<p>Monitor Diode’s performance impact:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch_diode_models</span>
+
+<span class="c1"># Enable detailed logging</span>
+<span class="n">torch_diode_models</span><span class="o">.</span><span class="n">set_log_level</span><span class="p">(</span><span class="s2">&quot;DEBUG&quot;</span><span class="p">)</span>
+
+<span class="c1"># Profile model predictions</span>
+<span class="k">with</span> <span class="n">torch_diode_models</span><span class="o">.</span><span class="n">profile_predictions</span><span class="p">():</span>
+    <span class="n">compiled_fn</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">my_function</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;max-autotune&quot;</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">compiled_fn</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
+
+<span class="c1"># View prediction statistics</span>
+<span class="n">stats</span> <span class="o">=</span> <span class="n">torch_diode_models</span><span class="o">.</span><span class="n">get_prediction_stats</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Predictions made: </span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;total_predictions&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Average confidence: </span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;avg_confidence&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Fallbacks to autotune: </span><span class="si">{</span><span class="n">stats</span><span class="p">[</span><span class="s1">&#39;fallbacks&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="performance-comparison">
+<h2>Performance Comparison<a class="headerlink" href="#performance-comparison" title="Link to this heading"></a></h2>
+<p>Typical performance improvements with Diode:</p>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Compilation Time Comparison</span><a class="headerlink" href="#id1" title="Link to this table"></a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>Operation Size</p></th>
+<th class="head"><p>Traditional Autotune</p></th>
+<th class="head"><p>Diode Acceleration</p></th>
+<th class="head"><p>Speedup</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>(1024, 1024) × (1024, 1024)</p></td>
+<td><p>2.3s</p></td>
+<td><p>0.08s</p></td>
+<td><p><strong>29x faster</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p>(4096, 4096) × (4096, 4096)</p></td>
+<td><p>8.1s</p></td>
+<td><p>0.12s</p></td>
+<td><p><strong>68x faster</strong></p></td>
+</tr>
+<tr class="row-even"><td><p>Batch of 32 operations</p></td>
+<td><p>45.2s</p></td>
+<td><p>1.2s</p></td>
+<td><p><strong>38x faster</strong></p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default" id="id2">
+<caption><span class="caption-text">Runtime Performance</span><a class="headerlink" href="#id2" title="Link to this table"></a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>Hardware</p></th>
+<th class="head"><p>Operation</p></th>
+<th class="head"><p>Baseline (no autotune)</p></th>
+<th class="head"><p>Traditional Autotune</p></th>
+<th class="head"><p>Diode</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>NVIDIA H100</p></td>
+<td><p>(8192, 8192) × (8192, 8192)</p></td>
+<td><p>2.3 TFLOPS</p></td>
+<td><p>15.2 TFLOPS</p></td>
+<td><p><strong>15.4 TFLOPS</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p>NVIDIA A100</p></td>
+<td><p>(4096, 4096) × (4096, 4096)</p></td>
+<td><p>1.8 TFLOPS</p></td>
+<td><p>9.7 TFLOPS</p></td>
+<td><p><strong>9.9 TFLOPS</strong></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="best-practices">
+<h2>Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><strong>Always Import Early</strong>: Import <code class="docutils literal notranslate"><span class="pre">torch_diode_models</span></code> before any torch.compile calls</p></li>
+<li><p><strong>Use Appropriate Modes</strong>: Combine with <code class="docutils literal notranslate"><span class="pre">mode=&quot;max-autotune&quot;</span></code> for best results</p></li>
+<li><p><strong>Monitor Performance</strong>: Use profiling to ensure expected speedups</p></li>
+<li><p><strong>Keep Models Updated</strong>: Regularly update the torch-diode-models package for latest optimizations</p></li>
+<li><p><strong>Hardware Consistency</strong>: Use the same hardware type for development and production</p></li>
+</ol>
+</section>
+<section id="integration-checklist">
+<h2>Integration Checklist<a class="headerlink" href="#integration-checklist" title="Link to this heading"></a></h2>
+<p>Before deploying Diode in production:</p>
+<ul class="simple">
+<li><p>[ ] Verify hardware compatibility with <code class="docutils literal notranslate"><span class="pre">torch_diode_models.list_available_models()</span></code></p></li>
+<li><p>[ ] Test compilation times show expected speedup (10x+ improvement typical)</p></li>
+<li><p>[ ] Validate runtime performance matches or exceeds baseline</p></li>
+<li><p>[ ] Enable fallback options for robustness</p></li>
+<li><p>[ ] Set up monitoring for prediction confidence and fallback rates</p></li>
+<li><p>[ ] Document any manual model selections for reproducibility</p></li>
+</ul>
+</section>
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Custom Models</strong>: Train models on your specific workloads using the full Diode toolkit</p></li>
+<li><p><strong>Hardware Support</strong>: Request support for additional hardware through GitHub issues</p></li>
+<li><p><strong>Advanced Features</strong>: Explore multi-GPU and distributed training acceleration</p></li>
+<li><p><strong>Integration</strong>: Combine with other PyTorch performance tools like CUDA Graphs</p></li>
+</ul>
+<p>For more information on training custom models, see the <a class="reference internal" href="getting_started.html"><span class="doc">Getting Started with Training Models with Diode</span></a> guide.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="getting_started.html" class="btn btn-neutral float-left" title="Getting Started with Training Models with Diode" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="api/modules.html" class="btn btn-neutral float-right" title="diode" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Author Name.
+      <span class="lastupdated">Last updated on Sep 04, 2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,4 +1,4 @@
-Getting Started with Diode
+Getting Started with Training Models with Diode
 ==========================
 
 This comprehensive guide will walk you through the complete process of creating a machine learning model from scratch using the Diode toolkit. You'll learn how to generate a dataset of matrix multiplication performance data and train a model to predict optimal configurations.
