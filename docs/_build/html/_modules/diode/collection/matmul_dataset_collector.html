@@ -1,0 +1,894 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>diode.collection.matmul_dataset_collector &mdash; diode 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../../_static/copybutton.js?v=f281be69"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            diode
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">diode</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">diode</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">diode.collection.matmul_dataset_collector</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for diode.collection.matmul_dataset_collector</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w"> </span><span class="kn">import</span> <span class="n">Enum</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+
+<span class="c1"># Import the size_hints function from PyTorch inductor</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch._inductor.config</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">inductor_config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">diode.types.matmul_dataset</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dataset</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">diode.types.matmul_types</span><span class="w"> </span><span class="kn">import</span> <span class="n">MMShape</span><span class="p">,</span> <span class="n">OperationShapeSet</span><span class="p">,</span> <span class="n">Table</span><span class="p">,</span> <span class="n">TritonGEMMConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">diode.utils.dataset_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_matrix_sizes</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch._inductor.select_algorithm</span><span class="w"> </span><span class="kn">import</span> <span class="n">add_feedback_saver</span><span class="p">,</span> <span class="n">clear_feedback_savers</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="CollectionMode">
+<a class="viewcode-back" href="../../../api/diode.collection.html#diode.collection.matmul_dataset_collector.CollectionMode">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CollectionMode</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Enumeration for data collection modes.&quot;&quot;&quot;</span>
+
+    <span class="n">RANDOM</span> <span class="o">=</span> <span class="s2">&quot;random&quot;</span>
+    <span class="n">OPERATION_SHAPE_SET</span> <span class="o">=</span> <span class="s2">&quot;operation_shape_set&quot;</span>
+    <span class="n">LOG_NORMAL</span> <span class="o">=</span> <span class="s2">&quot;log_normal&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="MatmulDatasetCollector">
+<a class="viewcode-back" href="../../../api/diode.collection.html#diode.collection.matmul_dataset_collector.MatmulDatasetCollector">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MatmulDatasetCollector</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class that hooks into the PyTorch feedback saver interface to collect</span>
+<span class="sd">    matrix multiplication data with timing information and store it in a Dataset.</span>
+
+<span class="sd">    Supports two modes:</span>
+<span class="sd">    1. RANDOM: Generate random matrix shapes and collect data for specified operations</span>
+<span class="sd">    2. OPERATION_SHAPE_SET: Use predefined shapes from an OperationShapeSet</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="MatmulDatasetCollector.__init__">
+<a class="viewcode-back" href="../../../api/diode.collection.html#diode.collection.matmul_dataset_collector.MatmulDatasetCollector.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">hardware_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;unknown&quot;</span><span class="p">,</span>
+        <span class="n">mode</span><span class="p">:</span> <span class="n">CollectionMode</span> <span class="o">=</span> <span class="n">CollectionMode</span><span class="o">.</span><span class="n">RANDOM</span><span class="p">,</span>
+        <span class="n">operations</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">operation_shape_set</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">OperationShapeSet</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="c1"># Random mode parameters</span>
+        <span class="n">num_shapes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+        <span class="n">dtypes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">dtype</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">42</span><span class="p">,</span>
+        <span class="n">min_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span><span class="p">,</span>
+        <span class="n">max_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4096</span><span class="p">,</span>
+        <span class="n">power_of_two</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="c1"># Log normal mode parameters</span>
+        <span class="n">log_normal_m_mean</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">6.5725472164323095</span><span class="p">,</span>
+        <span class="n">log_normal_m_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.556199441605505</span><span class="p">,</span>
+        <span class="n">log_normal_n_mean</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">5.913930073563466</span><span class="p">,</span>
+        <span class="n">log_normal_n_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.66968141897024</span><span class="p">,</span>
+        <span class="n">log_normal_k_mean</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">6.204916071423808</span><span class="p">,</span>
+        <span class="n">log_normal_k_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.1646646856090177</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the MatmulDatasetCollector.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            hardware_name: The name of the hardware being used.</span>
+<span class="sd">            mode: Collection mode (RANDOM or OPERATION_SHAPE_SET)</span>
+<span class="sd">            operations: List of operations to collect data for (e.g., [&#39;mm&#39;, &#39;addmm&#39;])</span>
+<span class="sd">            operation_shape_set: OperationShapeSet for OPERATION_SHAPE_SET mode</span>
+<span class="sd">            num_shapes: Number of random shapes to generate (RANDOM mode)</span>
+<span class="sd">            dtypes: List of dtypes to test</span>
+<span class="sd">            seed: Random seed for reproducibility (RANDOM mode)</span>
+<span class="sd">            min_size: Minimum matrix dimension (RANDOM mode)</span>
+<span class="sd">            max_size: Maximum matrix dimension (RANDOM mode)</span>
+<span class="sd">            power_of_two: Whether to generate only power-of-two sizes (RANDOM mode)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hardware_name</span> <span class="o">=</span> <span class="n">hardware_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">operations</span> <span class="o">=</span> <span class="n">operations</span> <span class="ow">or</span> <span class="p">[</span><span class="s2">&quot;mm&quot;</span><span class="p">,</span> <span class="s2">&quot;addmm&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">operation_shape_set</span> <span class="o">=</span> <span class="n">operation_shape_set</span>
+
+        <span class="c1"># Random mode parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_shapes</span> <span class="o">=</span> <span class="n">num_shapes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dtypes</span> <span class="o">=</span> <span class="n">dtypes</span> <span class="ow">or</span> <span class="p">(</span>
+            <span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span>
+            <span class="k">else</span> <span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="n">seed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_size</span> <span class="o">=</span> <span class="n">min_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_size</span> <span class="o">=</span> <span class="n">max_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">power_of_two</span> <span class="o">=</span> <span class="n">power_of_two</span>
+
+        <span class="c1"># Log normal mode parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_normal_m_mean</span> <span class="o">=</span> <span class="n">log_normal_m_mean</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_normal_m_std</span> <span class="o">=</span> <span class="n">log_normal_m_std</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_normal_n_mean</span> <span class="o">=</span> <span class="n">log_normal_n_mean</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_normal_n_std</span> <span class="o">=</span> <span class="n">log_normal_n_std</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_normal_k_mean</span> <span class="o">=</span> <span class="n">log_normal_k_mean</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_normal_k_std</span> <span class="o">=</span> <span class="n">log_normal_k_std</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">hardware</span><span class="o">=</span><span class="n">OrderedDict</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_collecting</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># Validate parameters</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="n">CollectionMode</span><span class="o">.</span><span class="n">OPERATION_SHAPE_SET</span> <span class="ow">and</span> <span class="n">operation_shape_set</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;operation_shape_set must be provided when mode is OPERATION_SHAPE_SET&quot;</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MatmulDatasetCollector.start_collection">
+<a class="viewcode-back" href="../../../api/diode.collection.html#diode.collection.matmul_dataset_collector.MatmulDatasetCollector.start_collection">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">start_collection</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Start collecting data by hooking into the feedback saver interface.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_collecting</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Collection is already in progress&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">add_feedback_saver</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_feedback_handler</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_collecting</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Started collecting matmul data&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MatmulDatasetCollector.stop_collection">
+<a class="viewcode-back" href="../../../api/diode.collection.html#diode.collection.matmul_dataset_collector.MatmulDatasetCollector.stop_collection">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">stop_collection</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Stop collecting data by removing the feedback saver hook.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_collecting</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No collection in progress&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">clear_feedback_savers</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_collecting</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Stopped collecting matmul data&quot;</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_size_hints</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mat1</span><span class="p">,</span> <span class="n">mat2</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get size hints for symbolic dimensions, similar to PyTorch inductor&#39;s get_size_hints.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            mat1: First matrix</span>
+<span class="sd">            mat2: Second matrix</span>
+<span class="sd">            m, n, k: Matrix dimensions (may be symbolic)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple of (m, n, k) with integer values</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">torch._inductor.virtualized</span><span class="w"> </span><span class="kn">import</span> <span class="n">V</span>
+
+        <span class="c1"># Handle m and k from mat1</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># Try to get size hints from the graph&#39;s sizevars</span>
+                <span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="o">=</span> <span class="n">V</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">sizevars</span><span class="o">.</span><span class="n">size_hints</span><span class="p">(</span>
+                    <span class="n">mat1</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="n">inductor_config</span><span class="o">.</span><span class="n">unbacked_symint_fallback</span>
+                <span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">AttributeError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+                <span class="c1"># If that fails, use default values</span>
+                <span class="n">m</span> <span class="o">=</span> <span class="n">m</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">else</span> <span class="mi">1</span>
+                <span class="n">k</span> <span class="o">=</span> <span class="n">k</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">else</span> <span class="mi">1</span>
+
+        <span class="c1"># Handle k and n from mat2</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># Try to get size hints from the graph&#39;s sizevars</span>
+                <span class="p">(</span><span class="n">k2</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span> <span class="o">=</span> <span class="n">V</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">sizevars</span><span class="o">.</span><span class="n">size_hints</span><span class="p">(</span>
+                    <span class="n">mat2</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="n">inductor_config</span><span class="o">.</span><span class="n">unbacked_symint_fallback</span>
+                <span class="p">)</span>
+                <span class="c1"># Use k2 if k is not an int</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                    <span class="n">k</span> <span class="o">=</span> <span class="n">k2</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">AttributeError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+                <span class="c1"># If that fails, use default values</span>
+                <span class="n">n</span> <span class="o">=</span> <span class="n">n</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">else</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                    <span class="n">k</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">k</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_feedback_handler</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">timings</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">input_nodes</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span>
+        <span class="n">choices</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="n">profiled_time</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Handle feedback from PyTorch&#39;s feedback saver interface.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            timings: Dictionary mapping choices to benchmark times</span>
+<span class="sd">            name: Name of the operation (e.g., &quot;mm&quot;, &quot;addmm&quot;)</span>
+<span class="sd">            input_nodes: Input nodes for the operation</span>
+<span class="sd">            choices: Available choices for the operation</span>
+<span class="sd">            profiled_time: Time spent profiling</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Debug logging</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Feedback handler called with name: </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">, timings: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">timings</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Only handle matrix multiplication operations</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;mm&quot;</span><span class="p">,</span> <span class="s2">&quot;addmm&quot;</span><span class="p">]:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Skipping operation: </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> (not mm or addmm)&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Extract problem dimensions</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;addmm&quot;</span><span class="p">:</span>
+            <span class="n">mat1</span> <span class="o">=</span> <span class="n">input_nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">mat2</span> <span class="o">=</span> <span class="n">input_nodes</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">M</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">mat1</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">mat1</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                <span class="n">mat2</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="p">)</span>
+            <span class="n">M_dtype</span> <span class="o">=</span> <span class="n">mat1</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">dtype</span>
+            <span class="n">K_dtype</span> <span class="o">=</span> <span class="n">mat2</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">dtype</span>
+        <span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;mm&quot;</span><span class="p">:</span>
+            <span class="n">mat1</span> <span class="o">=</span> <span class="n">input_nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">mat2</span> <span class="o">=</span> <span class="n">input_nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">M</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">mat1</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">mat1</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                <span class="n">mat2</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="p">)</span>
+            <span class="n">M_dtype</span> <span class="o">=</span> <span class="n">mat1</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">dtype</span>
+            <span class="n">K_dtype</span> <span class="o">=</span> <span class="n">mat2</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">dtype</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Get size hints for symbolic dimensions</span>
+        <span class="n">M</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">K</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_size_hints</span><span class="p">(</span><span class="n">mat1</span><span class="p">,</span> <span class="n">mat2</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">K</span><span class="p">)</span>
+
+        <span class="c1"># Create MMShape instance</span>
+        <span class="c1"># Note: Some fields are approximated as we don&#39;t have all the information</span>
+        <span class="c1"># from the feedback saver interface</span>
+        <span class="n">problem</span> <span class="o">=</span> <span class="n">MMShape</span><span class="p">(</span>
+            <span class="n">B</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>  <span class="c1"># Batch size, assuming 1 for now</span>
+            <span class="n">M</span><span class="o">=</span><span class="n">M</span><span class="p">,</span>
+            <span class="n">N</span><span class="o">=</span><span class="n">N</span><span class="p">,</span>
+            <span class="n">K</span><span class="o">=</span><span class="n">K</span><span class="p">,</span>
+            <span class="n">M_dtype</span><span class="o">=</span><span class="n">M_dtype</span><span class="p">,</span>
+            <span class="n">K_dtype</span><span class="o">=</span><span class="n">K_dtype</span><span class="p">,</span>
+            <span class="n">out_dtype</span><span class="o">=</span><span class="n">M_dtype</span><span class="p">,</span>  <span class="c1"># Assuming output dtype is the same as input</span>
+            <span class="n">out_size</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">N</span><span class="p">),</span>  <span class="c1"># Approximating output size</span>
+            <span class="n">out_stride</span><span class="o">=</span><span class="p">(</span><span class="n">M</span> <span class="o">*</span> <span class="n">N</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>  <span class="c1"># Approximating output stride</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Process each timing result</span>
+        <span class="k">for</span> <span class="n">choice</span><span class="p">,</span> <span class="n">bench_time</span> <span class="ow">in</span> <span class="n">timings</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="c1"># Only process TritonTemplateCaller choices</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span>
+                <span class="n">choice</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">_inductor</span><span class="o">.</span><span class="n">select_algorithm</span><span class="o">.</span><span class="n">TritonTemplateCaller</span>
+            <span class="p">):</span>
+                <span class="k">continue</span>
+
+            <span class="c1"># Extract configuration details</span>
+            <span class="n">log_info</span> <span class="o">=</span> <span class="n">choice</span><span class="o">.</span><span class="n">log_info</span>
+            <span class="n">block_m</span><span class="p">,</span> <span class="n">block_k</span><span class="p">,</span> <span class="n">block_n</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span>
+                <span class="nb">int</span><span class="p">,</span> <span class="n">log_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tile_shape&quot;</span><span class="p">,</span> <span class="s2">&quot;(0,0,0)&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;()&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Create TritonGEMMConfig instance</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="n">TritonGEMMConfig</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">_config&quot;</span><span class="p">,</span>
+                <span class="n">grid</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>  <span class="c1"># Default value, not available in feedback</span>
+                <span class="n">block_m</span><span class="o">=</span><span class="n">block_m</span><span class="p">,</span>
+                <span class="n">block_n</span><span class="o">=</span><span class="n">block_n</span><span class="p">,</span>
+                <span class="n">block_k</span><span class="o">=</span><span class="n">block_k</span><span class="p">,</span>
+                <span class="n">group_m</span><span class="o">=</span><span class="n">log_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;GROUP_M&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+                <span class="n">num_stages</span><span class="o">=</span><span class="n">log_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;num_stages&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+                <span class="n">num_warps</span><span class="o">=</span><span class="n">log_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;num_warps&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+                <span class="c1"># Other fields use default values</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Add the timing to the dataset</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">add_timing</span><span class="p">(</span>
+                <span class="n">hardware_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hardware_name</span><span class="p">,</span>
+                <span class="n">op_name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">problem</span><span class="o">=</span><span class="n">problem</span><span class="p">,</span>
+                <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
+                <span class="n">time</span><span class="o">=</span><span class="n">bench_time</span><span class="p">,</span>
+            <span class="p">)</span>
+
+<div class="viewcode-block" id="MatmulDatasetCollector.get_dataset">
+<a class="viewcode-back" href="../../../api/diode.collection.html#diode.collection.matmul_dataset_collector.MatmulDatasetCollector.get_dataset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dataset</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the collected data as a Dataset.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The Dataset containing all collected data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span></div>
+
+
+<div class="viewcode-block" id="MatmulDatasetCollector.to_table">
+<a class="viewcode-back" href="../../../api/diode.collection.html#diode.collection.matmul_dataset_collector.MatmulDatasetCollector.to_table">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_table</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Table</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert the dataset to a table by selecting the fastest configuration for each problem.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Table with the fastest configuration for each problem.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">to_table</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="MatmulDatasetCollector.save_to_file">
+<a class="viewcode-back" href="../../../api/diode.collection.html#diode.collection.matmul_dataset_collector.MatmulDatasetCollector.save_to_file">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_to_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save the collected data to a file.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            file_path: Path to save the data to.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">serialize</span><span class="p">())</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saved collected data to </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MatmulDatasetCollector.load_from_file">
+<a class="viewcode-back" href="../../../api/diode.collection.html#diode.collection.matmul_dataset_collector.MatmulDatasetCollector.load_from_file">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_from_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load data from a file.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            file_path: Path to load the data from.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">content</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+        <span class="n">dataset</span> <span class="o">=</span> <span class="n">Dataset</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dataset</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loaded data from </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to load data from </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MatmulDatasetCollector.save_table_to_file">
+<a class="viewcode-back" href="../../../api/diode.collection.html#diode.collection.matmul_dataset_collector.MatmulDatasetCollector.save_table_to_file">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_table_to_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert the dataset to a table and save it to a file.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            file_path: Path to save the table to.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_table</span><span class="p">()</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">serialize</span><span class="p">())</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saved table to </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MatmulDatasetCollector.__enter__">
+<a class="viewcode-back" href="../../../api/diode.collection.html#diode.collection.matmul_dataset_collector.MatmulDatasetCollector.__enter__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Context manager entry point.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_collection</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="MatmulDatasetCollector.__exit__">
+<a class="viewcode-back" href="../../../api/diode.collection.html#diode.collection.matmul_dataset_collector.MatmulDatasetCollector.__exit__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Context manager exit point.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop_collection</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_round_small_dimension</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Round small dimensions (&lt; 2048) to the nearest multiple of 8.</span>
+<span class="sd">        If the result would be 0, round up to 8.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dim: The dimension to potentially round</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The rounded dimension</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Round to nearest multiple of 8</span>
+        <span class="n">rounded</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">dim</span> <span class="o">/</span> <span class="mi">8</span><span class="p">)</span> <span class="o">*</span> <span class="mi">8</span>
+        <span class="c1"># If rounding resulted in 0, use 8 instead</span>
+        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="n">rounded</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_generate_log_normal_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate matrix sizes using log normal distribution.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List of (M, N, K) tuples sampled from log normal distributions</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
+        <span class="n">sizes</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_shapes</span><span class="p">):</span>
+            <span class="c1"># Sample M, N, K from separate log normal distributions</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">lognormal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_normal_m_mean</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_normal_m_std</span><span class="p">))</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">lognormal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_normal_n_mean</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_normal_n_std</span><span class="p">))</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">lognormal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_normal_k_mean</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_normal_k_std</span><span class="p">))</span>
+
+            <span class="c1"># Round small dimensions to nearest multiple of 8</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_round_small_dimension</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_round_small_dimension</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_round_small_dimension</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+
+            <span class="n">sizes</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">m</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">sizes</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_generate_shapes_and_dtypes</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate shapes and dtypes based on the collection mode.</span>
+<span class="sd">        For sample efficiency, randomly samples one dtype and one operation per shape.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List of tuples containing (shape, dtype, operation_name)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">shapes_and_dtypes</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Set up random number generator for consistent sampling</span>
+        <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="n">CollectionMode</span><span class="o">.</span><span class="n">RANDOM</span><span class="p">:</span>
+            <span class="c1"># Generate random matrix sizes</span>
+            <span class="n">sizes</span> <span class="o">=</span> <span class="n">generate_matrix_sizes</span><span class="p">(</span>
+                <span class="n">num_shapes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_shapes</span><span class="p">,</span>
+                <span class="n">seed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">,</span>
+                <span class="n">min_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">min_size</span><span class="p">,</span>
+                <span class="n">max_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_size</span><span class="p">,</span>
+                <span class="n">power_of_two</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">power_of_two</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Sample one dtype and one operation for each size</span>
+            <span class="k">for</span> <span class="n">size</span> <span class="ow">in</span> <span class="n">sizes</span><span class="p">:</span>
+                <span class="n">dtype</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dtypes</span><span class="p">)</span>
+                <span class="n">op_name</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">operations</span><span class="p">)</span>
+                <span class="n">shapes_and_dtypes</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">op_name</span><span class="p">))</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="n">CollectionMode</span><span class="o">.</span><span class="n">LOG_NORMAL</span><span class="p">:</span>
+            <span class="c1"># Generate log normal distributed matrix sizes</span>
+            <span class="n">sizes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_log_normal_sizes</span><span class="p">()</span>
+
+            <span class="c1"># Sample one dtype and one operation for each size</span>
+            <span class="k">for</span> <span class="n">size</span> <span class="ow">in</span> <span class="n">sizes</span><span class="p">:</span>
+                <span class="n">dtype</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dtypes</span><span class="p">)</span>
+                <span class="n">op_name</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">operations</span><span class="p">)</span>
+                <span class="n">shapes_and_dtypes</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">op_name</span><span class="p">))</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="n">CollectionMode</span><span class="o">.</span><span class="n">OPERATION_SHAPE_SET</span><span class="p">:</span>
+            <span class="c1"># Use shapes from the OperationShapeSet</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">operation_shape_set</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Collect all shapes from all operations first</span>
+                <span class="n">all_shapes</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">op_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">operations</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">op_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">operation_shape_set</span><span class="o">.</span><span class="n">operations</span><span class="p">:</span>
+                        <span class="n">shapes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">operation_shape_set</span><span class="o">.</span><span class="n">get_shapes_for_operation</span><span class="p">(</span>
+                            <span class="n">op_name</span>
+                        <span class="p">)</span>
+                        <span class="k">for</span> <span class="n">shape</span> <span class="ow">in</span> <span class="n">shapes</span><span class="p">:</span>
+                            <span class="c1"># Convert MMShape to (M, K, N) tuple and extract dtype</span>
+                            <span class="n">size</span> <span class="o">=</span> <span class="p">(</span><span class="n">shape</span><span class="o">.</span><span class="n">M</span><span class="p">,</span> <span class="n">shape</span><span class="o">.</span><span class="n">K</span><span class="p">,</span> <span class="n">shape</span><span class="o">.</span><span class="n">N</span><span class="p">)</span>
+                            <span class="n">dtype</span> <span class="o">=</span> <span class="n">shape</span><span class="o">.</span><span class="n">M_dtype</span>  <span class="c1"># Use M_dtype as the primary dtype</span>
+                            <span class="n">all_shapes</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="p">))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;Operation &#39;</span><span class="si">{</span><span class="n">op_name</span><span class="si">}</span><span class="s2">&#39; not found in OperationShapeSet&quot;</span>
+                        <span class="p">)</span>
+
+                <span class="c1"># Sample one operation for each unique shape</span>
+                <span class="n">unique_shapes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">all_shapes</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">size</span><span class="p">,</span> <span class="n">dtype</span> <span class="ow">in</span> <span class="n">unique_shapes</span><span class="p">:</span>
+                    <span class="n">op_name</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">operations</span><span class="p">)</span>
+                    <span class="n">shapes_and_dtypes</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">op_name</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                    <span class="s2">&quot;OperationShapeSet is None but mode is OPERATION_SHAPE_SET&quot;</span>
+                <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">shapes_and_dtypes</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_estimate_memory_usage</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">size</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+        <span class="n">dtype</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
+        <span class="n">op_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">device</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Estimate the memory usage in bytes for a matrix multiplication operation.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            size: Matrix size as (M, K, N) tuple</span>
+<span class="sd">            dtype: Data type for the matrices</span>
+<span class="sd">            op_name: Operation name (&#39;mm&#39;, &#39;addmm&#39;, or &#39;bmm&#39;)</span>
+<span class="sd">            device: Device to run on</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Estimated memory usage in bytes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">M</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="n">size</span>
+        
+        <span class="c1"># Get the size of the dtype in bytes</span>
+        <span class="k">if</span> <span class="n">dtype</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">float16</span><span class="p">:</span>
+            <span class="n">dtype_size</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="k">elif</span> <span class="n">dtype</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">:</span>
+            <span class="n">dtype_size</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="k">elif</span> <span class="n">dtype</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">float64</span><span class="p">:</span>
+            <span class="n">dtype_size</span> <span class="o">=</span> <span class="mi">8</span>
+        <span class="k">elif</span> <span class="n">dtype</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">int8</span><span class="p">:</span>
+            <span class="n">dtype_size</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">dtype</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">int16</span><span class="p">:</span>
+            <span class="n">dtype_size</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="k">elif</span> <span class="n">dtype</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">int32</span><span class="p">:</span>
+            <span class="n">dtype_size</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="k">elif</span> <span class="n">dtype</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">int64</span><span class="p">:</span>
+            <span class="n">dtype_size</span> <span class="o">=</span> <span class="mi">8</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Default to float32 size</span>
+            <span class="n">dtype_size</span> <span class="o">=</span> <span class="mi">4</span>
+            
+        <span class="k">if</span> <span class="n">op_name</span> <span class="o">==</span> <span class="s2">&quot;mm&quot;</span><span class="p">:</span>
+            <span class="c1"># Two input matrices: (M, K) and (K, N), plus output (M, N)</span>
+            <span class="n">memory_usage</span> <span class="o">=</span> <span class="p">(</span><span class="n">M</span> <span class="o">*</span> <span class="n">K</span> <span class="o">+</span> <span class="n">K</span> <span class="o">*</span> <span class="n">N</span> <span class="o">+</span> <span class="n">M</span> <span class="o">*</span> <span class="n">N</span><span class="p">)</span> <span class="o">*</span> <span class="n">dtype_size</span>
+        <span class="k">elif</span> <span class="n">op_name</span> <span class="o">==</span> <span class="s2">&quot;addmm&quot;</span><span class="p">:</span>
+            <span class="c1"># Three input matrices: (M, K), (K, N), (M, N), plus output (M, N)</span>
+            <span class="n">memory_usage</span> <span class="o">=</span> <span class="p">(</span><span class="n">M</span> <span class="o">*</span> <span class="n">K</span> <span class="o">+</span> <span class="n">K</span> <span class="o">*</span> <span class="n">N</span> <span class="o">+</span> <span class="n">M</span> <span class="o">*</span> <span class="n">N</span> <span class="o">+</span> <span class="n">M</span> <span class="o">*</span> <span class="n">N</span><span class="p">)</span> <span class="o">*</span> <span class="n">dtype_size</span>
+        <span class="k">elif</span> <span class="n">op_name</span> <span class="o">==</span> <span class="s2">&quot;bmm&quot;</span><span class="p">:</span>
+            <span class="c1"># Two input matrices: (1, M, K) and (1, K, N), plus output (1, M, N)</span>
+            <span class="c1"># Using B=1 as in the implementation</span>
+            <span class="n">memory_usage</span> <span class="o">=</span> <span class="p">(</span><span class="n">M</span> <span class="o">*</span> <span class="n">K</span> <span class="o">+</span> <span class="n">K</span> <span class="o">*</span> <span class="n">N</span> <span class="o">+</span> <span class="n">M</span> <span class="o">*</span> <span class="n">N</span><span class="p">)</span> <span class="o">*</span> <span class="n">dtype_size</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Default estimation</span>
+            <span class="n">memory_usage</span> <span class="o">=</span> <span class="p">(</span><span class="n">M</span> <span class="o">*</span> <span class="n">K</span> <span class="o">+</span> <span class="n">K</span> <span class="o">*</span> <span class="n">N</span> <span class="o">+</span> <span class="n">M</span> <span class="o">*</span> <span class="n">N</span><span class="p">)</span> <span class="o">*</span> <span class="n">dtype_size</span>
+            
+        <span class="c1"># Add some overhead for intermediate computations</span>
+        <span class="n">memory_usage</span> <span class="o">*=</span> <span class="mf">1.1</span>
+        
+        <span class="k">return</span> <span class="n">memory_usage</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_check_memory_feasible</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">size</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+        <span class="n">dtype</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
+        <span class="n">op_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">device</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if the matrix multiplication operation is feasible given available memory.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            size: Matrix size as (M, K, N) tuple</span>
+<span class="sd">            dtype: Data type for the matrices</span>
+<span class="sd">            op_name: Operation name (&#39;mm&#39;, &#39;addmm&#39;, or &#39;bmm&#39;)</span>
+<span class="sd">            device: Device to run on</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            True if the operation is feasible, False otherwise</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">device</span> <span class="o">==</span> <span class="s2">&quot;cpu&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Get available GPU memory</span>
+            <span class="n">total_memory</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">get_device_properties</span><span class="p">(</span><span class="n">device</span><span class="p">)</span><span class="o">.</span><span class="n">total_memory</span>
+            <span class="n">allocated_memory</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">memory_allocated</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+            <span class="n">available_memory</span> <span class="o">=</span> <span class="n">total_memory</span> <span class="o">-</span> <span class="n">allocated_memory</span>
+            
+            <span class="c1"># Estimate required memory for this operation</span>
+            <span class="n">estimated_memory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_estimate_memory_usage</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">op_name</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+            
+            <span class="n">is_feasible</span> <span class="o">=</span> <span class="n">estimated_memory</span> <span class="o">&lt;=</span> <span class="n">available_memory</span>
+            
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">is_feasible</span><span class="p">:</span>
+                <span class="n">M</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="n">size</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Skipping </span><span class="si">{</span><span class="n">op_name</span><span class="si">}</span><span class="s2"> with size (</span><span class="si">{</span><span class="n">M</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">K</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">N</span><span class="si">}</span><span class="s2">) and dtype </span><span class="si">{</span><span class="n">dtype</span><span class="si">}</span><span class="s2">: &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;estimated memory </span><span class="si">{</span><span class="n">estimated_memory</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="mi">1024</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> GB exceeds &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;safe limit </span><span class="si">{</span><span class="n">available_memory</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="mi">1024</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> GB&quot;</span>
+                <span class="p">)</span>
+            
+            <span class="k">return</span> <span class="n">is_feasible</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not check GPU memory, proceeding with operation: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_run_matrix_multiplication</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">size</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+        <span class="n">dtype</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
+        <span class="n">op_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">device</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">search_mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run a single matrix multiplication operation.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            size: Matrix size as (M, K, N) tuple</span>
+<span class="sd">            dtype: Data type for the matrices</span>
+<span class="sd">            op_name: Operation name (&#39;mm&#39;, &#39;addmm&#39;, or &#39;bmm&#39;)</span>
+<span class="sd">            device: Device to run on</span>
+<span class="sd">            search_mode: Search mode for torch.compile</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">M</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="n">size</span>
+
+        <span class="c1"># Check if the operation is memory-feasible before proceeding</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_memory_feasible</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">op_name</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Skipping </span><span class="si">{</span><span class="n">op_name</span><span class="si">}</span><span class="s2"> with size (</span><span class="si">{</span><span class="n">M</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">K</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">N</span><span class="si">}</span><span class="s2">) due to memory constraints&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">op_name</span> <span class="o">==</span> <span class="s2">&quot;mm&quot;</span><span class="p">:</span>
+                <span class="c1"># Create input matrices for mm: (M, K) x (K, N) -&gt; (M, N)</span>
+                <span class="n">a</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+                <span class="n">b</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">K</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+
+                <span class="c1"># Validate tensor shapes before compilation</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Created tensors: a.shape=</span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">, b.shape=</span><span class="si">{</span><span class="n">b</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">assert</span> <span class="n">a</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span>
+                    <span class="n">M</span><span class="p">,</span>
+                    <span class="n">K</span><span class="p">,</span>
+                <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Tensor a shape mismatch: expected (</span><span class="si">{</span><span class="n">M</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">K</span><span class="si">}</span><span class="s2">), got </span><span class="si">{</span><span class="n">a</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">assert</span> <span class="n">b</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span>
+                    <span class="n">K</span><span class="p">,</span>
+                    <span class="n">N</span><span class="p">,</span>
+                <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Tensor b shape mismatch: expected (</span><span class="si">{</span><span class="n">K</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">N</span><span class="si">}</span><span class="s2">), got </span><span class="si">{</span><span class="n">b</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span>
+
+                <span class="k">def</span><span class="w"> </span><span class="nf">mm_fn</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">mm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">compiled_fn</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">mm_fn</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">search_mode</span><span class="p">)</span>
+                    <span class="n">result</span> <span class="o">=</span> <span class="n">compiled_fn</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">compile_error</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Failed to compile/run </span><span class="si">{</span><span class="n">op_name</span><span class="si">}</span><span class="s2"> with size (</span><span class="si">{</span><span class="n">M</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">K</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">N</span><span class="si">}</span><span class="s2">) and dtype </span><span class="si">{</span><span class="n">dtype</span><span class="si">}</span><span class="s2"> &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;during exhaustive autotuning: </span><span class="si">{</span><span class="n">compile_error</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
+                    <span class="k">return</span>
+
+            <span class="k">elif</span> <span class="n">op_name</span> <span class="o">==</span> <span class="s2">&quot;addmm&quot;</span><span class="p">:</span>
+                <span class="c1"># Create input matrices for addmm: bias(M, N) + (M, K) x (K, N) -&gt; (M, N)</span>
+                <span class="n">a</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+                <span class="n">b</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">K</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+                <span class="n">c</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+
+                <span class="k">def</span><span class="w"> </span><span class="nf">addmm_fn</span><span class="p">(</span><span class="n">bias</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">addmm</span><span class="p">(</span><span class="n">bias</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">compiled_fn</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">addmm_fn</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">search_mode</span><span class="p">)</span>
+                    <span class="n">result</span> <span class="o">=</span> <span class="n">compiled_fn</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">compile_error</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Failed to compile/run </span><span class="si">{</span><span class="n">op_name</span><span class="si">}</span><span class="s2"> with size (</span><span class="si">{</span><span class="n">M</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">K</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">N</span><span class="si">}</span><span class="s2">) and dtype </span><span class="si">{</span><span class="n">dtype</span><span class="si">}</span><span class="s2"> &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;during exhaustive autotuning: </span><span class="si">{</span><span class="n">compile_error</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
+                    <span class="k">return</span>
+
+            <span class="k">elif</span> <span class="n">op_name</span> <span class="o">==</span> <span class="s2">&quot;bmm&quot;</span><span class="p">:</span>
+                <span class="c1"># Create input matrices for bmm: (B, M, K) x (B, K, N) -&gt; (B, M, N)</span>
+                <span class="c1"># For bmm, we&#39;ll use B=1 for simplicity</span>
+                <span class="n">B</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">a</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+                <span class="n">b</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+
+                <span class="k">def</span><span class="w"> </span><span class="nf">bmm_fn</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">bmm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">compiled_fn</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">bmm_fn</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">search_mode</span><span class="p">)</span>
+                    <span class="n">result</span> <span class="o">=</span> <span class="n">compiled_fn</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">compile_error</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Failed to compile/run </span><span class="si">{</span><span class="n">op_name</span><span class="si">}</span><span class="s2"> with size (</span><span class="si">{</span><span class="n">M</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">K</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">N</span><span class="si">}</span><span class="s2">) and dtype </span><span class="si">{</span><span class="n">dtype</span><span class="si">}</span><span class="s2"> &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;during exhaustive autotuning: </span><span class="si">{</span><span class="n">compile_error</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
+                    <span class="k">return</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported operation: </span><span class="si">{</span><span class="n">op_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">return</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Error creating tensors for </span><span class="si">{</span><span class="n">op_name</span><span class="si">}</span><span class="s2"> with size (</span><span class="si">{</span><span class="n">M</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">K</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">N</span><span class="si">}</span><span class="s2">) and dtype </span><span class="si">{</span><span class="n">dtype</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="k">return</span>
+
+<div class="viewcode-block" id="MatmulDatasetCollector.collect_data">
+<a class="viewcode-back" href="../../../api/diode.collection.html#diode.collection.matmul_dataset_collector.MatmulDatasetCollector.collect_data">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">collect_data</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">search_mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;max-autotune&quot;</span><span class="p">,</span>
+        <span class="n">search_space</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;EXHAUSTIVE&quot;</span><span class="p">,</span>
+        <span class="n">device</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Collect matrix multiplication timing data based on the configured mode.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            search_mode: Search mode for torch.compile</span>
+<span class="sd">            search_space: Search space for autotuning (EXHAUSTIVE or DEFAULT)</span>
+<span class="sd">            device: Device to run on (defaults to cuda if available, else cpu)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">device</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Collecting data on device: </span><span class="si">{</span><span class="n">device</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Collection mode: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Operations: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">operations</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Set up PyTorch for compilation</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">set_grad_enabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="c1"># Configure PyTorch inductor</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">torch._inductor</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span>
+
+        <span class="n">config</span><span class="o">.</span><span class="n">fx_graph_cache</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">force_disable_caches</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">max_autotune_gemm_backends</span> <span class="o">=</span> <span class="s2">&quot;TRITON&quot;</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">triton</span><span class="o">.</span><span class="n">num_decompose_k_splits</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># Set search space - this needs to be set before importing torch._inductor.config</span>
+        <span class="c1"># but since it&#39;s already imported, we need to set it directly on the config object</span>
+        <span class="k">if</span> <span class="n">search_space</span> <span class="o">==</span> <span class="s2">&quot;EXHAUSTIVE&quot;</span><span class="p">:</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">max_autotune_gemm_search_space</span> <span class="o">=</span> <span class="s2">&quot;EXHAUSTIVE&quot;</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Set search space to EXHAUSTIVE&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">max_autotune_gemm_search_space</span> <span class="o">=</span> <span class="s2">&quot;DEFAULT&quot;</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Set search space to DEFAULT&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Generate shapes and dtypes</span>
+        <span class="n">shapes_and_dtypes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_shapes_and_dtypes</span><span class="p">()</span>
+        <span class="n">total_operations</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">shapes_and_dtypes</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running </span><span class="si">{</span><span class="n">total_operations</span><span class="si">}</span><span class="s2"> matrix multiplications...&quot;</span><span class="p">)</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="c1"># Start collection</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_collection</span><span class="p">()</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Run matrix multiplications</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">op_name</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shapes_and_dtypes</span><span class="p">):</span>
+                <span class="n">M</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="n">size</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">total_operations</span><span class="si">}</span><span class="s2">] Running </span><span class="si">{</span><span class="n">op_name</span><span class="si">}</span><span class="s2"> with size &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">M</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">K</span><span class="si">}</span><span class="s2">) x (</span><span class="si">{</span><span class="n">K</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">N</span><span class="si">}</span><span class="s2">) and dtype </span><span class="si">{</span><span class="n">dtype</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Clear compilation cache to avoid shape conflicts</span>
+                <span class="n">torch</span><span class="o">.</span><span class="n">_dynamo</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">_run_matrix_multiplication</span><span class="p">(</span>
+                    <span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">op_name</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">search_mode</span>
+                <span class="p">)</span>
+
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="c1"># Stop collection</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stop_collection</span><span class="p">()</span>
+
+        <span class="c1"># Calculate elapsed time</span>
+        <span class="n">elapsed_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Collection completed in </span><span class="si">{</span><span class="n">elapsed_time</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> seconds&quot;</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Author Name.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

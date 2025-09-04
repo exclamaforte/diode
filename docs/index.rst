@@ -1,16 +1,14 @@
-Welcome to diode's documentation!
-=============================
+Welcome to Diode's documentation!
+=======================================
+
+Diode is a machine learning toolkit for matrix multiplication operation performance prediction and optimization.
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-   readme
-   data
-   data_gathering
-   api/index
-   todo
-   docstring_guide
+   api/modules
+
 
 Indices and tables
 ==================
