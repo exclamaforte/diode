@@ -174,11 +174,11 @@ def validate_model(
     top_n_worst: int = 10,
 ) -> None:
     """
-    Validate a trained model on a separate validation dataset.
+    Validate a trained model on a separate validation dataset or directory of datasets.
 
     Args:
         model_path: Path to the trained model
-        validation_dataset_path: Path to the validation dataset
+        validation_dataset_path: Path to the validation dataset file or directory containing dataset files
         batch_size: Batch size for validation
         device: Device to validate on
         hardware_name: Optional hardware name to filter by
@@ -190,34 +190,59 @@ def validate_model(
         logger.error(f"Model not found at {model_path}")
         return
 
-    # Check if validation dataset exists
+    # Check if validation dataset path exists
     if not os.path.exists(validation_dataset_path):
         logger.error(f"Validation dataset not found at {validation_dataset_path}")
         return
 
-    # Load the validation dataset
-    logger.info(f"Loading validation dataset from {validation_dataset_path}")
-    with open(validation_dataset_path, "r") as f:
-        dataset_json = f.read()
-
-    dataset = MatmulDataset.deserialize(dataset_json)
-    if dataset is None:
-        logger.error(
-            f"Failed to load validation dataset from {validation_dataset_path}"
+    # Check if validation_dataset_path is a directory or a file
+    if os.path.isdir(validation_dataset_path):
+        # Load from directory
+        logger.info(
+            f"Loading all validation data files from directory: {validation_dataset_path}"
         )
-        return
+        try:
+            _, val_dataloader, _ = create_directory_dataloaders(
+                data_dir=validation_dataset_path,
+                batch_size=batch_size,
+                hardware_name=hardware_name,
+                op_name=op_name,
+                log_transform=True,
+                num_workers=4,
+                seed=42,  # Use a fixed seed for reproducibility
+                file_extensions=["json", "msgpack"],
+            )
+        except Exception as e:
+            logger.error(
+                f"Failed to create dataloaders from directory {validation_dataset_path}: {e}"
+            )
+            return
+    else:
+        # Load from single file
+        logger.info(f"Loading validation dataset from {validation_dataset_path}")
+        if validation_dataset_path.endswith(".msgpack"):
+            with open(validation_dataset_path, "rb") as f:
+                dataset_data = f.read()
+            dataset = MatmulDataset.from_msgpack(dataset_data)
+        else:
+            with open(validation_dataset_path, "r") as f:
+                dataset_json = f.read()
+            dataset = MatmulDataset.deserialize(dataset_json)
 
-    # Create dataloaders (we only need the validation dataloader)
-    logger.info("Creating validation dataloader")
-    _, val_dataloader, _ = create_dataloaders(
-        dataset=dataset,
-        batch_size=batch_size,
-        hardware_name=hardware_name,
-        op_name=op_name,
-        log_transform=True,
-        num_workers=4,
-        seed=42,  # Use a fixed seed for reproducibility
-    )
+        if dataset is None:
+            logger.error(
+                f"Failed to load validation dataset from {validation_dataset_path}"
+            )
+            return
+
+        # Create dataloaders (we only need the validation dataloader)
+        logger.info("Creating validation dataloader")
+        _, val_dataloader, _ = create_dataloaders(
+            dataset=dataset,
+            batch_size=batch_size,
+            hardware_name=hardware_name,
+            op_name=op_name,
+        )
 
     # Get the feature dimensions
     problem_feature_dim = val_dataloader.dataset.dataset.problem_feature_dim
@@ -346,22 +371,30 @@ def run_model_example(
     logger.info(f"Training {model_type} model")
     checkpoint_path = os.path.join(model_dir, f"matmul_timing_{model_type}_model.pt")
 
-    model, history = train_model_from_dataset(
-        dataset=dataset,
+    # Import the config class
+    from diode.model.matmul_model_config import MatmulModelConfig
+
+    # Create a config with the specified parameters
+    config = MatmulModelConfig(
         model_type=model_type,
         batch_size=batch_size,
         num_epochs=num_epochs,
         learning_rate=learning_rate,
         weight_decay=weight_decay,
         patience=patience,
-        log_dir=log_dir,
-        checkpoint_path=checkpoint_path,
         hardware_name=hardware_name,
         op_name=op_name,
         log_transform=True,
         seed=seed,
-        verbose=True,
         device=device,
+    )
+
+    model, history, _ = train_model_from_dataset(
+        dataset=dataset,
+        config=config,
+        log_dir=log_dir,
+        checkpoint_path=checkpoint_path,
+        verbose=True,
     )
 
     # Plot the training history

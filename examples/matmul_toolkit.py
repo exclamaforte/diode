@@ -304,6 +304,11 @@ def main():
         default=2.1646646856090177,
         help="Log normal std for K dimension (only used without --shapeset)",
     )
+    validate_data_parser.add_argument(
+        "--chunk-size",
+        type=int,
+        help="Number of operations to collect before writing to a new file (enables chunked collection and resumption)",
+    )
 
     # Train model mode
     train_parser = subparsers.add_parser(
@@ -386,7 +391,7 @@ def main():
         "--model", type=str, required=True, help="Path to the trained model"
     )
     validate_model_parser.add_argument(
-        "--dataset", type=str, required=True, help="Path to the validation dataset"
+        "--dataset", type=str, required=True, help="Path to the validation dataset file or directory"
     )
     validate_model_parser.add_argument(
         "--batch-size", type=int, default=64, help="Batch size for validation"
@@ -743,6 +748,7 @@ def main():
                 search_mode=args.search_mode,
                 search_space=args.search_space,
                 file_format=args.format,
+                chunk_size=args.chunk_size,
             )
         else:
             # Use random/log-normal generation for validation dataset creation
@@ -758,6 +764,7 @@ def main():
                 search_mode=args.search_mode,
                 search_space=args.search_space,
                 file_format=args.format,
+                chunk_size=args.chunk_size,
                 log_normal_m_mean=args.log_normal_m_mean,
                 log_normal_m_std=args.log_normal_m_std,
                 log_normal_n_mean=args.log_normal_n_mean,
