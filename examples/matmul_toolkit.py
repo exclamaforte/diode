@@ -815,6 +815,17 @@ def main():
             )
 
     elif args.mode == "validate-model":
+        logger.info("Starting model validation...")
+        logger.info(f"Model path: {args.model}")
+        logger.info(f"Dataset path: {args.dataset}")
+        logger.info(f"Batch size: {args.batch_size}")
+        logger.info(f"Device: {args.device}")
+        if args.hardware_name:
+            logger.info(f"Hardware filter: {args.hardware_name}")
+        if args.op_name:
+            logger.info(f"Operation filter: {args.op_name}")
+        logger.info(f"Will analyze top {args.top_n_worst} worst predictions")
+          
         validate_model(
             model_path=args.model,
             validation_dataset_path=args.dataset,
@@ -824,6 +835,8 @@ def main():
             op_name=args.op_name,
             top_n_worst=args.top_n_worst,
         )
+          
+        logger.info("Model validation completed successfully")
 
     elif args.mode == "collector-example":
         run_collector_example(

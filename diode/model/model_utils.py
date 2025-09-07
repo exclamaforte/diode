@@ -186,14 +186,18 @@ def validate_model(
         top_n_worst: Number of worst predictions to analyze
     """
     # Check if model exists
+    logger.info("Checking if model file exists...")
     if not os.path.exists(model_path):
         logger.error(f"Model not found at {model_path}")
         return
+    logger.info(f"Model file found: {model_path}")
 
     # Check if validation dataset path exists
+    logger.info("Checking if validation dataset exists...")
     if not os.path.exists(validation_dataset_path):
         logger.error(f"Validation dataset not found at {validation_dataset_path}")
         return
+    logger.info(f"Validation dataset found: {validation_dataset_path}")
 
     # Check if validation_dataset_path is a directory or a file
     if os.path.isdir(validation_dataset_path):
@@ -249,8 +253,13 @@ def validate_model(
     config_feature_dim = val_dataloader.dataset.dataset.config_feature_dim
 
     # Load the trained model weights
-    logger.info(f"Loading model weights from {model_path}")
-    checkpoint = torch.load(model_path, map_location=device)
+    logger.info(f"Loading model weights from {model_path}...")
+    try:
+        checkpoint = torch.load(model_path, map_location=device)
+        logger.info("Model weights loaded successfully")
+    except Exception as e:
+        logger.error(f"Failed to load model weights: {e}")
+        return
 
     # Check if the model was saved as a complete checkpoint or just state_dict
     if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
