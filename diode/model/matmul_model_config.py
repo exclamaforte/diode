@@ -20,7 +20,7 @@ class MatmulModelConfig:
     config_feature_dim: int = 0  # Will be set based on dataset
     hidden_dims: List[int] = None  # For base model
     hidden_dim: int = 128  # For deep model
-    num_layers: int = 3  # For deep model
+    num_layers: int = 10  # For deep model
     dropout_rate: float = 0.1
     
     # Training parameters
@@ -28,7 +28,7 @@ class MatmulModelConfig:
     num_epochs: int = 100
     learning_rate: float = 0.001
     weight_decay: float = 1e-5
-    patience: int = 10
+    patience: int = 20
     log_transform: bool = True
     
     # Hardware and operation info

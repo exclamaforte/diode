@@ -255,6 +255,16 @@ class DirectoryMatmulDataset(Dataset):
         """
         return self.timing_dataset.config_feature_dim
     
+    @property
+    def configs(self):
+        """
+        Get the list of TritonGEMMConfig objects.
+        
+        Returns:
+            List of TritonGEMMConfig objects from the underlying timing dataset
+        """
+        return self.timing_dataset.configs
+    
     def get_file_info(self) -> List[Tuple[str, int]]:
         """
         Get information about the loaded files.

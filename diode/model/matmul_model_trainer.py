@@ -93,7 +93,7 @@ class MatmulModelTrainer:
     def train(
         self,
         num_epochs: int,
-        patience: int = 10,
+        patience: int = 20,
         checkpoint_path: Optional[str] = None,
         scheduler_factor: float = 0.5,
         scheduler_patience: int = 5,

@@ -6,6 +6,7 @@ import logging
 import os
 from typing import Dict, List, Optional, Tuple
 
+import numpy as np
 import torch
 from diode.model.directory_dataset_loader import create_directory_dataloaders
 from diode.model.matmul_dataset_loader import create_dataloaders
@@ -23,6 +24,391 @@ from diode.utils.visualization_utils import plot_training_history
 logger = logging.getLogger(__name__)
 
 
+def validate_max_autotune(
+    model_path: str,
+    validation_dataset_path: str,
+    max_autotune_solution_path: str,
+    batch_size: int = 64,
+    device: str = "cuda" if torch.cuda.is_available() else "cpu",
+    hardware_name: Optional[str] = None,
+    op_name: Optional[str] = None,
+) -> None:
+    """
+    Validate a trained model's ability to select optimal configs compared to max-autotune.
+
+    This function:
+    1. Loads validation data and runs all configs through the model
+    2. For each n in [1, 5, 10, 20, 50, 100], selects top n configs based on model predictions
+    3. Finds the best actual runtime among those top n configs
+    4. Compares with the best runtime from predefined max-autotune configs
+    5. Reports aggregate statistics
+
+    Args:
+        model_path: Path to the trained model
+        validation_dataset_path: Path to the validation dataset file or directory
+        max_autotune_solution_path: Path to JSON file containing Solution with max-autotune configs
+        batch_size: Batch size for validation
+        device: Device to validate on
+        hardware_name: Optional hardware name to filter by
+        op_name: Optional operation name to filter by
+    """
+    from diode.types.matmul_types import Solution, TritonGEMMConfig
+
+    # Check if model exists
+    logger.info("Checking if model file exists...")
+    if not os.path.exists(model_path):
+        logger.error(f"Model not found at {model_path}")
+        return
+    logger.info(f"Model file found: {model_path}")
+
+    # Check if validation dataset path exists
+    logger.info("Checking if validation dataset exists...")
+    if not os.path.exists(validation_dataset_path):
+        logger.error(f"Validation dataset not found at {validation_dataset_path}")
+        return
+    logger.info(f"Validation dataset found: {validation_dataset_path}")
+
+    # Check if max-autotune solution path exists
+    logger.info("Checking if max-autotune solution file exists...")
+    if not os.path.exists(max_autotune_solution_path):
+        logger.error(f"Max-autotune solution not found at {max_autotune_solution_path}")
+        return
+    logger.info(f"Max-autotune solution found: {max_autotune_solution_path}")
+
+    # Load max-autotune solution
+    logger.info(f"Loading max-autotune solution from {max_autotune_solution_path}")
+    try:
+        with open(max_autotune_solution_path, "r", encoding="utf-8") as f:
+            solution_json = f.read()
+        max_autotune_solution = Solution.parse(solution_json)
+        if max_autotune_solution is None:
+            logger.error("Failed to deserialize max-autotune solution")
+            return
+        logger.info(
+            f"Loaded max-autotune solution with {len(max_autotune_solution.config)} configs"
+        )
+    except Exception as e:
+        logger.error(f"Failed to load max-autotune solution: {e}")
+        return
+
+    # Load validation dataset
+    if os.path.isdir(validation_dataset_path):
+        logger.info(
+            f"Loading all validation data files from directory: {validation_dataset_path}"
+        )
+        try:
+            _, val_dataloader, _ = create_directory_dataloaders(
+                data_dir=validation_dataset_path,
+                batch_size=batch_size,
+                hardware_name=hardware_name,
+                op_name=op_name,
+                log_transform=True,
+                num_workers=4,
+                seed=42,
+                file_extensions=["json", "msgpack"],
+            )
+        except Exception as e:
+            logger.error(
+                f"Failed to create dataloaders from directory {validation_dataset_path}: {e}"
+            )
+            return
+    else:
+        logger.info(f"Loading validation dataset from {validation_dataset_path}")
+
+        if validation_dataset_path.endswith(".msgpack"):
+            with open(validation_dataset_path, "rb") as f:
+                dataset_data = f.read()
+            dataset = MatmulDataset.from_msgpack(dataset_data)
+        else:
+            with open(validation_dataset_path, "r") as f:
+                dataset_json = f.read()
+            dataset = MatmulDataset.deserialize(dataset_json)
+
+        if dataset is None:
+            logger.error(
+                f"Failed to load validation dataset from {validation_dataset_path}"
+            )
+            return
+
+        _, val_dataloader, _ = create_dataloaders(
+            dataset=dataset,
+            batch_size=batch_size,
+            hardware_name=hardware_name,
+            op_name=op_name,
+            log_transform=True,
+            num_workers=4,
+            seed=42,
+        )
+
+    # Get the feature dimensions
+    problem_feature_dim = val_dataloader.dataset.dataset.problem_feature_dim
+    config_feature_dim = val_dataloader.dataset.dataset.config_feature_dim
+
+    # Load the trained model
+    logger.info(f"Loading model weights from {model_path}...")
+    try:
+        checkpoint = torch.load(model_path, map_location=device)
+        logger.info("Model weights loaded successfully")
+    except Exception as e:
+        logger.error(f"Failed to load model weights: {e}")
+        return
+
+    # Create model
+    if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
+        logger.info("Loading from checkpoint format")
+        problem_feature_dim = checkpoint.get("problem_feature_dim", problem_feature_dim)
+        config_feature_dim = checkpoint.get("config_feature_dim", config_feature_dim)
+        hidden_dim = checkpoint.get("hidden_dim", 128)
+        num_layers = checkpoint.get("num_layers", 10)
+        model_type = checkpoint.get("model_type", "deep")
+
+        if model_type == "base":
+            model = MatmulTimingModel(
+                problem_feature_dim=problem_feature_dim,
+                config_feature_dim=config_feature_dim,
+            )
+        else:
+            model = DeepMatmulTimingModel(
+                problem_feature_dim=problem_feature_dim,
+                config_feature_dim=config_feature_dim,
+                hidden_dim=hidden_dim,
+                num_layers=num_layers,
+            )
+        model.load_state_dict(checkpoint["model_state_dict"])
+    else:
+        model = DeepMatmulTimingModel(
+            problem_feature_dim=problem_feature_dim,
+            config_feature_dim=config_feature_dim,
+        )
+        model.load_state_dict(checkpoint)
+
+    model.to(device)
+    model.eval()
+
+    # Get all validation configs and their actual runtimes
+    logger.info("Extracting validation configs and predictions...")
+    validation_configs = []  # List of TritonGEMMConfig objects
+    actual_runtimes = []  # Corresponding actual runtimes (log-transformed)
+    model_predictions = []  # Model predictions for these configs (log-transformed)
+
+    # Extract configs and runtimes from the validation dataset
+    with torch.no_grad():
+        for problem_features, config_features, targets in val_dataloader:
+            problem_features = problem_features.to(device)
+            config_features = config_features.to(device)
+            targets = targets.to(device)
+
+            # Get model predictions
+            predictions = model(problem_features, config_features)
+
+            # Extract configs from the underlying dataset
+            # We need to get the raw TritonGEMMConfig objects
+            batch_start = len(validation_configs)
+            batch_size_actual = len(targets)
+
+            # Get the configs for this batch from the dataset
+            for i in range(batch_size_actual):
+                dataset_idx = batch_start + i
+                if dataset_idx < len(val_dataloader.dataset.dataset.configs):
+                    config = val_dataloader.dataset.dataset.configs[dataset_idx]
+                    validation_configs.append(config)
+                    actual_runtimes.append(float(targets[i].cpu().numpy()))
+                    model_predictions.append(float(predictions[i].cpu().numpy()))
+
+    logger.info(f"Collected {len(validation_configs)} validation configs")
+
+    # Convert to numpy arrays for easier manipulation
+    model_predictions = np.array(model_predictions)
+    actual_runtimes = np.array(actual_runtimes)
+
+    # Define n values to test
+    n_values = [1, 5, 10, 20, 50, 100]
+
+    # Results storage
+    results = {}
+
+    max_autotune_configs = max_autotune_solution.config
+    logger.info(f"Max-autotune configs to compare: {len(max_autotune_configs)} configs")
+    logger.info("Analyzing model performance for different n values...")
+
+    for n in n_values:
+        if n > len(validation_configs):
+            logger.warning(
+                f"n={n} is larger than available configs ({len(validation_configs)}), skipping"
+            )
+            continue
+
+        # Get top n configs based on model predictions (lowest predicted runtime = best)
+        # Since we're working with log-transformed values, lower is still better
+        top_n_indices = np.argsort(model_predictions)[:n]
+        top_n_actual_runtimes = actual_runtimes[top_n_indices]
+
+        # Find the minimum actual runtime among the top n model selections
+        best_model_runtime = np.min(top_n_actual_runtimes)
+        best_model_config_idx = top_n_indices[np.argmin(top_n_actual_runtimes)]
+        best_model_config = validation_configs[best_model_config_idx]
+
+        # Find max-autotune configs that exist in validation set
+        max_autotune_runtimes = []
+        max_autotune_found_configs = []
+
+        for ma_config in max_autotune_configs:
+            # Find this max-autotune config in validation set
+            for i, val_config in enumerate(validation_configs):
+                if (
+                    val_config == ma_config
+                ):  # TritonGEMMConfig has __eq__ method via hash
+                    max_autotune_runtimes.append(actual_runtimes[i])
+                    max_autotune_found_configs.append(ma_config)
+                    break
+
+        if not max_autotune_runtimes:
+            logger.warning(f"No max-autotune configs found in validation set for n={n}")
+            results[n] = {
+                "best_model_runtime": best_model_runtime,
+                "best_model_config": best_model_config,
+                "max_autotune_runtime": None,
+                "improvement": None,
+                "improvement_percent": None,
+                "max_autotune_configs_found": 0,
+            }
+            continue
+
+        # Find the minimum actual runtime among max-autotune configs
+        best_max_autotune_runtime = np.min(max_autotune_runtimes)
+        best_max_autotune_idx = np.argmin(max_autotune_runtimes)
+        best_max_autotune_config = max_autotune_found_configs[best_max_autotune_idx]
+
+        # Calculate improvement (since lower runtime is better, positive improvement means model is better)
+        improvement = best_max_autotune_runtime - best_model_runtime
+        improvement_percent = (
+            (improvement / abs(best_max_autotune_runtime)) * 100
+            if best_max_autotune_runtime != 0
+            else 0
+        )
+
+        results[n] = {
+            "best_model_runtime": best_model_runtime,
+            "best_model_config": best_model_config,
+            "max_autotune_runtime": best_max_autotune_runtime,
+            "max_autotune_config": best_max_autotune_config,
+            "improvement": improvement,
+            "improvement_percent": improvement_percent,
+            "max_autotune_configs_found": len(max_autotune_runtimes),
+        }
+
+    # Print results
+    logger.info("\n" + "=" * 80)
+    logger.info("MAX-AUTOTUNE VALIDATION RESULTS")
+    logger.info("=" * 80)
+    logger.info(
+        f"Note: All runtimes are log-transformed. Lower values = better performance."
+    )
+
+    for n in sorted(results.keys()):
+        result = results[n]
+        logger.info(f"\nTop-{n} Analysis:")
+        logger.info(f"  Best model selection:")
+        logger.info(f"    Config: {result['best_model_config'].name}")
+        logger.info(
+            f"    Block sizes: {result['best_model_config'].block_m}x{result['best_model_config'].block_n}x{result['best_model_config'].block_k}"
+        )
+        logger.info(
+            f"    Warps/Stages: {result['best_model_config'].num_warps}/{result['best_model_config'].num_stages}"
+        )
+        logger.info(f"    Runtime (log): {result['best_model_runtime']:.6f}")
+        logger.info(f"    Runtime (actual): {np.exp(result['best_model_runtime']):.6f}")
+
+        if result["max_autotune_runtime"] is not None:
+            logger.info(f"  Best max-autotune:")
+            logger.info(f"    Config: {result['max_autotune_config'].name}")
+            logger.info(
+                f"    Block sizes: {result['max_autotune_config'].block_m}x{result['max_autotune_config'].block_n}x{result['max_autotune_config'].block_k}"
+            )
+            logger.info(
+                f"    Warps/Stages: {result['max_autotune_config'].num_warps}/{result['max_autotune_config'].num_stages}"
+            )
+            logger.info(f"    Runtime (log): {result['max_autotune_runtime']:.6f}")
+            logger.info(
+                f"    Runtime (actual): {np.exp(result['max_autotune_runtime']):.6f}"
+            )
+            logger.info(f"  Performance:")
+            if result["improvement"] > 0:
+                logger.info(
+                    f"    Model is BETTER by {result['improvement']:.6f} log units ({result['improvement_percent']:.2f}%)"
+                )
+            elif result["improvement"] < 0:
+                logger.info(
+                    f"    Model is WORSE by {abs(result['improvement']):.6f} log units ({abs(result['improvement_percent']):.2f}%)"
+                )
+            else:
+                logger.info(f"    Model performance is EQUAL")
+            logger.info(
+                f"  Max-autotune configs found in validation: {result['max_autotune_configs_found']}"
+            )
+        else:
+            logger.info(f"  No max-autotune configs found in validation set")
+
+    # Aggregate statistics
+    valid_results = [r for r in results.values() if r["improvement"] is not None]
+    if valid_results:
+        improvements = [r["improvement"] for r in valid_results]
+        improvement_percents = [r["improvement_percent"] for r in valid_results]
+
+        logger.info(f"\n" + "=" * 80)
+        logger.info("AGGREGATE STATISTICS")
+        logger.info("=" * 80)
+        logger.info(f"Average improvement (log units): {np.mean(improvements):.6f}")
+        logger.info(f"Average improvement %: {np.mean(improvement_percents):.2f}%")
+        logger.info(
+            f"Best improvement (log units): {np.max(improvements):.6f} ({np.max(improvement_percents):.2f}%)"
+        )
+        logger.info(
+            f"Worst improvement (log units): {np.min(improvements):.6f} ({np.min(improvement_percents):.2f}%)"
+        )
+        logger.info(f"Std dev improvement: {np.std(improvements):.6f}")
+
+        better_count = sum(1 for imp in improvements if imp > 0)
+        worse_count = sum(1 for imp in improvements if imp < 0)
+        equal_count = sum(1 for imp in improvements if imp == 0)
+
+        logger.info(
+            f"Model performs better: {better_count}/{len(valid_results)} cases ({100*better_count/len(valid_results):.1f}%)"
+        )
+        logger.info(
+            f"Model performs worse: {worse_count}/{len(valid_results)} cases ({100*worse_count/len(valid_results):.1f}%)"
+        )
+        logger.info(
+            f"Model performs equal: {equal_count}/{len(valid_results)} cases ({100*equal_count/len(valid_results):.1f}%)"
+        )
+
+        # Convert log improvements to actual runtime ratios for more intuitive understanding
+        logger.info(f"\nActual Runtime Improvements:")
+        actual_runtime_ratios = [
+            np.exp(-imp) for imp in improvements
+        ]  # negative because lower log runtime is better
+        avg_ratio = np.mean(actual_runtime_ratios)
+        best_ratio = np.max(actual_runtime_ratios)
+        worst_ratio = np.min(actual_runtime_ratios)
+
+        logger.info(f"Average speedup ratio: {avg_ratio:.3f}x")
+        logger.info(f"Best speedup ratio: {best_ratio:.3f}x")
+        logger.info(f"Worst speedup ratio: {worst_ratio:.3f}x")
+
+        if avg_ratio > 1:
+            logger.info(
+                f"On average, model selections are {avg_ratio:.3f}x faster than max-autotune"
+            )
+        elif avg_ratio < 1:
+            logger.info(
+                f"On average, model selections are {1/avg_ratio:.3f}x slower than max-autotune"
+            )
+        else:
+            logger.info("On average, model performance equals max-autotune")
+
+    logger.info("=" * 80)
+
+
 def train_model(
     dataset_path: str,
     model_path: str,
@@ -31,7 +417,7 @@ def train_model(
     num_epochs: int = 100,
     learning_rate: float = 0.001,
     weight_decay: float = 1e-5,
-    patience: int = 10,
+    patience: int = 20,
     hidden_dim: int = 128,
     num_layers: int = 10,
     hardware_name: Optional[str] = None,
@@ -329,7 +715,7 @@ def run_model_example(
     num_epochs: int = 100,
     learning_rate: float = 0.001,
     weight_decay: float = 1e-5,
-    patience: int = 10,
+    patience: int = 20,
     log_dir: str = "logs",
     model_dir: str = "models",
     hardware_name: Optional[str] = None,
@@ -471,7 +857,7 @@ def train_model_from_directory(
     num_epochs: int = 100,
     learning_rate: float = 0.001,
     weight_decay: float = 1e-5,
-    patience: int = 10,
+    patience: int = 20,
     hidden_dim: int = 128,
     num_layers: int = 10,
     hardware_name: Optional[str] = None,

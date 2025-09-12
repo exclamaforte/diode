@@ -238,6 +238,11 @@ class MMShape(JSONSerializable):
 class Solution(JSONSerializable):
     # mapping
     config: list[TritonGEMMConfig]
+    @classmethod
+    def parse(cls, string: str):
+        d = json.loads(string, object_pairs_hook=OrderedDict)
+        return cls(**d)
+        
 
 
 @dataclass(kw_only=True)
