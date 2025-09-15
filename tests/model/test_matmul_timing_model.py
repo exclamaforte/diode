@@ -66,7 +66,7 @@ class TestMatmulTimingModel(unittest.TestCase):
         dataset.hardware["test_gpu"] = hardware
         
         # Create an operation entry
-        operation = DatasetOperation(name="mm", solution=OrderedDict())
+        operation = DatasetOperation(solution=OrderedDict())
         hardware.operation["mm"] = operation
         
         # Create problems and solutions
@@ -85,7 +85,7 @@ class TestMatmulTimingModel(unittest.TestCase):
             )
             
             # Create a solution
-            solution = DatasetSolution(name="mm", timed_configs=[])
+            solution = DatasetSolution(timed_configs=[])
             operation.solution[problem] = solution
             
             # Create configs with different timings

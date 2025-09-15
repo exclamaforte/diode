@@ -134,7 +134,6 @@ class TestKernelLUTPropertyBased(TestCase):
         operation_dict = operation.to_dict()
 
         # Verify the dict contains expected keys
-        self.assertIn("name", operation_dict)
         self.assertIn("solution", operation_dict)
 
         # Test round-trip
@@ -144,12 +143,10 @@ class TestKernelLUTPropertyBased(TestCase):
         self.assertIsInstance(reconstructed, Operation)
 
         # Type checking: verify all fields have correct types
-        self.assertIsInstance(reconstructed.name, str)
         self.assertIsInstance(reconstructed.solution, OrderedDict)
         self.assertIsInstance(reconstructed.version, int)
 
         # Compare fields
-        self.assertEqual(operation.name, reconstructed.name)
         self.assertEqual(operation.version, reconstructed.version)
         self.assertEqual(len(operation.solution), len(reconstructed.solution))
 
@@ -326,8 +323,8 @@ class TestKernelLUTPropertyBased(TestCase):
             table_with_empty_hw.lookup("empty_gpu", "any_op", dummy_problem)
         )
 
-        # Test empty operation
-        empty_operation = Operation(name="empty_op", solution=OrderedDict())
+        # Test empty structures
+        empty_operation = Operation(solution=OrderedDict())
         hardware_with_empty_op = Hardware(
             operation=OrderedDict([("empty_op", empty_operation)])
         )
@@ -534,7 +531,7 @@ class TestLeafTypeClasses(TestCase):
     def test_all_leaf_types_json_serialization(self):
         """Test that all LeafType values can be JSON serialized and deserialized."""
         # Create an instance with all LeafType values
-        operation = Operation(name="json_test_op", solution=OrderedDict())
+        operation = Operation(solution=OrderedDict())
         hardware = Hardware(operation=OrderedDict([("json_test_op", operation)]))
         table = Table(hardware=OrderedDict([("json_test_hw", hardware)]))
 
@@ -581,14 +578,12 @@ class TestLeafTypeClasses(TestCase):
 
         # Create solutions
         solutions = [
-            Solution(name=f"leaf_solution_{i}", config=[configs[i]])
+            Solution(config=[configs[i]])
             for i in range(len(test_objects))
         ]
 
         # Create operation
-        operation = Operation(
-            name="leaf_test_mm", solution=OrderedDict(zip(problems, solutions))
-        )
+        operation = Operation(solution=OrderedDict(zip(problems, solutions)))
 
         # Create hardware and table
         hardware = Hardware(operation=OrderedDict([("leaf_test_mm", operation)]))
@@ -930,11 +925,11 @@ class TestMessagePackSerialization(TestCase):
         ]
 
         solutions = [
-            Solution(name=f"solution_{i}", config=[configs[i]]) for i in range(10)
+            Solution(config=[configs[i]]) for i in range(10)
         ]
 
         operation = Operation(
-            name="size_test_mm", solution=OrderedDict(zip(problems, solutions))
+            solution=OrderedDict(zip(problems, solutions))
         )
         hardware = Hardware(operation=OrderedDict([("size_test_mm", operation)]))
         table = Table(hardware=OrderedDict([("size_test_gpu", hardware)]))
@@ -1141,8 +1136,8 @@ class TestMessagePackSerialization(TestCase):
             out_size=(1, 1, 1),
             out_stride=(1, 1, 1),
         )
-        solution = Solution(name="interop_solution", config=[config])
-        operation = Operation(name="interop_op", solution=OrderedDict([(problem, solution)]))
+        solution = Solution(config=[config])
+        operation = Operation(solution=OrderedDict([(problem, solution)]))
         hardware = Hardware(operation=OrderedDict([("interop_op", operation)]))
         table = Table(hardware=OrderedDict([("interop_hw", hardware)]))
 

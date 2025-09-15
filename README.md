@@ -46,14 +46,36 @@ diode_models/diode_models/matmul/nvidia-h100/matmul_nvidia_h100_deep.pt
 
 ## Install
 
-### Option 1: Install from PyPi (Pending)
-```
-pip install torch-diode
+**⚠️ Important: PyTorch Nightly Required**
+This package requires PyTorch nightly builds (>=2.9.0.dev) due to its deep integration with PyTorch Inductor's evolving APIs.
+
+### Install PyTorch Nightly First
+```bash
+# Install PyTorch nightly
+pip install --pre torch --index-url https://download.pytorch.org/whl/nightly/cu124
 ```
 
-### Option 2: Install from Source
+### Option 1: Install from PyPI
+```bash
+pip install torch-diode
+# or for the library version without auto-registration:
+pip install torch-diode-lib
 ```
+
+### Option 2: Install from TestPyPI (Latest)
+```bash
+pip install --index-url https://test.pypi.org/simple/ torch-diode
+# or for the library version:
+pip install --index-url https://test.pypi.org/simple/ torch-diode-lib
+```
+
+### Option 3: Install from Source
+```bash
 git clone https://github.com/exclamaforte/diode.git
 cd diode
 pip install .
 ```
+
+### Package Variants
+- **torch-diode**: Full package with auto-registration to PyTorch Inductor
+- **torch-diode-lib**: Library-only version without auto-registration

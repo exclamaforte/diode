@@ -475,18 +475,18 @@ class MatmulDatasetCollector:
     ) -> float:
         """
         Estimate the memory usage in bytes for a matrix multiplication operation.
-        
+
         Args:
             size: Matrix size as (M, K, N) tuple
             dtype: Data type for the matrices
             op_name: Operation name ('mm', 'addmm', or 'bmm')
             device: Device to run on
-            
+
         Returns:
             Estimated memory usage in bytes
         """
         M, K, N = size
-        
+
         # Get the size of the dtype in bytes
         if dtype == torch.float16:
             dtype_size = 2
@@ -505,7 +505,7 @@ class MatmulDatasetCollector:
         else:
             # Default to float32 size
             dtype_size = 4
-            
+
         if op_name == "mm":
             # Two input matrices: (M, K) and (K, N), plus output (M, N)
             memory_usage = (M * K + K * N + M * N) * dtype_size
@@ -519,10 +519,10 @@ class MatmulDatasetCollector:
         else:
             # Default estimation
             memory_usage = (M * K + K * N + M * N) * dtype_size
-            
+
         # Add some overhead for intermediate computations
-        memory_usage *= 1.1
-        
+        memory_usage *= 1.5
+
         return memory_usage
 
     def _check_memory_feasible(
@@ -534,29 +534,43 @@ class MatmulDatasetCollector:
     ) -> bool:
         """
         Check if the matrix multiplication operation is feasible given available memory.
-        
+
         Args:
             size: Matrix size as (M, K, N) tuple
             dtype: Data type for the matrices
             op_name: Operation name ('mm', 'addmm', or 'bmm')
             device: Device to run on
-            
+
         Returns:
             True if the operation is feasible, False otherwise
         """
+        # Estimate required memory for this operation
+        estimated_memory = self._estimate_memory_usage(size, dtype, op_name, device)
+
         if device == "cpu":
-            return True
+            # For CPU, set a reasonable upper limit (e.g., 32GB)
+            # This prevents extremely large operations that would crash the system
+            cpu_memory_limit = 32 * 1024**3  # 32 GB in bytes
+            is_feasible = estimated_memory <= cpu_memory_limit
+
+            if not is_feasible:
+                M, K, N = size
+                logger.warning(
+                    f"Skipping {op_name} with size ({M}, {K}, {N}) and dtype {dtype}: "
+                    f"estimated memory {estimated_memory / (1024**3):.2f} GB exceeds "
+                    f"CPU memory limit {cpu_memory_limit / (1024**3):.2f} GB"
+                )
+
+            return is_feasible
+
         try:
             # Get available GPU memory
             total_memory = torch.cuda.get_device_properties(device).total_memory
             allocated_memory = torch.cuda.memory_allocated(device)
             available_memory = total_memory - allocated_memory
-            
-            # Estimate required memory for this operation
-            estimated_memory = self._estimate_memory_usage(size, dtype, op_name, device)
-            
+
             is_feasible = estimated_memory <= available_memory
-            
+
             if not is_feasible:
                 M, K, N = size
                 logger.warning(
@@ -564,10 +578,12 @@ class MatmulDatasetCollector:
                     f"estimated memory {estimated_memory / (1024**3):.2f} GB exceeds "
                     f"safe limit {available_memory / (1024**3):.2f} GB"
                 )
-            
+
             return is_feasible
         except Exception as e:
-            logger.warning(f"Could not check GPU memory, proceeding with operation: {e}")
+            logger.warning(
+                f"Could not check GPU memory, proceeding with operation: {e}"
+            )
             return True
 
     def _run_matrix_multiplication(
@@ -592,7 +608,9 @@ class MatmulDatasetCollector:
 
         # Check if the operation is memory-feasible before proceeding
         if not self._check_memory_feasible(size, dtype, op_name, device):
-            logger.info(f"Skipping {op_name} with size ({M}, {K}, {N}) due to memory constraints")
+            logger.info(
+                f"Skipping {op_name} with size ({M}, {K}, {N}) due to memory constraints"
+            )
             return
 
         try:

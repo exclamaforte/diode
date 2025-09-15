@@ -1,5 +1,5 @@
 """
-Integration tests for the diode_models package.
+Integration tests for the diode model functionality (formerly diode_models package).
 """
 
 import os
@@ -18,11 +18,11 @@ from diode.model.matmul_model_trainer import (
     load_model_with_config,
     get_model_save_path
 )
-
+from diode.model.model_wrapper import ModelWrapper, list_available_models
 
 
 class TestDiodeModelsIntegration(unittest.TestCase):
-    """Integration tests for the diode_models package."""
+    """Integration tests for the diode model functionality."""
 
     def setUp(self):
         """Set up the test environment."""
@@ -86,9 +86,8 @@ class TestDiodeModelsIntegration(unittest.TestCase):
         self.problem_features = torch.randn(5, self.problem_feature_dim)
         self.config_features = torch.randn(5, self.config_feature_dim)
         
-        # Create a mock directory structure in the diode_models package
-        self.diode_models_dir = Path("/home/gabeferns/diode/diode_models/diode_models")
-        self.trained_models_dir = self.diode_models_dir / "trained_models"
+        # Create a mock directory structure in the diode package
+        self.trained_models_dir = Path("/home/gabeferns/diode/trained_models")
         
         # Create the directory structure for the new format
         self.matmul_cpu_dir = self.trained_models_dir / "matmul" / "test_cpu"
@@ -97,7 +96,7 @@ class TestDiodeModelsIntegration(unittest.TestCase):
         os.makedirs(self.matmul_cpu_dir, exist_ok=True)
         os.makedirs(self.matmul_gpu_dir, exist_ok=True)
         
-        # Copy the models to the diode_models package with the new structure
+        # Copy the models to the trained_models directory with the new structure
         shutil.copy(self.base_model_path.with_suffix(".pt"), self.matmul_cpu_dir / "matmul_test_cpu_base.pt")
         shutil.copy(self.deep_model_path.with_suffix(".pt"), self.matmul_gpu_dir / "matmul_test_gpu_deep.pt")
         
@@ -114,76 +113,72 @@ class TestDiodeModelsIntegration(unittest.TestCase):
             shutil.rmtree(self.trained_models_dir / "matmul")
 
     def test_import_diode_models(self):
-        """Test importing the diode_models package."""
-        try:
-            import diode_models
-            self.assertTrue(hasattr(diode_models, "get_models_dir"))
-            self.assertTrue(hasattr(diode_models, "list_available_models"))
-            self.assertTrue(hasattr(diode_models, "get_model_wrapper"))
-        except ImportError:
-            self.skipTest("diode_models package not installed")
+        """Test importing the diode model functionality."""
+        # Test that we can import the merged functionality from diode
+        from diode.model.model_wrapper import ModelWrapper, list_available_models
+        self.assertTrue(callable(ModelWrapper))
+        self.assertTrue(callable(list_available_models))
 
     def test_get_model_wrapper(self):
         """Test getting the ModelWrapper class."""
-        try:
-            import diode_models
-            ModelWrapper = diode_models.get_model_wrapper()
-            # ModelWrapper is a function that returns a CommonModelWrapper instance
-            # So we need to check if it's callable
-            self.assertTrue(callable(ModelWrapper))
-        except ImportError:
-            self.skipTest("diode_models package not installed")
+        # ModelWrapper is now directly available from diode.model.model_wrapper
+        self.assertTrue(callable(ModelWrapper))
 
     def test_list_available_models(self):
         """Test listing available models."""
-        try:
-            import diode_models
-            models = diode_models.list_available_models()
-            self.assertGreaterEqual(len(models), 2)  # At least the two models we copied
-            
-            # Test filtering by heuristic
-            matmul_models = diode_models.list_available_models(heuristic_name="matmul")
-            self.assertGreaterEqual(len(matmul_models), 2)
-            
-            # Test filtering by hardware
-            cpu_models = diode_models.list_available_models(heuristic_name="matmul", hardware_name="test_cpu")
-            self.assertGreaterEqual(len(cpu_models), 1)
-            
-            gpu_models = diode_models.list_available_models(heuristic_name="matmul", hardware_name="test_gpu")
-            self.assertGreaterEqual(len(gpu_models), 1)
-        except ImportError:
-            self.skipTest("diode_models package not installed")
+        models = list_available_models(models_dir=str(self.trained_models_dir))
+        self.assertGreaterEqual(len(models), 2)  # At least the two models we copied
+        
+        # Test filtering by heuristic
+        matmul_models = list_available_models(
+            models_dir=str(self.trained_models_dir),
+            heuristic_name="matmul"
+        )
+        self.assertGreaterEqual(len(matmul_models), 2)
+        
+        # Test filtering by hardware
+        cpu_models = list_available_models(
+            models_dir=str(self.trained_models_dir),
+            heuristic_name="matmul",
+            hardware_name="test_cpu"
+        )
+        self.assertGreaterEqual(len(cpu_models), 1)
+        
+        gpu_models = list_available_models(
+            models_dir=str(self.trained_models_dir),
+            heuristic_name="matmul",
+            hardware_name="test_gpu"
+        )
+        self.assertGreaterEqual(len(gpu_models), 1)
 
     def test_load_and_run_model(self):
         """Test loading and running a model."""
-        try:
-            import diode_models
-            ModelWrapper = diode_models.get_model_wrapper()
-            
-            # Get models by hardware
-            cpu_models = diode_models.list_available_models(heuristic_name="matmul", hardware_name="test_cpu")
-            if not cpu_models:
-                self.skipTest("No CPU models available")
-            
-            # Load the model
-            wrapper = ModelWrapper(
-                model_path=cpu_models[0],
-                device="cpu",
-                compile_model=False,
-            )
-            
-            # Run inference
-            predictions = wrapper.predict(self.problem_features, self.config_features)
-            
-            # Check the output shape
-            self.assertEqual(predictions.shape, (5, 1))
-            
-            # Check that the config was loaded
-            self.assertIsNotNone(wrapper.config)
-            self.assertEqual(wrapper.config.hardware_name, "test_cpu")
-            self.assertEqual(wrapper.config.heuristic_name, "matmul")
-        except ImportError:
-            self.skipTest("diode_models package not installed")
+        # Get models by hardware
+        cpu_models = list_available_models(
+            models_dir=str(self.trained_models_dir),
+            heuristic_name="matmul",
+            hardware_name="test_cpu"
+        )
+        if not cpu_models:
+            self.skipTest("No CPU models available")
+        
+        # Load the model
+        wrapper = ModelWrapper(
+            model_path=cpu_models[0],
+            device="cpu",
+            compile_model=False,
+        )
+        
+        # Run inference
+        predictions = wrapper.predict(self.problem_features, self.config_features)
+        
+        # Check the output shape
+        self.assertEqual(predictions.shape, (5, 1))
+        
+        # Check that the config was loaded
+        self.assertIsNotNone(wrapper.config)
+        self.assertEqual(wrapper.config.hardware_name, "test_cpu")
+        self.assertEqual(wrapper.config.heuristic_name, "matmul")
 
     def test_save_and_load_model_with_config(self):
         """Test saving and loading a model with its configuration."""

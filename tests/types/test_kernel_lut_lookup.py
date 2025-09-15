@@ -96,22 +96,21 @@ class TestKernelLUTLookup(TestCase):
         )
 
         # Create solutions with lists of configs
-        self.solution1 = Solution(name="solution1", config=[self.config1, self.config3])
-
-        self.solution2 = Solution(name="solution2", config=[self.config2])
-
-        self.solution3 = Solution(name="solution3", config=[self.config2, self.config1])
+        self.solution1 = Solution(config=[self.config1, self.config3])
+        # Solution with one config
+        self.solution2 = Solution(config=[self.config2])
+        # Solution with two configs
+        self.solution3 = Solution(config=[self.config2, self.config1])
 
         # Create operations with solutions
         self.operation1 = Operation(
-            name="mm",
             solution=OrderedDict(
                 [(self.problem1, self.solution1), (self.problem2, self.solution2)]
-            ),
+            )
         )
 
         self.operation2 = Operation(
-            name="addmm", solution=OrderedDict([(self.problem1, self.solution3)])
+            solution=OrderedDict([(self.problem1, self.solution3)])
         )
 
         # Create hardware with operations (now using OrderedDict[str, Operation])
@@ -210,7 +209,7 @@ class TestKernelLUTLookup(TestCase):
 
     def test_lookup_empty_operation_solution(self):
         """Test lookup on operation with empty solution."""
-        empty_operation = Operation(name="empty_op", solution=OrderedDict())
+        empty_operation = Operation(solution=OrderedDict())
         hardware_with_empty_op = Hardware(
             operation=OrderedDict([("empty_op", empty_operation)])
         )
@@ -224,16 +223,15 @@ class TestKernelLUTLookup(TestCase):
     def test_lookup_multiple_operations_same_name(self):
         """Test lookup when multiple operations have the same name (should find first)."""
         # Create solutions for the operations
-        solution_a = Solution(name="solution_a", config=[self.config1])
-        solution_b = Solution(name="solution_b", config=[self.config2])
+        solution_a = Solution(config=[self.config1])
+        solution_b = Solution(config=[self.config2])
 
-        # Create two operations with the same name but different solutions
+        # Create two operations with different solutions
         operation_a = Operation(
-            name="duplicate_op", solution=OrderedDict([(self.problem1, solution_a)])
+            solution=OrderedDict([(self.problem1, solution_a)])
         )
         operation_b = Operation(
-            name="duplicate_op_different",
-            solution=OrderedDict([(self.problem1, solution_b)]),
+            solution=OrderedDict([(self.problem1, solution_b)])
         )
 
         hardware_with_duplicates = Hardware(
@@ -325,11 +323,8 @@ class TestKernelLUTLookup(TestCase):
     def test_solution_class(self):
         """Test the Solution class functionality."""
         # Test creating a solution with multiple configs
-        solution = Solution(
-            name="test_solution", config=[self.config1, self.config2, self.config3]
-        )
+        solution = Solution(config=[self.config1, self.config2, self.config3])
 
-        self.assertEqual(solution.name, "test_solution")
         self.assertEqual(len(solution.config), 3)
         self.assertEqual(solution.config[0].name, "config1")
         self.assertEqual(solution.config[1].name, "config2")
@@ -337,20 +332,17 @@ class TestKernelLUTLookup(TestCase):
 
         # Test serialization
         solution_dict = solution.to_dict()
-        self.assertIn("name", solution_dict)
         self.assertIn("config", solution_dict)
         self.assertEqual(len(solution_dict["config"]), 3)
 
         # Test round-trip serialization
         reconstructed = Solution.from_dict(solution_dict)
-        self.assertEqual(reconstructed.name, solution.name)
         self.assertEqual(len(reconstructed.config), len(solution.config))
 
     def test_solution_empty_config_list(self):
         """Test Solution with empty config list."""
-        empty_solution = Solution(name="empty", config=[])
+        empty_solution = Solution(config=[])
 
-        self.assertEqual(empty_solution.name, "empty")
         self.assertEqual(len(empty_solution.config), 0)
 
         # Test serialization of empty solution

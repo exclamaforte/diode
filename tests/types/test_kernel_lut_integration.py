@@ -8,6 +8,7 @@ from collections import OrderedDict
 from unittest import TestCase
 
 import torch
+import hypothesis
 from hypothesis import given
 
 from diode.types.matmul_types import (
@@ -99,20 +100,11 @@ def operation_strategy(draw):
         problem = draw(mm_problem_strategy())
         config = draw(triton_gemm_config_strategy())
         # Create a Solution object containing the config
-        sol = Solution(name=f"solution_{len(solution)}", config=[config])
+        sol = Solution(config=[config])
         # Use the problem object directly as key since MMShape should be hashable
         solution[problem] = sol
 
-    return Operation(
-        name=draw(
-            st.text(
-                min_size=1,
-                max_size=20,
-                alphabet=st.characters(whitelist_categories=("Lu", "Ll")),
-            )
-        ),
-        solution=solution,
-    )
+    return Operation(solution=solution)
 
 
 @composite
@@ -121,7 +113,8 @@ def hardware_strategy(draw):
     num_operations = draw(st.integers(min_value=0, max_value=3))
     operations = [draw(operation_strategy()) for _ in range(num_operations)]
 
-    return Hardware(operation=OrderedDict((op.name, op) for op in operations))
+    # Use index-based names since Operation no longer has a name attribute
+    return Hardware(operation=OrderedDict((f"op_{i}", op) for i, op in enumerate(operations)))
 
 
 @composite
@@ -203,18 +196,15 @@ class TestKernelLUTIntegration(TestCase):
         )
 
         # Create solutions
-        self.solution1 = Solution(
-            name="integration_solution1", config=[self.config1, self.config2]
-        )
+        self.solution1 = Solution(config=[self.config1, self.config2])
 
-        self.solution2 = Solution(name="integration_solution2", config=[self.config2])
+        self.solution2 = Solution(config=[self.config2])
 
         # Create operations
         self.operation1 = Operation(
-            name="mm",
             solution=OrderedDict(
                 [(self.problem1, self.solution1), (self.problem2, self.solution2)]
-            ),
+            )
         )
 
         # Create hardware
@@ -338,6 +328,7 @@ class TestKernelLUTIntegration(TestCase):
                 self.assertEqual(filter_as_set, lookup_set_result)
 
     @given(table_strategy())
+    @hypothesis.settings(suppress_health_check=[hypothesis.HealthCheck.too_slow])
     def test_property_based_serialization_lookup_consistency(self, table):
         """Property-based test for serialization consistency with lookup methods."""
         try:
@@ -426,14 +417,11 @@ class TestKernelLUTIntegration(TestCase):
         # Create solutions with multiple configs
         solutions = []
         for i in range(5):
-            solution = Solution(
-                name=f"perf_solution_{i}",
-                config=configs[i * 2 : (i + 1) * 2],  # 2 configs per solution
-            )
+            solution = Solution(config=configs[i * 2 : (i + 1) * 2])  # 2 configs per solution
             solutions.append(solution)
 
         # Create operations
-        operation = Operation(name="mm", solution=OrderedDict(zip(problems, solutions)))
+        operation = Operation(solution=OrderedDict(zip(problems, solutions)))
 
         # Create hardware
         hardware = Hardware(operation=OrderedDict([("mm", operation)]))
@@ -530,14 +518,12 @@ class TestKernelLUTIntegration(TestCase):
             problems.append(problem)
 
         solutions = [
-            Solution(name="nested_solution1", config=[configs[0]]),
-            Solution(name="nested_solution2", config=configs),
-            Solution(name="nested_solution3", config=[configs[1]]),
+            Solution(config=[configs[0]]),
+            Solution(config=configs),
+            Solution(config=[configs[1]]),
         ]
 
-        operation = Operation(
-            name="nested_mm", solution=OrderedDict(zip(problems, solutions))
-        )
+        operation = Operation(solution=OrderedDict(zip(problems, solutions)))
 
         hardware = Hardware(operation=OrderedDict([("nested_mm", operation)]))
         table = Table(hardware=OrderedDict([("nested_gpu", hardware)]))
@@ -561,7 +547,6 @@ class TestKernelLUTIntegration(TestCase):
                 for op_name, op in hw.operation.items():
                     self.assertIsInstance(op_name, str)
                     self.assertIsInstance(op, Operation)
-                    self.assertIsInstance(op.name, str)
                     self.assertIsInstance(op.solution, OrderedDict)
                     self.assertIsInstance(op.version, int)
 
@@ -578,7 +563,6 @@ class TestKernelLUTIntegration(TestCase):
 
                         # Type check Solution fields including list preservation
                         self.assertIsInstance(sol, Solution)
-                        self.assertIsInstance(sol.name, str)
                         self.assertIsInstance(sol.config, list)
                         self.assertIsInstance(sol.version, int)
 

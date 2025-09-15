@@ -1,0 +1,26 @@
+# Sample .pypirc configuration file
+# Copy this to ~/.pypirc and update with your credentials
+# Make sure to restrict permissions: chmod 600 ~/.pypirc
+
+[distutils]
+index-servers =
+    pypi
+    testpypi
+
+[pypi]
+repository = https://upload.pypi.org/legacy/
+username = __token__
+password = pypi-YOUR_PRODUCTION_API_TOKEN_HERE
+
+[testpypi]
+repository = https://test.pypi.org/legacy/
+username = __token__
+password = pypi-YOUR_TEST_API_TOKEN_HERE
+
+# Notes:
+# - Replace YOUR_PRODUCTION_API_TOKEN_HERE with your actual PyPI API token
+# - Replace YOUR_TEST_API_TOKEN_HERE with your actual TestPyPI API token
+# - You can generate API tokens from your PyPI account settings:
+#   - PyPI: https://pypi.org/manage/account/token/
+#   - TestPyPI: https://test.pypi.org/manage/account/token/
+# - Using __token__ as username is the recommended approach for API tokens

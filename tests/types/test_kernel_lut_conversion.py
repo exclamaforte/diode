@@ -129,11 +129,11 @@ class TestTritonConfigConversion(TestCase):
         )
 
         # Create a solution with converted configs
-        self.solution = Solution(name="converted_solution", config=self.gemm_configs)
+        self.solution = Solution(config=self.gemm_configs)
 
         # Create operation
         self.operation = Operation(
-            name="mm", solution=OrderedDict([(self.problem, self.solution)])
+            solution=OrderedDict([(self.problem, self.solution)])
         )
 
         # Create hardware and table

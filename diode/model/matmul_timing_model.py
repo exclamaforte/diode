@@ -8,6 +8,7 @@ import torch.nn.functional as F
 import logging
 import os
 from typing import Dict, List, Tuple, Optional
+from .model_utils_common import init_model_weights, safe_create_directory, load_model_checkpoint, save_model_checkpoint
 
 logger = logging.getLogger(__name__)
 
@@ -69,15 +70,7 @@ class MatmulTimingModel(nn.Module):
     
     def _init_weights(self):
         """Initialize weights to avoid NaN issues during training."""
-        for module in self.modules():
-            if isinstance(module, nn.Linear):
-                # Use Xavier/Glorot initialization for better gradient flow
-                nn.init.xavier_uniform_(module.weight, gain=1.0)
-                if module.bias is not None:
-                    nn.init.constant_(module.bias, 0)
-            elif isinstance(module, nn.BatchNorm1d):
-                nn.init.constant_(module.weight, 1)
-                nn.init.constant_(module.bias, 0)
+        self.apply(init_model_weights)
     
     def forward(self, problem_features: torch.Tensor, config_features: torch.Tensor) -> torch.Tensor:
         """
@@ -103,19 +96,13 @@ class MatmulTimingModel(nn.Module):
         Args:
             path: Path to save the model to
         """
-        # Create the directory if it doesn't exist
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        
-        # Save the model
-        torch.save({
-            'model_state_dict': self.state_dict(),
+        checkpoint_data = {
             'problem_feature_dim': self.problem_feature_dim,
             'config_feature_dim': self.config_feature_dim,
             'hidden_dims': self.hidden_dims,
             'dropout_rate': self.dropout_rate,
-        }, path)
-        
-        logger.info(f"Model saved to {path}")
+        }
+        save_model_checkpoint(self, checkpoint_data, path)
     
     @classmethod
     def load(cls, path: str, device: str = 'cpu') -> 'MatmulTimingModel':
@@ -209,15 +196,7 @@ class DeepMatmulTimingModel(nn.Module):
     
     def _init_weights(self):
         """Initialize weights to avoid NaN issues during training."""
-        for module in self.modules():
-            if isinstance(module, nn.Linear):
-                # Use Xavier/Glorot initialization for better gradient flow
-                nn.init.xavier_uniform_(module.weight, gain=1.0)
-                if module.bias is not None:
-                    nn.init.constant_(module.bias, 0)
-            elif isinstance(module, nn.BatchNorm1d):
-                nn.init.constant_(module.weight, 1)
-                nn.init.constant_(module.bias, 0)
+        self.apply(init_model_weights)
     
     def forward(self, problem_features: torch.Tensor, config_features: torch.Tensor) -> torch.Tensor:
         """
@@ -250,22 +229,14 @@ class DeepMatmulTimingModel(nn.Module):
         Args:
             path: Path to save the model to
         """
-        # Create the directory if it doesn't exist
-        directory = os.path.dirname(path)
-        if directory:  # Only create directory if path has a directory component
-            os.makedirs(directory, exist_ok=True)
-        
-        # Save the model
-        torch.save({
-            'model_state_dict': self.state_dict(),
+        checkpoint_data = {
             'problem_feature_dim': self.problem_feature_dim,
             'config_feature_dim': self.config_feature_dim,
             'hidden_dim': self.hidden_dim,
             'num_layers': self.num_layers,
             'dropout_rate': self.dropout_rate,
-        }, path)
-        
-        logger.info(f"Model saved to {path}")
+        }
+        save_model_checkpoint(self, checkpoint_data, path)
     
     @classmethod
     def load(cls, path: str, device: str = 'cpu') -> 'DeepMatmulTimingModel':

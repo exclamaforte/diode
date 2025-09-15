@@ -52,3 +52,5 @@ Thumbs.db
 *.onnx
 logs/
 runs/
+
+test_env

@@ -2,18 +2,18 @@
 requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
-# Configuration for torch-diode package (includes all code + self-registers to inductor)
+# Configuration for torch-diode-lib package (includes all code but does NOT self-register to inductor)
 [project]
-name = "torch-diode"
+name = "torch-diode-lib"
 version = "0.2.0"
-description = "A toolkit for matrix multiplication data collection, model training, and evaluation with PyTorch Inductor integration"
+description = "A toolkit for matrix multiplication data collection, model training, and evaluation (library version without PyTorch Inductor auto-registration)"
 readme = "README.md"
 license = "MIT"
 authors = [
     {name = "Gabriel Ferns", email = "gabeferns@meta.com"},
 ]
 requires-python = ">=3.8"
-keywords = ["machine-learning", "pytorch", "torch", "matrix-multiplication", "heuristics", "optimization", "hardware", "inductor"]
+keywords = ["machine-learning", "pytorch", "torch", "matrix-multiplication", "heuristics", "optimization", "hardware", "library"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
