@@ -343,6 +343,16 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">timing_dataset</span><span class="o">.</span><span class="n">config_feature_dim</span>
     
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">configs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the list of TritonGEMMConfig objects.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            List of TritonGEMMConfig objects from the underlying timing dataset</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">timing_dataset</span><span class="o">.</span><span class="n">configs</span>
+    
 <div class="viewcode-block" id="DirectoryMatmulDataset.get_file_info">
 <a class="viewcode-back" href="../../../api/diode.model.html#diode.model.directory_dataset_loader.DirectoryMatmulDataset.get_file_info">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_file_info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]:</span>
@@ -458,7 +468,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2023, Author Name.
-      <span class="lastupdated">Last updated on Sep 04, 2025.
+      <span class="lastupdated">Last updated on Sep 17, 2025.
       </span></p>
   </div>
 

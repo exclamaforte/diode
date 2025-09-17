@@ -587,18 +587,18 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Estimate the memory usage in bytes for a matrix multiplication operation.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Args:</span>
 <span class="sd">            size: Matrix size as (M, K, N) tuple</span>
 <span class="sd">            dtype: Data type for the matrices</span>
 <span class="sd">            op_name: Operation name (&#39;mm&#39;, &#39;addmm&#39;, or &#39;bmm&#39;)</span>
 <span class="sd">            device: Device to run on</span>
-<span class="sd">            </span>
+
 <span class="sd">        Returns:</span>
 <span class="sd">            Estimated memory usage in bytes</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">M</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="n">size</span>
-        
+
         <span class="c1"># Get the size of the dtype in bytes</span>
         <span class="k">if</span> <span class="n">dtype</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">float16</span><span class="p">:</span>
             <span class="n">dtype_size</span> <span class="o">=</span> <span class="mi">2</span>
@@ -617,7 +617,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Default to float32 size</span>
             <span class="n">dtype_size</span> <span class="o">=</span> <span class="mi">4</span>
-            
+
         <span class="k">if</span> <span class="n">op_name</span> <span class="o">==</span> <span class="s2">&quot;mm&quot;</span><span class="p">:</span>
             <span class="c1"># Two input matrices: (M, K) and (K, N), plus output (M, N)</span>
             <span class="n">memory_usage</span> <span class="o">=</span> <span class="p">(</span><span class="n">M</span> <span class="o">*</span> <span class="n">K</span> <span class="o">+</span> <span class="n">K</span> <span class="o">*</span> <span class="n">N</span> <span class="o">+</span> <span class="n">M</span> <span class="o">*</span> <span class="n">N</span><span class="p">)</span> <span class="o">*</span> <span class="n">dtype_size</span>
@@ -631,10 +631,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Default estimation</span>
             <span class="n">memory_usage</span> <span class="o">=</span> <span class="p">(</span><span class="n">M</span> <span class="o">*</span> <span class="n">K</span> <span class="o">+</span> <span class="n">K</span> <span class="o">*</span> <span class="n">N</span> <span class="o">+</span> <span class="n">M</span> <span class="o">*</span> <span class="n">N</span><span class="p">)</span> <span class="o">*</span> <span class="n">dtype_size</span>
-            
+
         <span class="c1"># Add some overhead for intermediate computations</span>
-        <span class="n">memory_usage</span> <span class="o">*=</span> <span class="mf">1.1</span>
-        
+        <span class="n">memory_usage</span> <span class="o">*=</span> <span class="mf">1.5</span>
+
         <span class="k">return</span> <span class="n">memory_usage</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_check_memory_feasible</span><span class="p">(</span>
@@ -646,29 +646,43 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Check if the matrix multiplication operation is feasible given available memory.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Args:</span>
 <span class="sd">            size: Matrix size as (M, K, N) tuple</span>
 <span class="sd">            dtype: Data type for the matrices</span>
 <span class="sd">            op_name: Operation name (&#39;mm&#39;, &#39;addmm&#39;, or &#39;bmm&#39;)</span>
 <span class="sd">            device: Device to run on</span>
-<span class="sd">            </span>
+
 <span class="sd">        Returns:</span>
 <span class="sd">            True if the operation is feasible, False otherwise</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Estimate required memory for this operation</span>
+        <span class="n">estimated_memory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_estimate_memory_usage</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">op_name</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">device</span> <span class="o">==</span> <span class="s2">&quot;cpu&quot;</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">True</span>
+            <span class="c1"># For CPU, set a reasonable upper limit (e.g., 32GB)</span>
+            <span class="c1"># This prevents extremely large operations that would crash the system</span>
+            <span class="n">cpu_memory_limit</span> <span class="o">=</span> <span class="mi">32</span> <span class="o">*</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">3</span>  <span class="c1"># 32 GB in bytes</span>
+            <span class="n">is_feasible</span> <span class="o">=</span> <span class="n">estimated_memory</span> <span class="o">&lt;=</span> <span class="n">cpu_memory_limit</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">is_feasible</span><span class="p">:</span>
+                <span class="n">M</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="n">size</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Skipping </span><span class="si">{</span><span class="n">op_name</span><span class="si">}</span><span class="s2"> with size (</span><span class="si">{</span><span class="n">M</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">K</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">N</span><span class="si">}</span><span class="s2">) and dtype </span><span class="si">{</span><span class="n">dtype</span><span class="si">}</span><span class="s2">: &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;estimated memory </span><span class="si">{</span><span class="n">estimated_memory</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="mi">1024</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> GB exceeds &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;CPU memory limit </span><span class="si">{</span><span class="n">cpu_memory_limit</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="mi">1024</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> GB&quot;</span>
+                <span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">is_feasible</span>
+
         <span class="k">try</span><span class="p">:</span>
             <span class="c1"># Get available GPU memory</span>
             <span class="n">total_memory</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">get_device_properties</span><span class="p">(</span><span class="n">device</span><span class="p">)</span><span class="o">.</span><span class="n">total_memory</span>
             <span class="n">allocated_memory</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">memory_allocated</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
             <span class="n">available_memory</span> <span class="o">=</span> <span class="n">total_memory</span> <span class="o">-</span> <span class="n">allocated_memory</span>
-            
-            <span class="c1"># Estimate required memory for this operation</span>
-            <span class="n">estimated_memory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_estimate_memory_usage</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">op_name</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
-            
+
             <span class="n">is_feasible</span> <span class="o">=</span> <span class="n">estimated_memory</span> <span class="o">&lt;=</span> <span class="n">available_memory</span>
-            
+
             <span class="k">if</span> <span class="ow">not</span> <span class="n">is_feasible</span><span class="p">:</span>
                 <span class="n">M</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="n">size</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
@@ -676,10 +690,12 @@
                     <span class="sa">f</span><span class="s2">&quot;estimated memory </span><span class="si">{</span><span class="n">estimated_memory</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="mi">1024</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> GB exceeds &quot;</span>
                     <span class="sa">f</span><span class="s2">&quot;safe limit </span><span class="si">{</span><span class="n">available_memory</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="mi">1024</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> GB&quot;</span>
                 <span class="p">)</span>
-            
+
             <span class="k">return</span> <span class="n">is_feasible</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not check GPU memory, proceeding with operation: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Could not check GPU memory, proceeding with operation: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
             <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_run_matrix_multiplication</span><span class="p">(</span>
@@ -704,7 +720,9 @@
 
         <span class="c1"># Check if the operation is memory-feasible before proceeding</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_memory_feasible</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">op_name</span><span class="p">,</span> <span class="n">device</span><span class="p">):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Skipping </span><span class="si">{</span><span class="n">op_name</span><span class="si">}</span><span class="s2"> with size (</span><span class="si">{</span><span class="n">M</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">K</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">N</span><span class="si">}</span><span class="s2">) due to memory constraints&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Skipping </span><span class="si">{</span><span class="n">op_name</span><span class="si">}</span><span class="s2"> with size (</span><span class="si">{</span><span class="n">M</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">K</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">N</span><span class="si">}</span><span class="s2">) due to memory constraints&quot;</span>
+            <span class="p">)</span>
             <span class="k">return</span>
 
         <span class="k">try</span><span class="p">:</span>
@@ -874,7 +892,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2023, Author Name.
-      <span class="lastupdated">Last updated on Sep 04, 2025.
+      <span class="lastupdated">Last updated on Sep 17, 2025.
       </span></p>
   </div>
 

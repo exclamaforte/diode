@@ -28,7 +28,7 @@ Install the pre-trained models package:
 
     pip install torch-diode-models
 
-This package contains pre-trained models for popular hardware configurations including NVIDIA H100, A100, RTX 4090, and AMD MI250X GPUs.
+This package contains pre-trained models for popular hardware configurations including NVIDIA H100 and AMD MI300X GPUs.
 
 Step 2: Import and Auto-Register
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

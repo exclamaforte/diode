@@ -85,6 +85,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.model_utils_common</span><span class="w"> </span><span class="kn">import</span> <span class="n">init_model_weights</span><span class="p">,</span> <span class="n">safe_create_directory</span><span class="p">,</span> <span class="n">load_model_checkpoint</span><span class="p">,</span> <span class="n">save_model_checkpoint</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -151,15 +152,7 @@
     
     <span class="k">def</span><span class="w"> </span><span class="nf">_init_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize weights to avoid NaN issues during training.&quot;&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">module</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modules</span><span class="p">():</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">):</span>
-                <span class="c1"># Use Xavier/Glorot initialization for better gradient flow</span>
-                <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">xavier_uniform_</span><span class="p">(</span><span class="n">module</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span> <span class="n">gain</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">module</span><span class="o">.</span><span class="n">bias</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">constant_</span><span class="p">(</span><span class="n">module</span><span class="o">.</span><span class="n">bias</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm1d</span><span class="p">):</span>
-                <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">constant_</span><span class="p">(</span><span class="n">module</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-                <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">constant_</span><span class="p">(</span><span class="n">module</span><span class="o">.</span><span class="n">bias</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">init_model_weights</span><span class="p">)</span>
     
 <div class="viewcode-block" id="MatmulTimingModel.forward">
 <a class="viewcode-back" href="../../../api/diode.model.html#diode.model.matmul_timing_model.MatmulTimingModel.forward">[docs]</a>
@@ -190,19 +183,13 @@
 <span class="sd">        Args:</span>
 <span class="sd">            path: Path to save the model to</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Create the directory if it doesn&#39;t exist</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path</span><span class="p">),</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        
-        <span class="c1"># Save the model</span>
-        <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">({</span>
-            <span class="s1">&#39;model_state_dict&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
+        <span class="n">checkpoint_data</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;problem_feature_dim&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">problem_feature_dim</span><span class="p">,</span>
             <span class="s1">&#39;config_feature_dim&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config_feature_dim</span><span class="p">,</span>
             <span class="s1">&#39;hidden_dims&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_dims</span><span class="p">,</span>
             <span class="s1">&#39;dropout_rate&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout_rate</span><span class="p">,</span>
-        <span class="p">},</span> <span class="n">path</span><span class="p">)</span>
-        
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model saved to </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+        <span class="p">}</span>
+        <span class="n">save_model_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint_data</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span></div>
 
     
 <div class="viewcode-block" id="MatmulTimingModel.load">
@@ -306,15 +293,7 @@
     
     <span class="k">def</span><span class="w"> </span><span class="nf">_init_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize weights to avoid NaN issues during training.&quot;&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">module</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">modules</span><span class="p">():</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">):</span>
-                <span class="c1"># Use Xavier/Glorot initialization for better gradient flow</span>
-                <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">xavier_uniform_</span><span class="p">(</span><span class="n">module</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span> <span class="n">gain</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">module</span><span class="o">.</span><span class="n">bias</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">constant_</span><span class="p">(</span><span class="n">module</span><span class="o">.</span><span class="n">bias</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm1d</span><span class="p">):</span>
-                <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">constant_</span><span class="p">(</span><span class="n">module</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-                <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">constant_</span><span class="p">(</span><span class="n">module</span><span class="o">.</span><span class="n">bias</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">init_model_weights</span><span class="p">)</span>
     
 <div class="viewcode-block" id="DeepMatmulTimingModel.forward">
 <a class="viewcode-back" href="../../../api/diode.model.html#diode.model.matmul_timing_model.DeepMatmulTimingModel.forward">[docs]</a>
@@ -352,22 +331,14 @@
 <span class="sd">        Args:</span>
 <span class="sd">            path: Path to save the model to</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Create the directory if it doesn&#39;t exist</span>
-        <span class="n">directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">directory</span><span class="p">:</span>  <span class="c1"># Only create directory if path has a directory component</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        
-        <span class="c1"># Save the model</span>
-        <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">({</span>
-            <span class="s1">&#39;model_state_dict&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span>
+        <span class="n">checkpoint_data</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;problem_feature_dim&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">problem_feature_dim</span><span class="p">,</span>
             <span class="s1">&#39;config_feature_dim&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config_feature_dim</span><span class="p">,</span>
             <span class="s1">&#39;hidden_dim&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_dim</span><span class="p">,</span>
             <span class="s1">&#39;num_layers&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_layers</span><span class="p">,</span>
             <span class="s1">&#39;dropout_rate&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout_rate</span><span class="p">,</span>
-        <span class="p">},</span> <span class="n">path</span><span class="p">)</span>
-        
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model saved to </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+        <span class="p">}</span>
+        <span class="n">save_model_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint_data</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span></div>
 
     
 <div class="viewcode-block" id="DeepMatmulTimingModel.load">
@@ -469,7 +440,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2023, Author Name.
-      <span class="lastupdated">Last updated on Sep 04, 2025.
+      <span class="lastupdated">Last updated on Sep 17, 2025.
       </span></p>
   </div>
 

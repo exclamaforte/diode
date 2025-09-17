@@ -25,9 +25,7 @@ Diode is a framework for developing heuristics that plug into PyTorch's external
 
 ### Prerequisites
 
-- Python 3.8 or higher
-- PyTorch (compatible version)
-- Git
+- PyTorch Nightly (3.10 or higher)
 
 ### Installation
 
@@ -36,12 +34,6 @@ Diode is a framework for developing heuristics that plug into PyTorch's external
    ```bash
    git clone https://github.com/your-username/diode.git
    cd diode
-   ```
-
-3. Create a virtual environment:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
 4. Install the project in development mode:
@@ -59,26 +51,11 @@ Diode is a framework for developing heuristics that plug into PyTorch's external
 
 ## Project Structure
 
-The project is organized into several packages:
-
-```
-diode/
-├── diode/                    # Core framework
-├── diode-models/            # Pre-trained models
-├── diode-datasets/          # Dataset utilities
-├── diode_common/            # Shared utilities
-├── examples/                # Usage examples
-├── tests/                   # Test suite
-├── tools/                   # Development tools
-└── docs/                    # Documentation
-```
+TODO
 
 ### Key Components
 
-- **Data Collection**: Gather data from PyTorch external interfaces
-- **Model Training**: Train ML models on collected data
-- **Heuristics**: Support for ML models, lookup tables, and custom logic
-- **Caching**: Create lookup tables for performance optimization
+TODO
 
 ## Contributing Guidelines
 
@@ -92,12 +69,6 @@ We welcome several types of contributions:
 4. **Documentation**: Improve existing docs or add new documentation
 5. **Models**: Contribute pre-trained models for specific hardware
 6. **Datasets**: Share datasets for training heuristics
-
-### Before You Start
-
-- Check existing issues and pull requests to avoid duplicates
-- For major changes, open an issue first to discuss the approach
-- Ensure your contribution aligns with the project's goals
 
 ## Code Style
 
@@ -119,8 +90,6 @@ lintrunner
 ### Code Organization
 
 - Keep functions focused and single-purpose
-- Use appropriate abstractions for hardware-specific code
-- Follow the existing patterns for model organization
 - Maintain consistency with the existing codebase
 
 ## Testing
@@ -148,7 +117,6 @@ python -m pytest tests/examples/
 
 - Place unit tests in `tests/` mirroring the source structure
 - Use descriptive test names that explain what is being tested
-- Include both positive and negative test cases
 
 ## Submitting Changes
 
@@ -233,20 +201,5 @@ We especially welcome contributions for:
 - Performance benchmarks
 - Validation datasets
 
-### Recognition
-
-Contributors will be recognized in:
-
-- Release notes for significant contributions
-- Documentation acknowledgments
-- Community highlights
-
-## Questions?
-
-If you have questions about contributing, please:
-
-1. Check existing documentation and issues
-2. Open a GitHub discussion for general questions
-3. Open an issue for specific bugs or feature requests
 
 Thank you for contributing to Diode!

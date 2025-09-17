@@ -80,11 +80,12 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">msgpack</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">msgpack</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 
@@ -193,13 +194,13 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">dtypes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">dtypes</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">]</span>
+            <span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">bfloat16</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span>
             <span class="k">else</span> <span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">]</span>
         <span class="p">)</span>
 
     <span class="k">if</span> <span class="n">operations</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">operations</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;mm&quot;</span><span class="p">,</span> <span class="s2">&quot;addmm&quot;</span><span class="p">]</span>
+        <span class="n">operations</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;mm&quot;</span><span class="p">,</span> <span class="s2">&quot;addmm&quot;</span><span class="p">,</span> <span class="s2">&quot;bmm&quot;</span><span class="p">]</span>
 
     <span class="c1"># Get the hardware name</span>
     <span class="n">device_name</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">get_device_name</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span>
@@ -289,6 +290,7 @@
     <span class="n">search_mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;max-autotune&quot;</span><span class="p">,</span>
     <span class="n">search_space</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;EXHAUSTIVE&quot;</span><span class="p">,</span>
     <span class="n">file_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;json&quot;</span><span class="p">,</span>
+    <span class="n">chunk_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">log_normal_m_mean</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">6.5725472164323095</span><span class="p">,</span>
     <span class="n">log_normal_m_std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.556199441605505</span><span class="p">,</span>
     <span class="n">log_normal_n_mean</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">5.913930073563466</span><span class="p">,</span>
@@ -300,7 +302,8 @@
 <span class="sd">    Create a separate validation dataset for evaluating the model.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        output_file: Path to save the validation data</span>
+<span class="sd">        output_file: Path to save the validation data (or directory for chunked output)</span>
+<span class="sd">        mode: Collection mode (&quot;random&quot; or &quot;log_normal&quot;)</span>
 <span class="sd">        num_shapes: Number of matrix shapes to test</span>
 <span class="sd">        dtypes: List of dtypes to test</span>
 <span class="sd">        seed: Random seed for reproducibility (different from training)</span>
@@ -310,10 +313,36 @@
 <span class="sd">        search_mode: Search mode for torch.compile</span>
 <span class="sd">        search_space: Search space for autotuning (EXHAUSTIVE or DEFAULT)</span>
 <span class="sd">        file_format: File format for saving (json or msgpack)</span>
+<span class="sd">        chunk_size: Number of operations to collect before writing to a new file (enables chunked collection and resumption)</span>
+<span class="sd">        log_normal_*: Parameters for log-normal distribution</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        Path to the saved validation dataset file</span>
+<span class="sd">        Path to the saved validation dataset file (or first chunk file for chunked output)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># If chunk_size is specified, handle chunked collection with resumption</span>
+    <span class="k">if</span> <span class="n">chunk_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_create_validation_dataset_chunked</span><span class="p">(</span>
+            <span class="n">output_path</span><span class="o">=</span><span class="n">output_file</span><span class="p">,</span>
+            <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span>
+            <span class="n">num_shapes</span><span class="o">=</span><span class="n">num_shapes</span><span class="p">,</span>
+            <span class="n">dtypes</span><span class="o">=</span><span class="n">dtypes</span><span class="p">,</span>
+            <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
+            <span class="n">min_size</span><span class="o">=</span><span class="n">min_size</span><span class="p">,</span>
+            <span class="n">max_size</span><span class="o">=</span><span class="n">max_size</span><span class="p">,</span>
+            <span class="n">power_of_two</span><span class="o">=</span><span class="n">power_of_two</span><span class="p">,</span>
+            <span class="n">search_mode</span><span class="o">=</span><span class="n">search_mode</span><span class="p">,</span>
+            <span class="n">search_space</span><span class="o">=</span><span class="n">search_space</span><span class="p">,</span>
+            <span class="n">file_format</span><span class="o">=</span><span class="n">file_format</span><span class="p">,</span>
+            <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
+            <span class="n">log_normal_m_mean</span><span class="o">=</span><span class="n">log_normal_m_mean</span><span class="p">,</span>
+            <span class="n">log_normal_m_std</span><span class="o">=</span><span class="n">log_normal_m_std</span><span class="p">,</span>
+            <span class="n">log_normal_n_mean</span><span class="o">=</span><span class="n">log_normal_n_mean</span><span class="p">,</span>
+            <span class="n">log_normal_n_std</span><span class="o">=</span><span class="n">log_normal_n_std</span><span class="p">,</span>
+            <span class="n">log_normal_k_mean</span><span class="o">=</span><span class="n">log_normal_k_mean</span><span class="p">,</span>
+            <span class="n">log_normal_k_std</span><span class="o">=</span><span class="n">log_normal_k_std</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Original non-chunked behavior</span>
     <span class="c1"># Check if validation dataset already exists</span>
     <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">output_file</span><span class="p">):</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Validation dataset already exists at </span><span class="si">{</span><span class="n">output_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -439,6 +468,7 @@
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Collect data in chunks, saving to separate files when chunk size is reached.</span>
+<span class="sd">    Supports resumption from existing chunk files.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        collector: The MatmulDatasetCollector instance</span>
@@ -456,11 +486,72 @@
     <span class="k">if</span> <span class="n">file_format</span> <span class="o">==</span> <span class="s2">&quot;msgpack&quot;</span> <span class="ow">and</span> <span class="n">ext</span> <span class="o">==</span> <span class="s2">&quot;.json&quot;</span><span class="p">:</span>
         <span class="n">ext</span> <span class="o">=</span> <span class="s2">&quot;.msgpack&quot;</span>
 
+    <span class="c1"># Check for existing chunk files and count them for resumption</span>
+    <span class="n">existing_files</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">chunk_num</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">chunk_filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">chunk_num</span><span class="si">}{</span><span class="n">ext</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">chunk_filename</span><span class="p">):</span>
+            <span class="n">existing_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chunk_filename</span><span class="p">)</span>
+            <span class="n">chunk_num</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">break</span>
+
+    <span class="c1"># Count total operations already completed</span>
+    <span class="n">total_completed_operations</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">existing_files</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">existing_files</span><span class="p">)</span><span class="si">}</span><span class="s2"> existing chunk files&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">existing_file</span> <span class="ow">in</span> <span class="n">existing_files</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">file_format</span> <span class="o">==</span> <span class="s2">&quot;msgpack&quot;</span><span class="p">:</span>
+                    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">existing_file</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                        <span class="n">data</span> <span class="o">=</span> <span class="n">msgpack</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                    <span class="c1"># Create dataset from msgpack data</span>
+                    <span class="n">dataset</span> <span class="o">=</span> <span class="n">MatmulDataset</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">existing_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                        <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                    <span class="n">dataset</span> <span class="o">=</span> <span class="n">MatmulDataset</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+                <span class="c1"># Count timing data entries by iterating through hardware -&gt; operations -&gt; solutions</span>
+                <span class="n">operations_count</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">hw_name</span><span class="p">,</span> <span class="n">hardware</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">hardware</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">for</span> <span class="n">op_name</span><span class="p">,</span> <span class="n">operation</span> <span class="ow">in</span> <span class="n">hardware</span><span class="o">.</span><span class="n">operation</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                        <span class="n">operations_count</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">operation</span><span class="o">.</span><span class="n">solution</span><span class="p">)</span>
+
+                <span class="n">total_completed_operations</span> <span class="o">+=</span> <span class="n">operations_count</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File </span><span class="si">{</span><span class="n">existing_file</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">operations_count</span><span class="si">}</span><span class="s2"> operations&quot;</span><span class="p">)</span>
+
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not read existing file </span><span class="si">{</span><span class="n">existing_file</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="c1"># If we can&#39;t read a file, assume we need to start over</span>
+                <span class="n">total_completed_operations</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">existing_files</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">chunk_num</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="k">break</span>
+
     <span class="c1"># Generate shapes and dtypes based on the collector&#39;s configuration</span>
     <span class="n">shapes_and_dtypes</span> <span class="o">=</span> <span class="n">collector</span><span class="o">.</span><span class="n">_generate_shapes_and_dtypes</span><span class="p">()</span>
     <span class="n">total_operations</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">shapes_and_dtypes</span><span class="p">)</span>
 
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Collecting </span><span class="si">{</span><span class="n">total_operations</span><span class="si">}</span><span class="s2"> operations in chunks of </span><span class="si">{</span><span class="n">chunk_size</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="c1"># Skip operations that have already been completed</span>
+    <span class="n">remaining_shapes_and_dtypes</span> <span class="o">=</span> <span class="n">shapes_and_dtypes</span><span class="p">[</span><span class="n">total_completed_operations</span><span class="p">:]</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">remaining_shapes_and_dtypes</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;All operations have already been completed&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">existing_files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">existing_files</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base_name</span><span class="si">}</span><span class="s2">_1</span><span class="si">{</span><span class="n">ext</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">if</span> <span class="n">total_completed_operations</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total operations already completed: </span><span class="si">{</span><span class="n">total_completed_operations</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Resuming from operation </span><span class="si">{</span><span class="n">total_completed_operations</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Collecting </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">remaining_shapes_and_dtypes</span><span class="p">)</span><span class="si">}</span><span class="s2"> remaining operations out of </span><span class="si">{</span><span class="n">total_operations</span><span class="si">}</span><span class="s2"> total&quot;</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Collecting </span><span class="si">{</span><span class="n">total_operations</span><span class="si">}</span><span class="s2"> operations in chunks of </span><span class="si">{</span><span class="n">chunk_size</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
 
     <span class="c1"># Set up PyTorch for compilation (similar to collector.collect_data)</span>
     <span class="n">torch</span><span class="o">.</span><span class="n">set_grad_enabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
@@ -482,7 +573,6 @@
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Set search space to DEFAULT&quot;</span><span class="p">)</span>
 
     <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span>
-    <span class="n">chunk_num</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">current_chunk_count</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">first_chunk_file</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -490,11 +580,12 @@
     <span class="n">collector</span><span class="o">.</span><span class="n">start_collection</span><span class="p">()</span>
 
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">op_name</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shapes_and_dtypes</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">op_name</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">remaining_shapes_and_dtypes</span><span class="p">):</span>
+            <span class="n">actual_operation_num</span> <span class="o">=</span> <span class="n">total_completed_operations</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
             <span class="n">M</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="n">size</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">total_operations</span><span class="si">}</span><span class="s2">] Running </span><span class="si">{</span><span class="n">op_name</span><span class="si">}</span><span class="s2"> with size &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">M</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">K</span><span class="si">}</span><span class="s2">) x (</span><span class="si">{</span><span class="n">K</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">N</span><span class="si">}</span><span class="s2">) and dtype </span><span class="si">{</span><span class="n">dtype</span><span class="si">}</span><span class="s2"> (chunk </span><span class="si">{</span><span class="n">chunk_num</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">, item </span><span class="si">{</span><span class="n">current_chunk_count</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">chunk_size</span><span class="si">}</span><span class="s2">)&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">actual_operation_num</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">total_operations</span><span class="si">}</span><span class="s2">] Running </span><span class="si">{</span><span class="n">op_name</span><span class="si">}</span><span class="s2"> with size &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">M</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">K</span><span class="si">}</span><span class="s2">) x (</span><span class="si">{</span><span class="n">K</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">N</span><span class="si">}</span><span class="s2">) and dtype </span><span class="si">{</span><span class="n">dtype</span><span class="si">}</span><span class="s2"> (chunk </span><span class="si">{</span><span class="n">chunk_num</span><span class="si">}</span><span class="s2">, item </span><span class="si">{</span><span class="n">current_chunk_count</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">chunk_size</span><span class="si">}</span><span class="s2">)&quot;</span>
             <span class="p">)</span>
 
             <span class="c1"># Clear compilation cache to avoid shape conflicts</span>
@@ -508,12 +599,15 @@
             <span class="n">current_chunk_count</span> <span class="o">+=</span> <span class="mi">1</span>
 
             <span class="c1"># Check if we&#39;ve reached the chunk size or if this is the last operation</span>
-            <span class="k">if</span> <span class="n">current_chunk_count</span> <span class="o">&gt;=</span> <span class="n">chunk_size</span> <span class="ow">or</span> <span class="n">i</span> <span class="o">==</span> <span class="n">total_operations</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">current_chunk_count</span> <span class="o">&gt;=</span> <span class="n">chunk_size</span>
+                <span class="ow">or</span> <span class="n">i</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">remaining_shapes_and_dtypes</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="p">):</span>
                 <span class="c1"># Stop collection temporarily to save the current chunk</span>
                 <span class="n">collector</span><span class="o">.</span><span class="n">stop_collection</span><span class="p">()</span>
 
                 <span class="c1"># Generate chunk filename</span>
-                <span class="n">chunk_filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">chunk_num</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}{</span><span class="n">ext</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">chunk_filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">chunk_num</span><span class="si">}{</span><span class="n">ext</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="k">if</span> <span class="n">first_chunk_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">first_chunk_file</span> <span class="o">=</span> <span class="n">chunk_filename</span>
 
@@ -523,20 +617,20 @@
                     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">chunk_filename</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                         <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">to_msgpack</span><span class="p">())</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">&quot;Saved chunk </span><span class="si">{</span><span class="n">chunk_num</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">chunk_filename</span><span class="si">}</span><span class="s2"> (MessagePack format)&quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;Saved chunk </span><span class="si">{</span><span class="n">chunk_num</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">chunk_filename</span><span class="si">}</span><span class="s2"> (MessagePack format)&quot;</span>
                     <span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">collector</span><span class="o">.</span><span class="n">save_to_file</span><span class="p">(</span><span class="n">chunk_filename</span><span class="p">)</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">&quot;Saved chunk </span><span class="si">{</span><span class="n">chunk_num</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">chunk_filename</span><span class="si">}</span><span class="s2"> (JSON format)&quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;Saved chunk </span><span class="si">{</span><span class="n">chunk_num</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">chunk_filename</span><span class="si">}</span><span class="s2"> (JSON format)&quot;</span>
                     <span class="p">)</span>
 
                 <span class="c1"># Print statistics for this chunk</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Chunk </span><span class="si">{</span><span class="n">chunk_num</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> statistics:&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Chunk </span><span class="si">{</span><span class="n">chunk_num</span><span class="si">}</span><span class="s2"> statistics:&quot;</span><span class="p">)</span>
                 <span class="n">print_dataset_statistics</span><span class="p">(</span><span class="n">collector</span><span class="p">)</span>
 
                 <span class="c1"># Reset for next chunk if not the last operation</span>
-                <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">total_operations</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">remaining_shapes_and_dtypes</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
                     <span class="c1"># Create a new collector for the next chunk</span>
                     <span class="n">collector</span> <span class="o">=</span> <span class="n">MatmulDatasetCollector</span><span class="p">(</span>
                         <span class="n">hardware_name</span><span class="o">=</span><span class="n">collector</span><span class="o">.</span><span class="n">hardware_name</span><span class="p">,</span>
@@ -562,8 +656,298 @@
         <span class="k">if</span> <span class="n">collector</span><span class="o">.</span><span class="n">_is_collecting</span><span class="p">:</span>
             <span class="n">collector</span><span class="o">.</span><span class="n">stop_collection</span><span class="p">()</span>
 
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Chunked collection completed. Created </span><span class="si">{</span><span class="n">chunk_num</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> chunk files.&quot;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">first_chunk_file</span> <span class="ow">or</span> <span class="n">output_file</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Chunked collection completed. Created chunk files.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Return the first chunk file (either existing or newly created)</span>
+    <span class="k">if</span> <span class="n">existing_files</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">existing_files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">first_chunk_file</span> <span class="ow">or</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base_name</span><span class="si">}</span><span class="s2">_1</span><span class="si">{</span><span class="n">ext</span><span class="si">}</span><span class="s2">&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_create_validation_dataset_chunked</span><span class="p">(</span>
+    <span class="n">output_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">num_shapes</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">dtypes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">dtype</span><span class="p">]],</span>
+    <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">min_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">max_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">power_of_two</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">search_mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">search_space</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">file_format</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">log_normal_m_mean</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">log_normal_m_std</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">log_normal_n_mean</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">log_normal_n_std</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">log_normal_k_mean</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">log_normal_k_std</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a validation dataset with chunking and resumption support.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        output_path: Output directory or base file path for chunked files</span>
+<span class="sd">        mode: Collection mode (&quot;random&quot; or &quot;log_normal&quot;)</span>
+<span class="sd">        num_shapes: Number of matrix shapes to test</span>
+<span class="sd">        dtypes: List of dtypes to test</span>
+<span class="sd">        seed: Random seed for reproducibility</span>
+<span class="sd">        min_size: Minimum matrix dimension</span>
+<span class="sd">        max_size: Maximum matrix dimension</span>
+<span class="sd">        power_of_two: Whether to generate only power-of-two sizes</span>
+<span class="sd">        search_mode: Search mode for torch.compile</span>
+<span class="sd">        search_space: Search space for autotuning</span>
+<span class="sd">        file_format: File format for saving (json or msgpack)</span>
+<span class="sd">        chunk_size: Number of operations to collect before writing to a new file</span>
+<span class="sd">        log_normal_*: Parameters for log-normal distribution</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Path to the first chunk file or resumed file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># If output_path is a file (has extension), create directory based on it</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">output_path</span><span class="p">)[</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="n">output_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
+        <span class="n">base_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">output_path</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">output_dir</span><span class="p">:</span>
+            <span class="n">output_dir</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># output_path is already a directory</span>
+        <span class="n">output_dir</span> <span class="o">=</span> <span class="n">output_path</span>
+        <span class="n">base_name</span> <span class="o">=</span> <span class="s2">&quot;validation_dataset&quot;</span>
+
+    <span class="c1"># Ensure the output directory exists</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Determine file extension</span>
+    <span class="n">ext</span> <span class="o">=</span> <span class="s2">&quot;.msgpack&quot;</span> <span class="k">if</span> <span class="n">file_format</span> <span class="o">==</span> <span class="s2">&quot;msgpack&quot;</span> <span class="k">else</span> <span class="s2">&quot;.json&quot;</span>
+
+    <span class="c1"># Check for existing files and count them</span>
+    <span class="n">existing_files</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">chunk_num</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">chunk_filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">chunk_num</span><span class="si">}{</span><span class="n">ext</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">chunk_filename</span><span class="p">):</span>
+            <span class="n">existing_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chunk_filename</span><span class="p">)</span>
+            <span class="n">chunk_num</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">break</span>
+
+    <span class="c1"># Count total operations already completed</span>
+    <span class="n">total_completed_operations</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">existing_files</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">existing_files</span><span class="p">)</span><span class="si">}</span><span class="s2"> existing chunk files&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">existing_file</span> <span class="ow">in</span> <span class="n">existing_files</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">file_format</span> <span class="o">==</span> <span class="s2">&quot;msgpack&quot;</span><span class="p">:</span>
+                    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">existing_file</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                        <span class="n">data</span> <span class="o">=</span> <span class="n">msgpack</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                    <span class="c1"># Create dataset from msgpack data</span>
+                    <span class="n">dataset</span> <span class="o">=</span> <span class="n">MatmulDataset</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">existing_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                        <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                    <span class="n">dataset</span> <span class="o">=</span> <span class="n">MatmulDataset</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+                <span class="c1"># Count timing data entries by iterating through hardware -&gt; operations -&gt; solutions</span>
+                <span class="n">operations_count</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">hw_name</span><span class="p">,</span> <span class="n">hardware</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">hardware</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">for</span> <span class="n">op_name</span><span class="p">,</span> <span class="n">operation</span> <span class="ow">in</span> <span class="n">hardware</span><span class="o">.</span><span class="n">operation</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                        <span class="n">operations_count</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">operation</span><span class="o">.</span><span class="n">solution</span><span class="p">)</span>
+
+                <span class="n">total_completed_operations</span> <span class="o">+=</span> <span class="n">operations_count</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File </span><span class="si">{</span><span class="n">existing_file</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">operations_count</span><span class="si">}</span><span class="s2"> operations&quot;</span><span class="p">)</span>
+
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not read existing file </span><span class="si">{</span><span class="n">existing_file</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="c1"># If we can&#39;t read a file, assume we need to start over</span>
+                <span class="n">total_completed_operations</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">existing_files</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">chunk_num</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="k">break</span>
+
+    <span class="k">if</span> <span class="n">total_completed_operations</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total operations already completed: </span><span class="si">{</span><span class="n">total_completed_operations</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Resuming from operation </span><span class="si">{</span><span class="n">total_completed_operations</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting validation dataset creation from the beginning&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Create collector with the specified parameters</span>
+    <span class="k">if</span> <span class="n">dtypes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dtypes</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span>
+            <span class="k">else</span> <span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">]</span>
+        <span class="p">)</span>
+
+    <span class="n">device_name</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">get_device_name</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span>
+
+    <span class="c1"># Convert mode string to enum</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;random&quot;</span><span class="p">:</span>
+        <span class="n">collection_mode</span> <span class="o">=</span> <span class="n">CollectionMode</span><span class="o">.</span><span class="n">RANDOM</span>
+    <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;log_normal&quot;</span><span class="p">:</span>
+        <span class="n">collection_mode</span> <span class="o">=</span> <span class="n">CollectionMode</span><span class="o">.</span><span class="n">LOG_NORMAL</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">collection_mode</span> <span class="o">=</span> <span class="n">CollectionMode</span><span class="o">.</span><span class="n">OPERATION_SHAPE_SET</span>
+
+    <span class="n">collector</span> <span class="o">=</span> <span class="n">MatmulDatasetCollector</span><span class="p">(</span>
+        <span class="n">hardware_name</span><span class="o">=</span><span class="n">device_name</span><span class="p">,</span>
+        <span class="n">mode</span><span class="o">=</span><span class="n">collection_mode</span><span class="p">,</span>
+        <span class="n">operations</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;mm&quot;</span><span class="p">,</span> <span class="s2">&quot;addmm&quot;</span><span class="p">,</span> <span class="s2">&quot;bmm&quot;</span><span class="p">],</span>
+        <span class="n">num_shapes</span><span class="o">=</span><span class="n">num_shapes</span><span class="p">,</span>
+        <span class="n">dtypes</span><span class="o">=</span><span class="n">dtypes</span><span class="p">,</span>
+        <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
+        <span class="n">min_size</span><span class="o">=</span><span class="n">min_size</span><span class="p">,</span>
+        <span class="n">max_size</span><span class="o">=</span><span class="n">max_size</span><span class="p">,</span>
+        <span class="n">power_of_two</span><span class="o">=</span><span class="n">power_of_two</span><span class="p">,</span>
+        <span class="n">log_normal_m_mean</span><span class="o">=</span><span class="n">log_normal_m_mean</span><span class="p">,</span>
+        <span class="n">log_normal_m_std</span><span class="o">=</span><span class="n">log_normal_m_std</span><span class="p">,</span>
+        <span class="n">log_normal_n_mean</span><span class="o">=</span><span class="n">log_normal_n_mean</span><span class="p">,</span>
+        <span class="n">log_normal_n_std</span><span class="o">=</span><span class="n">log_normal_n_std</span><span class="p">,</span>
+        <span class="n">log_normal_k_mean</span><span class="o">=</span><span class="n">log_normal_k_mean</span><span class="p">,</span>
+        <span class="n">log_normal_k_std</span><span class="o">=</span><span class="n">log_normal_k_std</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Generate all shapes and dtypes</span>
+    <span class="n">shapes_and_dtypes</span> <span class="o">=</span> <span class="n">collector</span><span class="o">.</span><span class="n">_generate_shapes_and_dtypes</span><span class="p">()</span>
+    <span class="n">total_operations</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">shapes_and_dtypes</span><span class="p">)</span>
+
+    <span class="c1"># Skip operations that have already been completed</span>
+    <span class="n">remaining_shapes_and_dtypes</span> <span class="o">=</span> <span class="n">shapes_and_dtypes</span><span class="p">[</span><span class="n">total_completed_operations</span><span class="p">:]</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">remaining_shapes_and_dtypes</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;All operations have already been completed&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">existing_files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">existing_files</span>
+            <span class="k">else</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base_name</span><span class="si">}</span><span class="s2">_1</span><span class="si">{</span><span class="n">ext</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Collecting </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">remaining_shapes_and_dtypes</span><span class="p">)</span><span class="si">}</span><span class="s2"> remaining operations out of </span><span class="si">{</span><span class="n">total_operations</span><span class="si">}</span><span class="s2"> total&quot;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Set up PyTorch for compilation</span>
+    <span class="n">torch</span><span class="o">.</span><span class="n">set_grad_enabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># Configure PyTorch inductor</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">torch._inductor</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span>
+
+    <span class="n">config</span><span class="o">.</span><span class="n">fx_graph_cache</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">config</span><span class="o">.</span><span class="n">force_disable_caches</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">config</span><span class="o">.</span><span class="n">max_autotune_gemm_backends</span> <span class="o">=</span> <span class="s2">&quot;TRITON&quot;</span>
+    <span class="n">config</span><span class="o">.</span><span class="n">triton</span><span class="o">.</span><span class="n">num_decompose_k_splits</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># Set search space</span>
+    <span class="k">if</span> <span class="n">search_space</span> <span class="o">==</span> <span class="s2">&quot;EXHAUSTIVE&quot;</span><span class="p">:</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">max_autotune_gemm_search_space</span> <span class="o">=</span> <span class="s2">&quot;EXHAUSTIVE&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Set search space to EXHAUSTIVE&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">max_autotune_gemm_search_space</span> <span class="o">=</span> <span class="s2">&quot;DEFAULT&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Set search space to DEFAULT&quot;</span><span class="p">)</span>
+
+    <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span>
+    <span class="n">current_chunk_count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">first_chunk_file</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># Start collection</span>
+    <span class="n">collector</span><span class="o">.</span><span class="n">start_collection</span><span class="p">()</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">op_name</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">remaining_shapes_and_dtypes</span><span class="p">):</span>
+            <span class="n">actual_operation_num</span> <span class="o">=</span> <span class="n">total_completed_operations</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">M</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="n">size</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">actual_operation_num</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">total_operations</span><span class="si">}</span><span class="s2">] Running </span><span class="si">{</span><span class="n">op_name</span><span class="si">}</span><span class="s2"> with size &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">M</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">K</span><span class="si">}</span><span class="s2">) x (</span><span class="si">{</span><span class="n">K</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">N</span><span class="si">}</span><span class="s2">) and dtype </span><span class="si">{</span><span class="n">dtype</span><span class="si">}</span><span class="s2"> (chunk </span><span class="si">{</span><span class="n">chunk_num</span><span class="si">}</span><span class="s2">, item </span><span class="si">{</span><span class="n">current_chunk_count</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">chunk_size</span><span class="si">}</span><span class="s2">)&quot;</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Clear compilation cache to avoid shape conflicts</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">_dynamo</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+            <span class="c1"># Run the matrix multiplication</span>
+            <span class="n">collector</span><span class="o">.</span><span class="n">_run_matrix_multiplication</span><span class="p">(</span>
+                <span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">op_name</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">search_mode</span>
+            <span class="p">)</span>
+
+            <span class="n">current_chunk_count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="c1"># Check if we&#39;ve reached the chunk size or if this is the last operation</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">current_chunk_count</span> <span class="o">&gt;=</span> <span class="n">chunk_size</span>
+                <span class="ow">or</span> <span class="n">i</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">remaining_shapes_and_dtypes</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="p">):</span>
+                <span class="c1"># Stop collection temporarily to save the current chunk</span>
+                <span class="n">collector</span><span class="o">.</span><span class="n">stop_collection</span><span class="p">()</span>
+
+                <span class="c1"># Generate chunk filename</span>
+                <span class="n">chunk_filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="n">output_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">chunk_num</span><span class="si">}{</span><span class="n">ext</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">first_chunk_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">first_chunk_file</span> <span class="o">=</span> <span class="n">chunk_filename</span>
+
+                <span class="c1"># Save the current chunk</span>
+                <span class="k">if</span> <span class="n">file_format</span> <span class="o">==</span> <span class="s2">&quot;msgpack&quot;</span><span class="p">:</span>
+                    <span class="n">dataset</span> <span class="o">=</span> <span class="n">collector</span><span class="o">.</span><span class="n">get_dataset</span><span class="p">()</span>
+                    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">chunk_filename</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">to_msgpack</span><span class="p">())</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Saved chunk </span><span class="si">{</span><span class="n">chunk_num</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">chunk_filename</span><span class="si">}</span><span class="s2"> (MessagePack format)&quot;</span>
+                    <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">collector</span><span class="o">.</span><span class="n">save_to_file</span><span class="p">(</span><span class="n">chunk_filename</span><span class="p">)</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Saved chunk </span><span class="si">{</span><span class="n">chunk_num</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">chunk_filename</span><span class="si">}</span><span class="s2"> (JSON format)&quot;</span>
+                    <span class="p">)</span>
+
+                <span class="c1"># Print statistics for this chunk</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Chunk </span><span class="si">{</span><span class="n">chunk_num</span><span class="si">}</span><span class="s2"> statistics:&quot;</span><span class="p">)</span>
+                <span class="n">print_dataset_statistics</span><span class="p">(</span><span class="n">collector</span><span class="p">)</span>
+
+                <span class="c1"># Reset for next chunk if not the last operation</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">remaining_shapes_and_dtypes</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="c1"># Create a new collector for the next chunk</span>
+                    <span class="n">collector</span> <span class="o">=</span> <span class="n">MatmulDatasetCollector</span><span class="p">(</span>
+                        <span class="n">hardware_name</span><span class="o">=</span><span class="n">device_name</span><span class="p">,</span>
+                        <span class="n">mode</span><span class="o">=</span><span class="n">collection_mode</span><span class="p">,</span>
+                        <span class="n">operations</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;mm&quot;</span><span class="p">,</span> <span class="s2">&quot;addmm&quot;</span><span class="p">,</span> <span class="s2">&quot;bmm&quot;</span><span class="p">],</span>
+                        <span class="n">num_shapes</span><span class="o">=</span><span class="n">num_shapes</span><span class="p">,</span>
+                        <span class="n">dtypes</span><span class="o">=</span><span class="n">dtypes</span><span class="p">,</span>
+                        <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
+                        <span class="n">min_size</span><span class="o">=</span><span class="n">min_size</span><span class="p">,</span>
+                        <span class="n">max_size</span><span class="o">=</span><span class="n">max_size</span><span class="p">,</span>
+                        <span class="n">power_of_two</span><span class="o">=</span><span class="n">power_of_two</span><span class="p">,</span>
+                        <span class="n">log_normal_m_mean</span><span class="o">=</span><span class="n">log_normal_m_mean</span><span class="p">,</span>
+                        <span class="n">log_normal_m_std</span><span class="o">=</span><span class="n">log_normal_m_std</span><span class="p">,</span>
+                        <span class="n">log_normal_n_mean</span><span class="o">=</span><span class="n">log_normal_n_mean</span><span class="p">,</span>
+                        <span class="n">log_normal_n_std</span><span class="o">=</span><span class="n">log_normal_n_std</span><span class="p">,</span>
+                        <span class="n">log_normal_k_mean</span><span class="o">=</span><span class="n">log_normal_k_mean</span><span class="p">,</span>
+                        <span class="n">log_normal_k_std</span><span class="o">=</span><span class="n">log_normal_k_std</span><span class="p">,</span>
+                    <span class="p">)</span>
+
+                    <span class="c1"># Start collection for the next chunk</span>
+                    <span class="n">collector</span><span class="o">.</span><span class="n">start_collection</span><span class="p">()</span>
+
+                    <span class="n">chunk_num</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">current_chunk_count</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="c1"># Ensure collection is stopped</span>
+        <span class="k">if</span> <span class="n">collector</span><span class="o">.</span><span class="n">_is_collecting</span><span class="p">:</span>
+            <span class="n">collector</span><span class="o">.</span><span class="n">stop_collection</span><span class="p">()</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Validation dataset creation completed. Created chunk files in </span><span class="si">{</span><span class="n">output_dir</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Return the first chunk file (either existing or newly created)</span>
+    <span class="k">if</span> <span class="n">existing_files</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">existing_files</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">first_chunk_file</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base_name</span><span class="si">}</span><span class="s2">_1</span><span class="si">{</span><span class="n">ext</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="convert_json_to_msgpack">
@@ -638,7 +1022,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2023, Author Name.
-      <span class="lastupdated">Last updated on Sep 04, 2025.
+      <span class="lastupdated">Last updated on Sep 17, 2025.
       </span></p>
   </div>
 

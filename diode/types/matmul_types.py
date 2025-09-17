@@ -241,6 +241,20 @@ class Solution(JSONSerializable):
     @classmethod
     def parse(cls, string: str):
         d = json.loads(string, object_pairs_hook=OrderedDict)
+        
+        # Parse the config list into TritonGEMMConfig objects
+        if "config" in d and isinstance(d["config"], list):
+            parsed_configs = []
+            for config_dict in d["config"]:
+                if isinstance(config_dict, dict):
+                    # Convert dict to TritonGEMMConfig
+                    parsed_config = TritonGEMMConfig(**config_dict)
+                    parsed_configs.append(parsed_config)
+                else:
+                    # Already a TritonGEMMConfig object (shouldn't happen but just in case)
+                    parsed_configs.append(config_dict)
+            d["config"] = parsed_configs
+        
         return cls(**d)
         
 

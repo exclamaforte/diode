@@ -142,6 +142,7 @@
 <li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.directory_dataset_loader.DirectoryMatmulDataset.__getitem__"><code class="docutils literal notranslate"><span class="pre">DirectoryMatmulDataset.__getitem__()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.directory_dataset_loader.DirectoryMatmulDataset.problem_feature_dim"><code class="docutils literal notranslate"><span class="pre">DirectoryMatmulDataset.problem_feature_dim</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.directory_dataset_loader.DirectoryMatmulDataset.config_feature_dim"><code class="docutils literal notranslate"><span class="pre">DirectoryMatmulDataset.config_feature_dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.directory_dataset_loader.DirectoryMatmulDataset.configs"><code class="docutils literal notranslate"><span class="pre">DirectoryMatmulDataset.configs</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.directory_dataset_loader.DirectoryMatmulDataset.get_file_info"><code class="docutils literal notranslate"><span class="pre">DirectoryMatmulDataset.get_file_info()</span></code></a></li>
 </ul>
 </li>
@@ -228,6 +229,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="diode.model.html#module-diode.model.model_utils">diode.model.model_utils module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="diode.model.html#diode.model.model_utils.validate_max_autotune"><code class="docutils literal notranslate"><span class="pre">validate_max_autotune()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="diode.model.html#diode.model.model_utils.train_model"><code class="docutils literal notranslate"><span class="pre">train_model()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="diode.model.html#diode.model.model_utils.validate_model"><code class="docutils literal notranslate"><span class="pre">validate_model()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="diode.model.html#diode.model.model_utils.run_model_example"><code class="docutils literal notranslate"><span class="pre">run_model_example()</span></code></a></li>
@@ -235,12 +237,52 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="diode.model.html#module-diode.model.model_wrapper">diode.model.model_wrapper module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="diode.model.html#diode.model.model_wrapper.load_model_config"><code class="docutils literal notranslate"><span class="pre">load_model_config()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="diode.model.html#diode.model.model_wrapper.ModelWrapper"><code class="docutils literal notranslate"><span class="pre">ModelWrapper()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="diode.model.html#diode.model.model_wrapper.list_available_models"><code class="docutils literal notranslate"><span class="pre">list_available_models()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="diode.model.html#diode.model.model_wrapper.load_model_config"><code class="docutils literal notranslate"><span class="pre">load_model_config()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="diode.model.html#diode.model.model_wrapper.ModelWrapper"><code class="docutils literal notranslate"><span class="pre">ModelWrapper</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.model_wrapper.ModelWrapper.__init__"><code class="docutils literal notranslate"><span class="pre">ModelWrapper.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.model_wrapper.ModelWrapper.list_available_models"><code class="docutils literal notranslate"><span class="pre">ModelWrapper.list_available_models()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.model_wrapper.ModelWrapper.predict"><code class="docutils literal notranslate"><span class="pre">ModelWrapper.predict()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="diode.model.html#module-diode.model">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="diode.model.html#module-diode.model">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="diode.model.html#diode.model.MatmulTimingModel"><code class="docutils literal notranslate"><span class="pre">MatmulTimingModel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.MatmulTimingModel.__init__"><code class="docutils literal notranslate"><span class="pre">MatmulTimingModel.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.MatmulTimingModel.forward"><code class="docutils literal notranslate"><span class="pre">MatmulTimingModel.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.MatmulTimingModel.save"><code class="docutils literal notranslate"><span class="pre">MatmulTimingModel.save()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.MatmulTimingModel.load"><code class="docutils literal notranslate"><span class="pre">MatmulTimingModel.load()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="diode.model.html#diode.model.DeepMatmulTimingModel"><code class="docutils literal notranslate"><span class="pre">DeepMatmulTimingModel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.DeepMatmulTimingModel.__init__"><code class="docutils literal notranslate"><span class="pre">DeepMatmulTimingModel.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.DeepMatmulTimingModel.forward"><code class="docutils literal notranslate"><span class="pre">DeepMatmulTimingModel.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.DeepMatmulTimingModel.save"><code class="docutils literal notranslate"><span class="pre">DeepMatmulTimingModel.save()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.DeepMatmulTimingModel.load"><code class="docutils literal notranslate"><span class="pre">DeepMatmulTimingModel.load()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="diode.model.html#diode.model.MatmulModelV1"><code class="docutils literal notranslate"><span class="pre">MatmulModelV1</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.MatmulModelV1.__init__"><code class="docutils literal notranslate"><span class="pre">MatmulModelV1.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.MatmulModelV1.forward"><code class="docutils literal notranslate"><span class="pre">MatmulModelV1.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.MatmulModelV1.save"><code class="docutils literal notranslate"><span class="pre">MatmulModelV1.save()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.MatmulModelV1.load"><code class="docutils literal notranslate"><span class="pre">MatmulModelV1.load()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="diode.model.html#diode.model.NeuralNetwork"><code class="docutils literal notranslate"><span class="pre">NeuralNetwork</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="diode.model.html#diode.model.ModelWrapper"><code class="docutils literal notranslate"><span class="pre">ModelWrapper</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.ModelWrapper.__init__"><code class="docutils literal notranslate"><span class="pre">ModelWrapper.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.ModelWrapper.vec"><code class="docutils literal notranslate"><span class="pre">ModelWrapper.vec()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.ModelWrapper.vec_params"><code class="docutils literal notranslate"><span class="pre">ModelWrapper.vec_params()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.ModelWrapper.encode"><code class="docutils literal notranslate"><span class="pre">ModelWrapper.encode()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.ModelWrapper.inference"><code class="docutils literal notranslate"><span class="pre">ModelWrapper.inference()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.ModelWrapper.decode"><code class="docutils literal notranslate"><span class="pre">ModelWrapper.decode()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="diode.model.html#diode.model.init_model_weights"><code class="docutils literal notranslate"><span class="pre">init_model_weights()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="diode.model.html#diode.model.save_model_checkpoint"><code class="docutils literal notranslate"><span class="pre">save_model_checkpoint()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="diode.types.html">diode.types package</a><ul>
@@ -336,6 +378,7 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="diode.types.html#diode.types.matmul_types.Solution"><code class="docutils literal notranslate"><span class="pre">Solution</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="diode.types.html#diode.types.matmul_types.Solution.config"><code class="docutils literal notranslate"><span class="pre">Solution.config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="diode.types.html#diode.types.matmul_types.Solution.parse"><code class="docutils literal notranslate"><span class="pre">Solution.parse()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="diode.types.html#diode.types.matmul_types.Solution.__init__"><code class="docutils literal notranslate"><span class="pre">Solution.__init__()</span></code></a></li>
 </ul>
 </li>
@@ -401,7 +444,7 @@
 </section>
 <section id="module-diode">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-diode" title="Link to this heading"></a></h2>
-<p>Framework for training ML diodeistics in Torch.</p>
+<p>Framework for training ML heuristics in Torch.</p>
 </section>
 </section>
 
@@ -417,7 +460,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2023, Author Name.
-      <span class="lastupdated">Last updated on Sep 04, 2025.
+      <span class="lastupdated">Last updated on Sep 17, 2025.
       </span></p>
   </div>
 

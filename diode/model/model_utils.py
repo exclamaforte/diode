@@ -193,7 +193,7 @@ def validate_max_autotune(
 
     # Extract configs and runtimes from the validation dataset
     with torch.no_grad():
-        for problem_features, config_features, targets in val_dataloader:
+        for batch_idx, (problem_features, config_features, targets) in enumerate(val_dataloader):
             problem_features = problem_features.to(device)
             config_features = config_features.to(device)
             targets = targets.to(device)
@@ -202,15 +202,23 @@ def validate_max_autotune(
             predictions = model(problem_features, config_features)
 
             # Extract configs from the underlying dataset
-            # We need to get the raw TritonGEMMConfig objects
-            batch_start = len(validation_configs)
+            # The val_dataloader.dataset is a Subset, so we need to access the original indices
             batch_size_actual = len(targets)
-
-            # Get the configs for this batch from the dataset
+              
             for i in range(batch_size_actual):
-                dataset_idx = batch_start + i
-                if dataset_idx < len(val_dataloader.dataset.dataset.configs):
-                    config = val_dataloader.dataset.dataset.configs[dataset_idx]
+                # Get the actual dataset index from the subset
+                subset_idx = batch_idx * val_dataloader.batch_size + i
+                if subset_idx < len(val_dataloader.dataset):
+                    actual_dataset_idx = val_dataloader.dataset.indices[subset_idx]
+                      
+                    # Get the config from the original dataset
+                    if hasattr(val_dataloader.dataset.dataset, 'timing_dataset'):
+                        # For DirectoryMatmulDataset
+                        config = val_dataloader.dataset.dataset.timing_dataset.configs[actual_dataset_idx]
+                    else:
+                        # For MatmulTimingDataset directly
+                        config = val_dataloader.dataset.dataset.configs[actual_dataset_idx]
+                      
                     validation_configs.append(config)
                     actual_runtimes.append(float(targets[i].cpu().numpy()))
                     model_predictions.append(float(predictions[i].cpu().numpy()))
@@ -252,12 +260,28 @@ def validate_max_autotune(
         max_autotune_runtimes = []
         max_autotune_found_configs = []
 
+        def configs_match(config1, config2):
+            """
+            Compare two TritonGEMMConfig objects based on their kernel parameters only,
+            ignoring fields like name and version that don't affect performance.
+            """
+            return (
+                config1.block_m == config2.block_m and
+                config1.block_n == config2.block_n and
+                config1.block_k == config2.block_k and
+                config1.group_m == config2.group_m and
+                config1.num_stages == config2.num_stages and
+                config1.num_warps == config2.num_warps and
+                config1.EVEN_K == config2.EVEN_K and
+                config1.ALLOW_TF32 == config2.ALLOW_TF32 and
+                config1.USE_FAST_ACCUM == config2.USE_FAST_ACCUM and
+                config1.ACC_TYPE == config2.ACC_TYPE
+            )
+
         for ma_config in max_autotune_configs:
             # Find this max-autotune config in validation set
             for i, val_config in enumerate(validation_configs):
-                if (
-                    val_config == ma_config
-                ):  # TritonGEMMConfig has __eq__ method via hash
+                if configs_match(val_config, ma_config):
                     max_autotune_runtimes.append(actual_runtimes[i])
                     max_autotune_found_configs.append(ma_config)
                     break

@@ -86,6 +86,7 @@
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
  | <a href="#H"><strong>H</strong></a>
+ | <a href="#I"><strong>I</strong></a>
  | <a href="#J"><strong>J</strong></a>
  | <a href="#K"><strong>K</strong></a>
  | <a href="#L"><strong>L</strong></a>
@@ -117,6 +118,8 @@
       <li><a href="api/diode.collection.html#diode.collection.matmul_dataset_collector.MatmulDatasetCollector.__init__">__init__() (diode.collection.matmul_dataset_collector.MatmulDatasetCollector method)</a>
 
       <ul>
+        <li><a href="api/diode.model.html#diode.model.DeepMatmulTimingModel.__init__">(diode.model.DeepMatmulTimingModel method)</a>
+</li>
         <li><a href="api/diode.model.html#diode.model.directory_dataset_loader.DirectoryMatmulDataset.__init__">(diode.model.directory_dataset_loader.DirectoryMatmulDataset method)</a>
 </li>
         <li><a href="api/diode.model.html#diode.model.matmul_dataset_loader.MatmulTimingDataset.__init__">(diode.model.matmul_dataset_loader.MatmulTimingDataset method)</a>
@@ -130,6 +133,14 @@
         <li><a href="api/diode.model.html#diode.model.matmul_timing_model.MatmulTimingModel.__init__">(diode.model.matmul_timing_model.MatmulTimingModel method)</a>
 </li>
         <li><a href="api/diode.model.html#diode.model.matmul_timing_model.ResidualBlock.__init__">(diode.model.matmul_timing_model.ResidualBlock method)</a>
+</li>
+        <li><a href="api/diode.model.html#diode.model.MatmulModelV1.__init__">(diode.model.MatmulModelV1 method)</a>
+</li>
+        <li><a href="api/diode.model.html#diode.model.MatmulTimingModel.__init__">(diode.model.MatmulTimingModel method)</a>
+</li>
+        <li><a href="api/diode.model.html#diode.model.model_wrapper.ModelWrapper.__init__">(diode.model.model_wrapper.ModelWrapper method)</a>
+</li>
+        <li><a href="api/diode.model.html#diode.model.ModelWrapper.__init__">(diode.model.ModelWrapper method)</a>
 </li>
         <li><a href="api/diode.types.html#diode.types.json_serializable.JSONSerializable.__init__">(diode.types.json_serializable.JSONSerializable method)</a>
 </li>
@@ -244,6 +255,8 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/diode.model.html#diode.model.directory_dataset_loader.DirectoryMatmulDataset.configs">configs (diode.model.directory_dataset_loader.DirectoryMatmulDataset property)</a>
+</li>
       <li><a href="api/diode.collection.html#diode.collection.data_collection_utils.convert_json_to_msgpack">convert_json_to_msgpack() (in module diode.collection.data_collection_utils)</a>
 </li>
       <li><a href="api/diode.types.html#diode.types.kernel_lut.convert_triton_configs_to_gemm_configs">convert_triton_configs_to_gemm_configs() (in module diode.types.kernel_lut)</a>
@@ -268,8 +281,14 @@
 </li>
       <li><a href="api/diode.types.html#diode.types.matmul_dataset.DatasetSolution">DatasetSolution (class in diode.types.matmul_dataset)</a>
 </li>
-      <li><a href="api/diode.model.html#diode.model.matmul_timing_model.DeepMatmulTimingModel">DeepMatmulTimingModel (class in diode.model.matmul_timing_model)</a>
+      <li><a href="api/diode.model.html#diode.model.ModelWrapper.decode">decode() (diode.model.ModelWrapper method)</a>
 </li>
+      <li><a href="api/diode.model.html#diode.model.DeepMatmulTimingModel">DeepMatmulTimingModel (class in diode.model)</a>
+
+      <ul>
+        <li><a href="api/diode.model.html#diode.model.matmul_timing_model.DeepMatmulTimingModel">(class in diode.model.matmul_timing_model)</a>
+</li>
+      </ul></li>
       <li><a href="api/diode.types.html#diode.types.matmul_dataset.Dataset.deserialize">deserialize() (diode.types.matmul_dataset.Dataset class method)</a>
 
       <ul>
@@ -333,6 +352,8 @@
         <li><a href="api/diode.model.html#module-diode.model.matmul_dataset_loader">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     diode.model.matmul_model_config
 
@@ -340,8 +361,6 @@
         <li><a href="api/diode.model.html#module-diode.model.matmul_model_config">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     diode.model.matmul_model_trainer
 
@@ -436,6 +455,10 @@
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/diode.model.html#diode.model.ModelWrapper.encode">encode() (diode.model.ModelWrapper method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/diode.types.html#diode.types.matmul_types.TritonGEMMConfig.EVEN_K">EVEN_K (diode.types.matmul_types.TritonGEMMConfig attribute)</a>
 </li>
   </ul></td>
@@ -446,12 +469,18 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/diode.types.html#diode.types.matmul_types.Table.filter">filter() (diode.types.matmul_types.Table method)</a>
 </li>
-      <li><a href="api/diode.model.html#diode.model.matmul_timing_model.DeepMatmulTimingModel.forward">forward() (diode.model.matmul_timing_model.DeepMatmulTimingModel method)</a>
+      <li><a href="api/diode.model.html#diode.model.DeepMatmulTimingModel.forward">forward() (diode.model.DeepMatmulTimingModel method)</a>
 
       <ul>
+        <li><a href="api/diode.model.html#diode.model.matmul_timing_model.DeepMatmulTimingModel.forward">(diode.model.matmul_timing_model.DeepMatmulTimingModel method)</a>
+</li>
         <li><a href="api/diode.model.html#diode.model.matmul_timing_model.MatmulTimingModel.forward">(diode.model.matmul_timing_model.MatmulTimingModel method)</a>
 </li>
         <li><a href="api/diode.model.html#diode.model.matmul_timing_model.ResidualBlock.forward">(diode.model.matmul_timing_model.ResidualBlock method)</a>
+</li>
+        <li><a href="api/diode.model.html#diode.model.MatmulModelV1.forward">(diode.model.MatmulModelV1 method)</a>
+</li>
+        <li><a href="api/diode.model.html#diode.model.MatmulTimingModel.forward">(diode.model.MatmulTimingModel method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -523,6 +552,18 @@
   </ul></td>
 </tr></table>
 
+<h2 id="I">I</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/diode.model.html#diode.model.ModelWrapper.inference">inference() (diode.model.ModelWrapper method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/diode.model.html#diode.model.init_model_weights">init_model_weights() (in module diode.model)</a>
+</li>
+  </ul></td>
+</tr></table>
+
 <h2 id="J">J</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -548,20 +589,30 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/diode.model.html#diode.model.matmul_model_config.MatmulModelConfig.learning_rate">learning_rate (diode.model.matmul_model_config.MatmulModelConfig attribute)</a>
 </li>
-      <li><a href="api/diode.model.html#diode.model.model_wrapper.list_available_models">list_available_models() (in module diode.model.model_wrapper)</a>
-</li>
-      <li><a href="api/diode.model.html#diode.model.matmul_model_config.MatmulModelConfig.load">load() (diode.model.matmul_model_config.MatmulModelConfig class method)</a>
+      <li><a href="api/diode.model.html#diode.model.model_wrapper.ModelWrapper.list_available_models">list_available_models() (diode.model.model_wrapper.ModelWrapper static method)</a>
 
       <ul>
+        <li><a href="api/diode.model.html#diode.model.model_wrapper.list_available_models">(in module diode.model.model_wrapper)</a>
+</li>
+      </ul></li>
+      <li><a href="api/diode.model.html#diode.model.DeepMatmulTimingModel.load">load() (diode.model.DeepMatmulTimingModel class method)</a>
+
+      <ul>
+        <li><a href="api/diode.model.html#diode.model.matmul_model_config.MatmulModelConfig.load">(diode.model.matmul_model_config.MatmulModelConfig class method)</a>
+</li>
         <li><a href="api/diode.model.html#diode.model.matmul_timing_model.DeepMatmulTimingModel.load">(diode.model.matmul_timing_model.DeepMatmulTimingModel class method)</a>
 </li>
         <li><a href="api/diode.model.html#diode.model.matmul_timing_model.MatmulTimingModel.load">(diode.model.matmul_timing_model.MatmulTimingModel class method)</a>
 </li>
-      </ul></li>
-      <li><a href="api/diode.collection.html#diode.collection.matmul_dataset_collector.MatmulDatasetCollector.load_from_file">load_from_file() (diode.collection.matmul_dataset_collector.MatmulDatasetCollector method)</a>
+        <li><a href="api/diode.model.html#diode.model.MatmulModelV1.load">(diode.model.MatmulModelV1 class method)</a>
 </li>
+        <li><a href="api/diode.model.html#diode.model.MatmulTimingModel.load">(diode.model.MatmulTimingModel class method)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/diode.collection.html#diode.collection.matmul_dataset_collector.MatmulDatasetCollector.load_from_file">load_from_file() (diode.collection.matmul_dataset_collector.MatmulDatasetCollector method)</a>
+</li>
       <li><a href="api/diode.model.html#diode.model.model_wrapper.load_model_config">load_model_config() (in module diode.model.model_wrapper)</a>
 </li>
       <li><a href="api/diode.model.html#diode.model.matmul_model_trainer.load_model_with_config">load_model_with_config() (in module diode.model.matmul_model_trainer)</a>
@@ -590,16 +641,26 @@
 </li>
       <li><a href="api/diode.model.html#diode.model.matmul_model_trainer.MatmulModelTrainer">MatmulModelTrainer (class in diode.model.matmul_model_trainer)</a>
 </li>
+      <li><a href="api/diode.model.html#diode.model.MatmulModelV1">MatmulModelV1 (class in diode.model)</a>
+</li>
       <li><a href="api/diode.model.html#diode.model.matmul_dataset_loader.MatmulTimingDataset">MatmulTimingDataset (class in diode.model.matmul_dataset_loader)</a>
 </li>
-      <li><a href="api/diode.model.html#diode.model.matmul_timing_model.MatmulTimingModel">MatmulTimingModel (class in diode.model.matmul_timing_model)</a>
+      <li><a href="api/diode.model.html#diode.model.MatmulTimingModel">MatmulTimingModel (class in diode.model)</a>
+
+      <ul>
+        <li><a href="api/diode.model.html#diode.model.matmul_timing_model.MatmulTimingModel">(class in diode.model.matmul_timing_model)</a>
 </li>
+      </ul></li>
       <li><a href="api/diode.types.html#diode.types.matmul_types.MMShape">MMShape (class in diode.types.matmul_types)</a>
 </li>
       <li><a href="api/diode.model.html#diode.model.matmul_model_config.MatmulModelConfig.model_type">model_type (diode.model.matmul_model_config.MatmulModelConfig attribute)</a>
 </li>
-      <li><a href="api/diode.model.html#diode.model.model_wrapper.ModelWrapper">ModelWrapper() (in module diode.model.model_wrapper)</a>
+      <li><a href="api/diode.model.html#diode.model.ModelWrapper">ModelWrapper (class in diode.model)</a>
+
+      <ul>
+        <li><a href="api/diode.model.html#diode.model.model_wrapper.ModelWrapper">(class in diode.model.model_wrapper)</a>
 </li>
+      </ul></li>
       <li>
     module
 
@@ -655,10 +716,12 @@
 </li>
       <li><a href="api/diode.types.html#diode.types.matmul_types.TritonGEMMConfig.name">name (diode.types.matmul_types.TritonGEMMConfig attribute)</a>
 </li>
-      <li><a href="api/diode.model.html#diode.model.matmul_model_config.MatmulModelConfig.num_epochs">num_epochs (diode.model.matmul_model_config.MatmulModelConfig attribute)</a>
+      <li><a href="api/diode.model.html#diode.model.NeuralNetwork">NeuralNetwork (in module diode.model)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/diode.model.html#diode.model.matmul_model_config.MatmulModelConfig.num_epochs">num_epochs (diode.model.matmul_model_config.MatmulModelConfig attribute)</a>
+</li>
       <li><a href="api/diode.model.html#diode.model.matmul_model_config.MatmulModelConfig.num_layers">num_layers (diode.model.matmul_model_config.MatmulModelConfig attribute)</a>
 </li>
       <li><a href="api/diode.types.html#diode.types.matmul_types.TritonGEMMConfig.num_stages">num_stages (diode.types.matmul_types.TritonGEMMConfig attribute)</a>
@@ -706,6 +769,8 @@
       <ul>
         <li><a href="api/diode.types.html#diode.types.matmul_types.MMShape.parse">(diode.types.matmul_types.MMShape class method)</a>
 </li>
+        <li><a href="api/diode.types.html#diode.types.matmul_types.Solution.parse">(diode.types.matmul_types.Solution class method)</a>
+</li>
         <li><a href="api/diode.types.html#diode.types.matmul_types.TritonGEMMConfig.parse">(diode.types.matmul_types.TritonGEMMConfig class method)</a>
 </li>
       </ul></li>
@@ -718,7 +783,11 @@
       <li><a href="api/diode.utils.html#diode.utils.visualization_utils.plot_training_history">plot_training_history() (in module diode.utils.visualization_utils)</a>
 </li>
       <li><a href="api/diode.model.html#diode.model.matmul_model_trainer.MatmulModelTrainer.predict">predict() (diode.model.matmul_model_trainer.MatmulModelTrainer method)</a>
+
+      <ul>
+        <li><a href="api/diode.model.html#diode.model.model_wrapper.ModelWrapper.predict">(diode.model.model_wrapper.ModelWrapper method)</a>
 </li>
+      </ul></li>
       <li><a href="api/diode.utils.html#diode.utils.dataset_utils.print_dataset_statistics">print_dataset_statistics() (in module diode.utils.dataset_utils)</a>
 </li>
       <li><a href="api/diode.model.html#diode.model.directory_dataset_loader.DirectoryMatmulDataset.problem_feature_dim">problem_feature_dim (diode.model.directory_dataset_loader.DirectoryMatmulDataset property)</a>
@@ -753,14 +822,22 @@
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/diode.model.html#diode.model.matmul_model_config.MatmulModelConfig.save">save() (diode.model.matmul_model_config.MatmulModelConfig method)</a>
+      <li><a href="api/diode.model.html#diode.model.DeepMatmulTimingModel.save">save() (diode.model.DeepMatmulTimingModel method)</a>
 
       <ul>
+        <li><a href="api/diode.model.html#diode.model.matmul_model_config.MatmulModelConfig.save">(diode.model.matmul_model_config.MatmulModelConfig method)</a>
+</li>
         <li><a href="api/diode.model.html#diode.model.matmul_timing_model.DeepMatmulTimingModel.save">(diode.model.matmul_timing_model.DeepMatmulTimingModel method)</a>
 </li>
         <li><a href="api/diode.model.html#diode.model.matmul_timing_model.MatmulTimingModel.save">(diode.model.matmul_timing_model.MatmulTimingModel method)</a>
 </li>
+        <li><a href="api/diode.model.html#diode.model.MatmulModelV1.save">(diode.model.MatmulModelV1 method)</a>
+</li>
+        <li><a href="api/diode.model.html#diode.model.MatmulTimingModel.save">(diode.model.MatmulTimingModel method)</a>
+</li>
       </ul></li>
+      <li><a href="api/diode.model.html#diode.model.save_model_checkpoint">save_model_checkpoint() (in module diode.model)</a>
+</li>
       <li><a href="api/diode.model.html#diode.model.matmul_model_trainer.save_model_with_config">save_model_with_config() (in module diode.model.matmul_model_trainer)</a>
 </li>
       <li><a href="api/diode.collection.html#diode.collection.matmul_dataset_collector.MatmulDatasetCollector.save_table_to_file">save_table_to_file() (diode.collection.matmul_dataset_collector.MatmulDatasetCollector method)</a>
@@ -769,6 +846,8 @@
 </li>
       <li><a href="api/diode.model.html#diode.model.matmul_model_config.MatmulModelConfig.seed">seed (diode.model.matmul_model_config.MatmulModelConfig attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/diode.types.html#diode.types.matmul_dataset.Dataset.serialize">serialize() (diode.types.matmul_dataset.Dataset method)</a>
 
       <ul>
@@ -779,8 +858,6 @@
         <li><a href="api/diode.types.html#diode.types.matmul_types.Table.serialize">(diode.types.matmul_types.Table method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/diode.types.html#diode.types.json_serializable.JSONSerializable.serialize_msgpack">serialize_msgpack() (diode.types.json_serializable.JSONSerializable method)</a>
 </li>
       <li><a href="api/diode.types.html#diode.types.matmul_types.ShapeSet.shapes">shapes (diode.types.matmul_types.ShapeSet attribute)</a>
@@ -853,10 +930,16 @@
 <h2 id="V">V</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/diode.model.html#diode.model.model_utils.validate_max_autotune">validate_max_autotune() (in module diode.model.model_utils)</a>
+</li>
       <li><a href="api/diode.model.html#diode.model.model_utils.validate_model">validate_model() (in module diode.model.model_utils)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/diode.model.html#diode.model.ModelWrapper.vec">vec() (diode.model.ModelWrapper method)</a>
+</li>
+      <li><a href="api/diode.model.html#diode.model.ModelWrapper.vec_params">vec_params() (diode.model.ModelWrapper static method)</a>
+</li>
       <li><a href="api/diode.types.html#diode.types.json_serializable.JSONSerializable.version">version (diode.types.json_serializable.JSONSerializable attribute)</a>
 </li>
   </ul></td>
@@ -880,7 +963,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2023, Author Name.
-      <span class="lastupdated">Last updated on Sep 04, 2025.
+      <span class="lastupdated">Last updated on Sep 17, 2025.
       </span></p>
   </div>
 

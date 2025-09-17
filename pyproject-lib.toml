@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 # Configuration for torch-diode-lib package (includes all code but does NOT self-register to inductor)
 [project]
 name = "torch-diode-lib"
-version = "0.2.0"
+version = "0.1.0"
 description = "A toolkit for matrix multiplication data collection, model training, and evaluation (library version without PyTorch Inductor auto-registration)"
 readme = "README.md"
 license = "MIT"
@@ -35,7 +35,7 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/exclamaforte/diode"
 Repository = "https://github.com/exclamaforte/diode.git"
-Documentation = "https://github.com/exclamaforte/diode/tree/main/examples#readme"
+Documentation = "https://exclamaforte.github.io/diode/"
 "Bug Tracker" = "https://github.com/exclamaforte/diode/issues"
 
 [project.optional-dependencies]
@@ -67,11 +67,11 @@ lint = [
 ]
 
 [tool.setuptools]
-packages = {find = {include = ["diode", "diode.*"], exclude = ["tests", "tests.*", "diode_models", "diode_models.*", "diode_datasets", "diode_datasets.*", "diode_common", "diode_common.*"]}}
+packages = {find = {include = ["diode", "diode.*"], exclude = ["tests", "tests.*"]}}
 include-package-data = true
 
 [tool.setuptools.package-data]
-diode = ["data/*.pt", "trained_models/**/*.pt", "trained_models/**/*.json"]
+diode = ["trained_models/**/*.pt", "trained_models/**/*.json"]
 
 [tool.ruff]
 target-version = "py38"

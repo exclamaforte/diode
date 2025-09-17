@@ -1,0 +1,620 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>diode.model.matmul_model_v1 &mdash; diode 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../../_static/copybutton.js?v=f281be69"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            diode
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../torch_compile_integration.html">Accelerating torch.compile with Diode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started.html">Getting Started with Training Models with Diode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../genindex.html">Index</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">diode</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">diode.model.matmul_model_v1</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for diode.model.matmul_model_v1</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Neural network model for predicting matrix multiplication timing (V1).</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="c1"># from pyre_extensions import assert_is_instance</span>
+<span class="c1"># Fallback for environments without pyre_extensions</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pyre_extensions</span><span class="w"> </span><span class="kn">import</span> <span class="n">assert_is_instance</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">assert_is_instance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">expected_type</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fallback implementation for assert_is_instance when pyre_extensions is not available.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">expected_type</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Expected </span><span class="si">{</span><span class="n">expected_type</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">obj</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.model_utils_common</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">init_model_weights</span><span class="p">,</span>
+    <span class="n">save_model_checkpoint</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="MatmulModelV1">
+<a class="viewcode-back" href="../../../api/diode.model.html#diode.model.MatmulModelV1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MatmulModelV1</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Neural network model for predicting matrix multiplication timing (V1).</span>
+
+<span class="sd">    This model is designed for modeling runtime when there is a constant overhead of</span>
+<span class="sd">    `kernel_overhead` and the non-overhead runtime tends to be easier to model</span>
+<span class="sd">    on a log scale.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="MatmulModelV1.__init__">
+<a class="viewcode-back" href="../../../api/diode.model.html#diode.model.MatmulModelV1.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">problem_feature_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">config_feature_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">hidden_layer_widths</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">],</span>
+        <span class="n">kernel_overhead</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.00541</span><span class="p">,</span>
+        <span class="n">dropout_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the model.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            problem_feature_dim: Dimension of the problem features</span>
+<span class="sd">            config_feature_dim: Dimension of the configuration features</span>
+<span class="sd">            hidden_layer_widths: Hidden layer widths</span>
+<span class="sd">            kernel_overhead: Overhead of the kernel, assumed to be constant. The</span>
+<span class="sd">                default of 0.00541 is the lowest runtime seen in Triton H100 data.</span>
+<span class="sd">            dropout_rate: Dropout rate for regularization (kept for interface compatibility)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">problem_feature_dim</span> <span class="o">=</span> <span class="n">problem_feature_dim</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config_feature_dim</span> <span class="o">=</span> <span class="n">config_feature_dim</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">input_dim</span> <span class="o">=</span> <span class="n">problem_feature_dim</span> <span class="o">+</span> <span class="n">config_feature_dim</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hidden_layer_widths</span> <span class="o">=</span> <span class="n">hidden_layer_widths</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kernel_overhead</span> <span class="o">=</span> <span class="n">kernel_overhead</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dropout_rate</span> <span class="o">=</span> <span class="n">dropout_rate</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_kernel_overhead</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">kernel_overhead</span><span class="p">)</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+
+        <span class="n">all_layer_widths</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">hidden_layer_widths</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">all_input_widths</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">input_dim</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">hidden_layer_widths</span><span class="p">)</span>
+        <span class="n">layers</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">n_in</span><span class="p">,</span> <span class="n">n_out</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">all_input_widths</span><span class="p">,</span> <span class="n">all_layer_widths</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">n_in</span><span class="p">,</span> <span class="n">n_out</span><span class="p">))</span>
+            <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm1d</span><span class="p">(</span><span class="n">n_out</span><span class="p">))</span>
+            <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">linear_relu_stack</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="o">*</span><span class="n">layers</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
+
+        <span class="c1"># Initialize weights to avoid NaN issues</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_weights</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_init_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize weights to avoid NaN issues during training.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">init_model_weights</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MatmulModelV1.forward">
+<a class="viewcode-back" href="../../../api/diode.model.html#diode.model.MatmulModelV1.forward">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">problem_features</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">config_features</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Forward pass of the model.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            problem_features: Tensor of shape (batch_size, problem_feature_dim)</span>
+<span class="sd">            config_features: Tensor of shape (batch_size, config_feature_dim)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tensor of shape (batch_size, 1) containing the predicted log execution time</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Concatenate the features</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">problem_features</span><span class="p">,</span> <span class="n">config_features</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Handle batch size of 1 by temporarily switching to eval mode</span>
+        <span class="n">original_training</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">training</span>
+        <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">training</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+          
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Forward pass through the model</span>
+            <span class="n">log_base_pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">linear_relu_stack</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">log_overhead_tsr</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span>
+                <span class="nb">input</span><span class="o">=</span><span class="n">log_base_pred</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">log_kernel_overhead</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">logsumexp</span><span class="p">(</span>
+                <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">log_base_pred</span><span class="p">,</span> <span class="n">log_overhead_tsr</span><span class="p">],</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span>
+            <span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="c1"># Restore original training mode</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">original_training</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MatmulModelV1.save">
+<a class="viewcode-back" href="../../../api/diode.model.html#diode.model.MatmulModelV1.save">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save the model to a file.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            path: Path to save the model to</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">checkpoint_data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;problem_feature_dim&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">problem_feature_dim</span><span class="p">,</span>
+            <span class="s2">&quot;config_feature_dim&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config_feature_dim</span><span class="p">,</span>
+            <span class="s2">&quot;hidden_layer_widths&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_layer_widths</span><span class="p">,</span>
+            <span class="s2">&quot;kernel_overhead&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel_overhead</span><span class="p">,</span>
+            <span class="s2">&quot;dropout_rate&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dropout_rate</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">save_model_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint_data</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MatmulModelV1.load">
+<a class="viewcode-back" href="../../../api/diode.model.html#diode.model.MatmulModelV1.load">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;cpu&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;MatmulModelV1&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load a model from a file.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            path: Path to load the model from</span>
+<span class="sd">            device: Device to load the model to</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The loaded model</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Load the model</span>
+        <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+
+        <span class="c1"># Create the model</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">problem_feature_dim</span><span class="o">=</span><span class="n">checkpoint</span><span class="p">[</span><span class="s2">&quot;problem_feature_dim&quot;</span><span class="p">],</span>
+            <span class="n">config_feature_dim</span><span class="o">=</span><span class="n">checkpoint</span><span class="p">[</span><span class="s2">&quot;config_feature_dim&quot;</span><span class="p">],</span>
+            <span class="n">hidden_layer_widths</span><span class="o">=</span><span class="n">checkpoint</span><span class="p">[</span><span class="s2">&quot;hidden_layer_widths&quot;</span><span class="p">],</span>
+            <span class="n">kernel_overhead</span><span class="o">=</span><span class="n">checkpoint</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;kernel_overhead&quot;</span><span class="p">,</span> <span class="mf">0.00541</span><span class="p">),</span>
+            <span class="n">dropout_rate</span><span class="o">=</span><span class="n">checkpoint</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dropout_rate&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Load the state dict</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s2">&quot;model_state_dict&quot;</span><span class="p">])</span>
+
+        <span class="c1"># Move the model to the device</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model loaded from </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">model</span></div>
+</div>
+
+
+
+<span class="c1"># Legacy class name for backwards compatibility</span>
+<span class="n">NeuralNetwork</span> <span class="o">=</span> <span class="n">MatmulModelV1</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_nn_x</span><span class="p">(</span>
+    <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">mean</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">std</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Standardize the data and convert it to a tensor.&quot;&quot;&quot;</span>
+    <span class="n">x_df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span>
+        <span class="p">[</span>
+            <span class="s2">&quot;dtype_size&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;dim_m&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;dim_n&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;dim_k&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;total_gb&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;total_gflop&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;flops_per_byte&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;config_block_k&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;config_block_m&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;config_block_n&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;config_num_stages&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;config_num_warps&quot;</span><span class="p">,</span>
+        <span class="p">]</span>
+    <span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">x_df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="n">x_df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">x_df</span><span class="p">[</span><span class="n">col</span><span class="p">])</span>
+
+    <span class="n">x_tens</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">x_df</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">())</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="s2">&quot;cuda&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">mean</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">mean</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span>
+            <span class="n">assert_is_instance</span><span class="p">(</span><span class="n">x_df</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="s2">&quot;cuda&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">std</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">std</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">assert_is_instance</span><span class="p">(</span><span class="n">x_df</span><span class="o">.</span><span class="n">std</span><span class="p">(),</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">())</span><span class="o">.</span><span class="n">to</span><span class="p">(</span>
+            <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cuda&quot;</span>
+        <span class="p">)</span>
+    <span class="n">x_tens</span> <span class="o">-=</span> <span class="n">mean</span>
+    <span class="n">x_tens</span> <span class="o">/=</span> <span class="n">std</span>
+    <span class="k">return</span> <span class="n">x_tens</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> <span class="n">mean</span><span class="p">,</span> <span class="n">std</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_total_gb_feature</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the total gigabytes feature from the dataframe.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        df: DataFrame containing the necessary columns for calculation</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        Series containing the calculated total gigabytes</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Calculate memory access in bytes</span>
+    <span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">k</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;dim_m&quot;</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;dim_n&quot;</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;dim_k&quot;</span><span class="p">]</span>
+    <span class="n">dtype_size</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;dtype_size&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="mi">8</span>  <span class="c1"># Convert bits to bytes</span>
+
+    <span class="c1"># A: m×k, B: k×n, C: m×n</span>
+    <span class="k">return</span> <span class="p">((</span><span class="n">m</span> <span class="o">*</span> <span class="n">k</span> <span class="o">+</span> <span class="n">k</span> <span class="o">*</span> <span class="n">n</span> <span class="o">+</span> <span class="n">m</span> <span class="o">*</span> <span class="n">n</span><span class="p">)</span> <span class="o">*</span> <span class="n">dtype_size</span><span class="p">)</span> <span class="o">/</span> <span class="mf">1e9</span>  <span class="c1"># Convert to GB</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_total_gflop_feature</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the total gigaflops feature from the dataframe.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        df: DataFrame containing the necessary columns for calculation</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        Series containing the calculated total gigaflops</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># For matrix multiplication, flops = 2 * m * n * k</span>
+    <span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">k</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;dim_m&quot;</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;dim_n&quot;</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;dim_k&quot;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">m</span> <span class="o">*</span> <span class="n">n</span> <span class="o">*</span> <span class="n">k</span><span class="p">)</span> <span class="o">/</span> <span class="mf">1e9</span>  <span class="c1"># Convert to GFLOP</span>
+
+
+<div class="viewcode-block" id="ModelWrapper">
+<a class="viewcode-back" href="../../../api/diode.model.html#diode.model.ModelWrapper">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ModelWrapper</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Wrapper for the neural network model that handles encoding inputs and decoding outputs.</span>
+<span class="sd">    This class provides methods to prepare inputs for the model and interpret its outputs,</span>
+<span class="sd">    handling the necessary standardization and feature engineering.</span>
+
+<span class="sd">    Note: This is a legacy class maintained for backwards compatibility.</span>
+<span class="sd">    For new code, consider using MatmulModelV1 directly.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ModelWrapper.__init__">
+<a class="viewcode-back" href="../../../api/diode.model.html#diode.model.ModelWrapper.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the model wrapper with the pre-trained model and standardization parameters.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            model_path: Path to the model file. If None, uses default parameters.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">model_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Load from file</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">MatmulModelV1</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">model_path</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Use default configuration for backwards compatibility</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">MatmulModelV1</span><span class="p">(</span>
+                <span class="n">problem_feature_dim</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>  <span class="c1"># dtype_size, dim_m, dim_n, dim_k, total_gb, total_gflop, flops_per_byte</span>
+                <span class="n">config_feature_dim</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>  <span class="c1"># config_block_k, config_block_m, config_block_n, config_num_stages, config_num_warps</span>
+                <span class="n">hidden_layer_widths</span><span class="o">=</span><span class="p">[</span><span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">],</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+
+        <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;NN Kernel Prediction Model loaded.&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Took: </span><span class="si">%s</span><span class="s2"> seconds&quot;</span><span class="p">,</span> <span class="n">end_time</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">)</span>
+
+        <span class="c1"># Mean values for standardizing input features</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mean_for_standardization</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="mf">2.78275084</span><span class="p">,</span>
+                <span class="mf">8.23996746</span><span class="p">,</span>
+                <span class="mf">7.27791873</span><span class="p">,</span>
+                <span class="mf">7.92035942</span><span class="p">,</span>
+                <span class="o">-</span><span class="mf">2.39558163</span><span class="p">,</span>
+                <span class="mf">3.40679233</span><span class="p">,</span>
+                <span class="mf">5.80237395</span><span class="p">,</span>
+                <span class="mf">3.95781827</span><span class="p">,</span>
+                <span class="mf">4.19478321</span><span class="p">,</span>
+                <span class="mf">4.19098234</span><span class="p">,</span>
+                <span class="mf">0.9045909</span><span class="p">,</span>
+                <span class="mf">1.28331208</span><span class="p">,</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Standard deviation values for standardizing input features</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">std_for_standardization</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="mf">0.08322756</span><span class="p">,</span>
+                <span class="mf">2.31893439</span><span class="p">,</span>
+                <span class="mf">1.65605574</span><span class="p">,</span>
+                <span class="mf">2.15447078</span><span class="p">,</span>
+                <span class="mf">2.19682881</span><span class="p">,</span>
+                <span class="mf">2.99600806</span><span class="p">,</span>
+                <span class="mf">1.24328795</span><span class="p">,</span>
+                <span class="mf">0.92352521</span><span class="p">,</span>
+                <span class="mf">0.93849802</span><span class="p">,</span>
+                <span class="mf">0.93872011</span><span class="p">,</span>
+                <span class="mf">0.57455891</span><span class="p">,</span>
+                <span class="mf">0.5837217</span><span class="p">,</span>
+            <span class="p">]</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ModelWrapper.vec">
+<a class="viewcode-back" href="../../../api/diode.model.html#diode.model.ModelWrapper.vec">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">vec</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">m</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dsize</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert matrix multiplication parameters and config to a feature vector.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            m: First dimension of matrix multiplication</span>
+<span class="sd">            n: Second dimension of matrix multiplication</span>
+<span class="sd">            k: Third dimension of matrix multiplication</span>
+<span class="sd">            dsize: Data size in bits (e.g., 16 for float16, 32 for float32)</span>
+<span class="sd">            config: Configuration object containing kernel parameters</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple containing the extracted features</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">all_kwargs</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="p">),</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">k</span><span class="p">),</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">dsize</span><span class="p">),</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;BLOCK_M&quot;</span><span class="p">]),</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;BLOCK_N&quot;</span><span class="p">]),</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;BLOCK_K&quot;</span><span class="p">]),</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;num_stages&quot;</span><span class="p">]),</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;num_warps&quot;</span><span class="p">]),</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ModelWrapper.vec_params">
+<a class="viewcode-back" href="../../../api/diode.model.html#diode.model.ModelWrapper.vec_params">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">vec_params</span><span class="p">(</span>
+        <span class="n">m</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">dsize</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>  <span class="c1"># TritonGEMMConfig type hint removed for compatibility</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert matrix multiplication parameters and config to a feature vector.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            m: First dimension of matrix multiplication</span>
+<span class="sd">            n: Second dimension of matrix multiplication</span>
+<span class="sd">            k: Third dimension of matrix multiplication</span>
+<span class="sd">            dsize: Data size in bits (e.g., 16 for float16, 32 for float32)</span>
+<span class="sd">            params: Configuration object containing kernel parameters</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple containing the extracted features</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="p">),</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="p">),</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">k</span><span class="p">),</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">dsize</span><span class="p">),</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">block_m</span><span class="p">),</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">block_n</span><span class="p">),</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">block_k</span><span class="p">),</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">num_stages</span><span class="p">),</span>
+            <span class="nb">int</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">num_warps</span><span class="p">),</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ModelWrapper.encode">
+<a class="viewcode-back" href="../../../api/diode.model.html#diode.model.ModelWrapper.encode">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">encode</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">m</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dtype</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">configs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Encode the matrix multiplication parameters and configs as input tensors for the model.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            m: First dimension of matrix multiplication</span>
+<span class="sd">            n: Second dimension of matrix multiplication</span>
+<span class="sd">            k: Third dimension of matrix multiplication</span>
+<span class="sd">            dtype: Data type of the matrices</span>
+<span class="sd">            configs: List of configuration objects</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Tensor containing the encoded inputs ready for the model</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the dtype is not supported</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Determine data size based on dtype</span>
+        <span class="k">if</span> <span class="n">dtype</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">bfloat16</span> <span class="ow">or</span> <span class="n">dtype</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">float16</span><span class="p">:</span>
+            <span class="n">dsize</span> <span class="o">=</span> <span class="mi">16</span>
+        <span class="k">elif</span> <span class="n">dtype</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">:</span>
+            <span class="n">dsize</span> <span class="o">=</span> <span class="mi">32</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported dtype: </span><span class="si">{</span><span class="n">dtype</span><span class="si">}</span><span class="s2">. Add support for this dtype.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Create feature dataframe</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="n">columns</span><span class="o">=</span><span class="p">[</span>
+                <span class="s2">&quot;dim_m&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;dim_n&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;dim_k&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;dtype_size&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;config_block_m&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;config_block_n&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;config_block_k&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;config_num_stages&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;config_num_warps&quot;</span><span class="p">,</span>
+            <span class="p">],</span>
+            <span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">vec</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">dsize</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span> <span class="k">for</span> <span class="n">config</span> <span class="ow">in</span> <span class="n">configs</span><span class="p">],</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Calculate derived features</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;total_gb&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_total_gb_feature</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="n">df</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;total_gflop&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_total_gflop_feature</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="n">df</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;flops_per_byte&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;total_gflop&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;total_gb&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Reorder columns to match expected model input</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span>
+            <span class="p">[</span>
+                <span class="s2">&quot;dtype_size&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;dim_m&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;dim_n&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;dim_k&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;total_gb&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;total_gflop&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;flops_per_byte&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;config_block_k&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;config_block_m&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;config_block_n&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;config_num_stages&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;config_num_warps&quot;</span><span class="p">,</span>
+            <span class="p">]</span>
+        <span class="p">]</span>
+
+        <span class="c1"># Standardize the input</span>
+        <span class="n">inp</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">get_nn_x</span><span class="p">(</span>
+            <span class="n">df</span><span class="o">=</span><span class="n">df</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mean_for_standardization</span><span class="p">,</span> <span class="n">std</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">std_for_standardization</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">inp</span></div>
+
+
+<div class="viewcode-block" id="ModelWrapper.inference">
+<a class="viewcode-back" href="../../../api/diode.model.html#diode.model.ModelWrapper.inference">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">inference</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inp_tensor</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run inference on the model with the given input tensor.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            inp_tensor: Input tensor for the model</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Output tensor from the model</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="c1"># Split the tensor into problem and config features</span>
+            <span class="n">problem_features</span> <span class="o">=</span> <span class="n">inp_tensor</span><span class="p">[</span>
+                <span class="p">:,</span> <span class="p">:</span><span class="mi">7</span>
+            <span class="p">]</span>  <span class="c1"># dtype_size, dim_m, dim_n, dim_k, total_gb, total_gflop, flops_per_byte</span>
+            <span class="n">config_features</span> <span class="o">=</span> <span class="n">inp_tensor</span><span class="p">[:,</span> <span class="mi">7</span><span class="p">:]</span>  <span class="c1"># config features</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">problem_features</span><span class="p">,</span> <span class="n">config_features</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ModelWrapper.decode">
+<a class="viewcode-back" href="../../../api/diode.model.html#diode.model.ModelWrapper.decode">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">decode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ret_tensor</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Decode the model output tensor.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            ret_tensor: Output tensor from the model</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            Decoded tensor representing runtime predictions</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ret_tensor</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Author Name.
+      <span class="lastupdated">Last updated on Sep 17, 2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
