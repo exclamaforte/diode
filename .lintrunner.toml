@@ -40,7 +40,7 @@ include_patterns = [
     'diode_common/**/*.py',
     'diode_common/**/*.pyi',
     'tests/**/*.py',
-    'examples/**/*.py',
+    'workflows/**/*.py',
 ]
 command = [
     'python3',
@@ -172,7 +172,7 @@ include_patterns = [
 exclude_patterns = [
     'tools/**',
     'tests/**',
-    'examples/**',
+    'workflows/**',
 ]
 command = [
     'python3',

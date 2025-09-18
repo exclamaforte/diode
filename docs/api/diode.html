@@ -58,7 +58,13 @@
 <li class="toctree-l4"><a class="reference internal" href="diode.utils.html">diode.utils package</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#module-diode">Module contents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-diode">Module contents</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#diode.get_import_status"><code class="docutils literal notranslate"><span class="pre">get_import_status()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#diode.get_integration_info"><code class="docutils literal notranslate"><span class="pre">get_integration_info()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#diode.get_model_info"><code class="docutils literal notranslate"><span class="pre">get_model_info()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#diode.get_model_registry"><code class="docutils literal notranslate"><span class="pre">get_model_registry()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -99,14 +105,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="diode.collection.html">diode.collection package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="diode.collection.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="diode.collection.html#module-diode.collection.data_collection_utils">diode.collection.data_collection_utils module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="diode.collection.html#diode.collection.data_collection_utils.run_matrix_multiplications"><code class="docutils literal notranslate"><span class="pre">run_matrix_multiplications()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="diode.collection.html#diode.collection.data_collection_utils.collect_data"><code class="docutils literal notranslate"><span class="pre">collect_data()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="diode.collection.html#diode.collection.data_collection_utils.create_validation_dataset"><code class="docutils literal notranslate"><span class="pre">create_validation_dataset()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="diode.collection.html#diode.collection.data_collection_utils.run_collector_example"><code class="docutils literal notranslate"><span class="pre">run_collector_example()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="diode.collection.html#diode.collection.data_collection_utils.convert_json_to_msgpack"><code class="docutils literal notranslate"><span class="pre">convert_json_to_msgpack()</span></code></a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="diode.collection.html#diode-collection-data-collection-utils-module">diode.collection.data_collection_utils module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="diode.collection.html#module-diode.collection.matmul_dataset_collector">diode.collection.matmul_dataset_collector module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="diode.collection.html#diode.collection.matmul_dataset_collector.CollectionMode"><code class="docutils literal notranslate"><span class="pre">CollectionMode</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="diode.collection.html#diode.collection.matmul_dataset_collector.CollectionMode.RANDOM"><code class="docutils literal notranslate"><span class="pre">CollectionMode.RANDOM</span></code></a></li>
@@ -138,12 +137,18 @@
 <li class="toctree-l2"><a class="reference internal" href="diode.model.html#module-diode.model.directory_dataset_loader">diode.model.directory_dataset_loader module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="diode.model.html#diode.model.directory_dataset_loader.DirectoryMatmulDataset"><code class="docutils literal notranslate"><span class="pre">DirectoryMatmulDataset</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.directory_dataset_loader.DirectoryMatmulDataset.__init__"><code class="docutils literal notranslate"><span class="pre">DirectoryMatmulDataset.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.directory_dataset_loader.DirectoryMatmulDataset.__len__"><code class="docutils literal notranslate"><span class="pre">DirectoryMatmulDataset.__len__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.directory_dataset_loader.DirectoryMatmulDataset.__getitem__"><code class="docutils literal notranslate"><span class="pre">DirectoryMatmulDataset.__getitem__()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.directory_dataset_loader.DirectoryMatmulDataset.problem_feature_dim"><code class="docutils literal notranslate"><span class="pre">DirectoryMatmulDataset.problem_feature_dim</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.directory_dataset_loader.DirectoryMatmulDataset.config_feature_dim"><code class="docutils literal notranslate"><span class="pre">DirectoryMatmulDataset.config_feature_dim</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.directory_dataset_loader.DirectoryMatmulDataset.configs"><code class="docutils literal notranslate"><span class="pre">DirectoryMatmulDataset.configs</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.directory_dataset_loader.DirectoryMatmulDataset.get_file_info"><code class="docutils literal notranslate"><span class="pre">DirectoryMatmulDataset.get_file_info()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="diode.model.html#diode.model.directory_dataset_loader.LazyDirectoryMatmulDataset"><code class="docutils literal notranslate"><span class="pre">LazyDirectoryMatmulDataset</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.directory_dataset_loader.LazyDirectoryMatmulDataset.__init__"><code class="docutils literal notranslate"><span class="pre">LazyDirectoryMatmulDataset.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.directory_dataset_loader.LazyDirectoryMatmulDataset.problem_feature_dim"><code class="docutils literal notranslate"><span class="pre">LazyDirectoryMatmulDataset.problem_feature_dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.directory_dataset_loader.LazyDirectoryMatmulDataset.config_feature_dim"><code class="docutils literal notranslate"><span class="pre">LazyDirectoryMatmulDataset.config_feature_dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.directory_dataset_loader.LazyDirectoryMatmulDataset.configs"><code class="docutils literal notranslate"><span class="pre">LazyDirectoryMatmulDataset.configs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="diode.model.html#diode.model.directory_dataset_loader.LazyDirectoryMatmulDataset.get_file_info"><code class="docutils literal notranslate"><span class="pre">LazyDirectoryMatmulDataset.get_file_info()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="diode.model.html#diode.model.directory_dataset_loader.create_directory_dataloaders"><code class="docutils literal notranslate"><span class="pre">create_directory_dataloaders()</span></code></a></li>
@@ -444,7 +449,86 @@
 </section>
 <section id="module-diode">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-diode" title="Link to this heading"></a></h2>
-<p>Framework for training ML heuristics in Torch.</p>
+<p>Framework for training ML diagnostics in Torch.</p>
+<p># Import and execute integration discovery and registration as side effects
+import logging</p>
+<p>logger = logging.getLogger(__name__)</p>
+<dl>
+<dt>try:</dt><dd><p># Attempt to import torch to check availability
+import torch</p>
+<p>logger.debug(“PyTorch detected, proceeding with integration discovery”)</p>
+<p># Import the discovery and registration system
+from diode.integration.base_integration import discover_and_register_integrations, integrate_all</p>
+<p># Auto-discover and register all available integrations
+discovery_results = discover_and_register_integrations()</p>
+<p># Execute all discovered integrations
+integration_results = integrate_all()</p>
+<p>logger.info(f”Auto-integration complete: {sum(integration_results.values())}/{len(integration_results)} integrations successful”)</p>
+</dd>
+<dt>except ImportError:</dt><dd><p>logger.debug(“PyTorch not available, skipping auto-integration”)</p>
+</dd>
+<dt>except Exception as e:</dt><dd><p>logger.warning(f”Auto-integration failed: {e}”)This import has several side-effects, each dependent on the success of the previous step:</p>
+</dd>
+</dl>
+<ol class="arabic simple">
+<li><p>Attempt to import <cite>torch</cite>.</p></li>
+<li><p>Register dummy models to the relevant <cite>torch.compile</cite> interfaces.</p></li>
+<li><p>For each registration that is successful, it will load the actual model and register it.</p></li>
+<li><p>Enable the configs in <cite>torch.compile</cite> that engage the models.</p></li>
+</ol>
+<dl class="py function">
+<dt class="sig sig-object py" id="diode.get_import_status">
+<span class="sig-prename descclassname"><span class="pre">diode.</span></span><span class="sig-name descname"><span class="pre">get_import_status</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/diode.html#get_import_status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diode.get_import_status" title="Link to this definition"></a></dt>
+<dd><p>Get the status of the torch-diode import process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary containing import status information</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="diode.get_integration_info">
+<span class="sig-prename descclassname"><span class="pre">diode.</span></span><span class="sig-name descname"><span class="pre">get_integration_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/diode.html#get_integration_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diode.get_integration_info" title="Link to this definition"></a></dt>
+<dd><p>Get detailed information about loaded integrations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]]</span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary with integration status, or None if integrations not attempted</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="diode.get_model_info">
+<span class="sig-prename descclassname"><span class="pre">diode.</span></span><span class="sig-name descname"><span class="pre">get_model_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/diode.html#get_model_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diode.get_model_info" title="Link to this definition"></a></dt>
+<dd><p>Get information about available and loaded models.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]]</span></p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary with model information, or None if not available</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="diode.get_model_registry">
+<span class="sig-prename descclassname"><span class="pre">diode.</span></span><span class="sig-name descname"><span class="pre">get_model_registry</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/diode/model_registry.html#get_model_registry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diode.get_model_registry" title="Link to this definition"></a></dt>
+<dd><p>Get the global model registry.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelRegistry</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 </section>
 
@@ -460,7 +544,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2023, Author Name.
-      <span class="lastupdated">Last updated on Sep 17, 2025.
+      <span class="lastupdated">Last updated on Sep 18, 2025.
       </span></p>
   </div>
 

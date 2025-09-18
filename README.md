@@ -3,13 +3,13 @@ Warning: code is in pre-Alpha
 
 <img width="718" height="571" alt="diode" src="https://github.com/user-attachments/assets/308cb05a-01d9-4fc4-9c03-7e13ade91475" />
 
-# diode
-`diode` is a framework that makes it easy to develop heuristics that plug into the external interfaces of `torch` and `torch.compile`. It allows users to both gather data from torch and train Machine Learning models on the gathered data.
+# torch-diode
+`torch-diode` is a library for programattically altering the performance-relevant decisions made by `torch.compile`. It makes it easy to gather data on the outcomes of decisions, and then train Machine Learning models on that data. It initially focuses on Matmul Kernel selection, but it will be expanded to other decisions in the future.
 
 ## Target Audience:
-- Hardware Vendors looking to optimize `torch` heuristics for their hardware.
-- OSS Contributors looking to add support for less popular hardware.
 - Developers looking to adapt the compilation of their model to their specific situation.
+- Hardware Vendors looking to optimize `torch.compile` heuristics for their hardware.
+- OSS Contributors looking to add support for less popular hardware.
 
 ## Features:
 - Pre-Trained Models: Profit from community efforts to gather data and train models.
@@ -17,56 +17,39 @@ Warning: code is in pre-Alpha
 - Stable Type Definitions: storing data from the external interfaces.
 - Model Training Code: Train ML models on the gathered data and contribute back to the `torch` community.
 
-## Common Herustic Types
-- ML Models: Collect and train on data directly from `torch`.
-- Custom Logic: Come with your own ideas/functions.
 
-## Featured Heruistics
-- Matmul Kernel Prediction: Predict the runtime of matmul kernel.
+## Featured Models
+- Matmul Kernel Prediction: Predict the runtime of matmul kernels. The results of this model are enabled in `fast-autotune`.
 
-## Model Organization
+## Option 1: Installation with Pre-Trained Models
 
-### Directory Structure
-Models are organized in a structured directory format:
+If you want to get access to the pre-trained performance models, as well as the libraries, install `torch-diode`:
 ```
-diode_models/diode_models/<heuristic>/<hardware>/model
+$ pip install torch-diode
 ```
-
-For example:
+And then import diode in python:
 ```
-diode_models/diode_models/matmul/nvidia-h100/matmul_nvidia_h100_deep.pt
+import diode
 ```
 
-## Get Started
+This import has several side-effects, each of which are dependent on the success of the previous step:
+1. Attempt to import `torch`.
+1. Register dummy models to the relevant `torch.compile` interfaces.
+1. For each registration that is successful, it will load the actual model and register it.
+1. Enable the configs in `torch.compile` that engage the models.
+## Option 2: Installation without Pre-Trained Models
 
-[The main entry point is in examples.](https://github.com/exclamaforte/diode/tree/main/examples#readme)
-## Interface Locations
-- _inductor/choices.py
-- _inductor/config.py
+`diode` requires nightly pytorch, or pytorch `2.9` or later.
 
-## Install
+For developers who don't want these side effects, simply installing `torch-diode-lib` will get access to the library.
 
-**⚠️ Important: PyTorch Nightly Required**
-This package requires PyTorch nightly builds (>=2.9.0.dev) due to its deep integration with PyTorch Inductor's evolving APIs.
-
-### Install PyTorch Nightly First
-```bash
-# Install PyTorch nightly
-pip install --pre torch --index-url https://download.pytorch.org/whl/nightly/cu124
+```
+$ pip install torch-diode-lib
 ```
 
-### Option 1: Install from PyPI
-```bash
-pip install torch-diode
-# or for the library version without auto-registration:
-pip install torch-diode-lib
+The import remains the same:
 ```
-
-### Option 2: Install from TestPyPI (Latest)
-```bash
-pip install --index-url https://test.pypi.org/simple/ torch-diode
-# or for the library version:
-pip install --index-url https://test.pypi.org/simple/ torch-diode-lib
+import diode
 ```
 
 ### Option 3: Install from Source
@@ -75,6 +58,17 @@ git clone https://github.com/exclamaforte/diode.git
 cd diode
 pip install .
 ```
+
+## Model Organization
+
+### Directory Structure
+Models are organized in a structured directory format:
+```
+trained_models/<model_purpose>/<model_name>.pt
+```
+## Get Started
+
+[The main entry point is in workflows.](https://github.com/exclamaforte/diode/tree/main/workflows#readme)
 
 ### Package Variants
 - **torch-diode**: Full package with auto-registration to PyTorch Inductor

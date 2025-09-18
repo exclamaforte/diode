@@ -1,0 +1,490 @@
+{
+  "hardware": {
+    "NVIDIA H100": {
+      "operation": {
+        "mm": {
+          "name": "mm",
+          "solution": {
+            "{\"version\": 1, \"B\": 1, \"M\": 32, \"M_dtype\": \"float16\", \"N\": 32, \"K\": 32, \"K_dtype\": \"float16\", \"out_dtype\": \"float16\", \"out_size\": [1, 32, 32], \"out_stride\": [1024, 32, 1]}": {
+              "name": "mm",
+              "timed_configs": [
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 16, \"block_m\": 32, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 1, \"num_warps\": 2, \"version\": 1}",
+                  "time": 0.02611199952661991,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 32, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 2, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.0261439997702837,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 32, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 5, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.025855999439954758,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 16, \"block_m\": 32, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 2, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.02598400041460991,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 32, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 3, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.02521600015461445,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 32, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 4, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.025536000728607178,
+                  "version": 1
+                }
+              ],
+              "version": 1
+            },
+            "{\"version\": 1, \"B\": 1, \"M\": 32, \"M_dtype\": \"float32\", \"N\": 32, \"K\": 32, \"K_dtype\": \"float32\", \"out_dtype\": \"float32\", \"out_size\": [1, 32, 32], \"out_stride\": [1024, 32, 1]}": {
+              "name": "mm",
+              "timed_configs": [
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 16, \"block_m\": 32, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 1, \"num_warps\": 2, \"version\": 1}",
+                  "time": 0.025536000728607178,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 32, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 2, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.025696000084280968,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 32, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 5, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.024831999093294144,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 16, \"block_m\": 32, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 2, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.025919999927282333,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 32, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 3, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.025631999596953392,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 32, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 4, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.025567999109625816,
+                  "version": 1
+                }
+              ],
+              "version": 1
+            },
+            "{\"version\": 1, \"B\": 1, \"M\": 64, \"M_dtype\": \"float16\", \"N\": 64, \"K\": 64, \"K_dtype\": \"float16\", \"out_dtype\": \"float16\", \"out_size\": [1, 64, 64], \"out_stride\": [4096, 64, 1]}": {
+              "name": "mm",
+              "timed_configs": [
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 16, \"block_m\": 32, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 1, \"num_warps\": 2, \"version\": 1}",
+                  "time": 0.024992000311613083,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 64, \"block_m\": 32, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 2, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.025760000571608543,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 32, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 5, \"num_warps\": 8, \"version\": 1}",
+                  "time": 0.023391999304294586,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 64, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 5, \"num_warps\": 8, \"version\": 1}",
+                  "time": 0.02454400062561035,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 64, \"block_m\": 64, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 5, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.024447999894618988,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 16, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 2, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.025631999596953392,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 2, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.0244159996509552,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 64, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 3, \"num_warps\": 8, \"version\": 1}",
+                  "time": 0.024320000782608986,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 64, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 5, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.024191999807953835,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 3, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.025087999179959297,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 4, \"num_warps\": 8, \"version\": 1}",
+                  "time": 0.023840000852942467,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 64, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 3, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.024447999894618988,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 64, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 4, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.025248000398278236,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 2, \"num_warps\": 8, \"version\": 1}",
+                  "time": 0.025887999683618546,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 64, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 5, \"num_warps\": 8, \"version\": 1}",
+                  "time": 0.024480000138282776,
+                  "version": 1
+                }
+              ],
+              "version": 1
+            },
+            "{\"version\": 1, \"B\": 1, \"M\": 64, \"M_dtype\": \"float32\", \"N\": 64, \"K\": 64, \"K_dtype\": \"float32\", \"out_dtype\": \"float32\", \"out_size\": [1, 64, 64], \"out_stride\": [4096, 64, 1]}": {
+              "name": "mm",
+              "timed_configs": [
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 16, \"block_m\": 32, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 1, \"num_warps\": 2, \"version\": 1}",
+                  "time": 0.02425600029528141,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 64, \"block_m\": 32, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 2, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.024191999807953835,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 32, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 5, \"num_warps\": 8, \"version\": 1}",
+                  "time": 0.02505600079894066,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 64, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 5, \"num_warps\": 8, \"version\": 1}",
+                  "time": 0.024447999894618988,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 64, \"block_m\": 64, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 5, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.024768000468611717,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 16, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 2, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.02687999978661537,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 2, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.026784000918269157,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 64, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 3, \"num_warps\": 8, \"version\": 1}",
+                  "time": 0.030559999868273735,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 64, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 5, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.029472000896930695,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 3, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.026208000257611275,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 4, \"num_warps\": 8, \"version\": 1}",
+                  "time": 0.03014400042593479,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 64, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 3, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.028543999418616295,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 64, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 4, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.027936000376939774,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 2, \"num_warps\": 8, \"version\": 1}",
+                  "time": 0.03046399913728237,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 64, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"mm_config\", \"num_stages\": 5, \"num_warps\": 8, \"version\": 1}",
+                  "time": 0.031136000528931618,
+                  "version": 1
+                }
+              ],
+              "version": 1
+            }
+          },
+          "version": 1
+        },
+        "addmm": {
+          "name": "addmm",
+          "solution": {
+            "{\"version\": 1, \"B\": 1, \"M\": 32, \"M_dtype\": \"float16\", \"N\": 32, \"K\": 32, \"K_dtype\": \"float16\", \"out_dtype\": \"float16\", \"out_size\": [1, 32, 32], \"out_stride\": [1024, 32, 1]}": {
+              "name": "addmm",
+              "timed_configs": [
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 16, \"block_m\": 32, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 1, \"num_warps\": 2, \"version\": 1}",
+                  "time": 0.025599999353289604,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 32, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 2, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.026655999943614006,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 32, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 5, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.024831999093294144,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 16, \"block_m\": 32, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 2, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.02566399984061718,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 32, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 3, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.025696000084280968,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 32, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 4, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.026367999613285065,
+                  "version": 1
+                }
+              ],
+              "version": 1
+            },
+            "{\"version\": 1, \"B\": 1, \"M\": 32, \"M_dtype\": \"float32\", \"N\": 32, \"K\": 32, \"K_dtype\": \"float32\", \"out_dtype\": \"float32\", \"out_size\": [1, 32, 32], \"out_stride\": [1024, 32, 1]}": {
+              "name": "addmm",
+              "timed_configs": [
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 16, \"block_m\": 32, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 1, \"num_warps\": 2, \"version\": 1}",
+                  "time": 0.02595200017094612,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 32, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 2, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.02582399919629097,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 32, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 5, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.02643200010061264,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 16, \"block_m\": 32, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 2, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.026048000901937485,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 32, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 3, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.0261439997702837,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 32, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 4, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.02537599951028824,
+                  "version": 1
+                }
+              ],
+              "version": 1
+            },
+            "{\"version\": 1, \"B\": 1, \"M\": 64, \"M_dtype\": \"float16\", \"N\": 64, \"K\": 64, \"K_dtype\": \"float16\", \"out_dtype\": \"float16\", \"out_size\": [1, 64, 64], \"out_stride\": [4096, 64, 1]}": {
+              "name": "addmm",
+              "timed_configs": [
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 16, \"block_m\": 32, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 1, \"num_warps\": 2, \"version\": 1}",
+                  "time": 0.025119999423623085,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 64, \"block_m\": 32, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 2, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.024768000468611717,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 32, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 5, \"num_warps\": 8, \"version\": 1}",
+                  "time": 0.02473600022494793,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 64, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 5, \"num_warps\": 8, \"version\": 1}",
+                  "time": 0.024383999407291412,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 64, \"block_m\": 64, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 5, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.024671999737620354,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 16, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 2, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.024960000067949295,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 2, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.025696000084280968,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 64, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 3, \"num_warps\": 8, \"version\": 1}",
+                  "time": 0.024607999250292778,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 64, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 5, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.025599999353289604,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 3, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.025919999927282333,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 4, \"num_warps\": 8, \"version\": 1}",
+                  "time": 0.02595200017094612,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 64, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 3, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.026208000257611275,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 64, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 4, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.02550400048494339,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 2, \"num_warps\": 8, \"version\": 1}",
+                  "time": 0.025280000641942024,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 64, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 5, \"num_warps\": 8, \"version\": 1}",
+                  "time": 0.024480000138282776,
+                  "version": 1
+                }
+              ],
+              "version": 1
+            },
+            "{\"version\": 1, \"B\": 1, \"M\": 64, \"M_dtype\": \"float32\", \"N\": 64, \"K\": 64, \"K_dtype\": \"float32\", \"out_dtype\": \"float32\", \"out_size\": [1, 64, 64], \"out_stride\": [4096, 64, 1]}": {
+              "name": "addmm",
+              "timed_configs": [
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 16, \"block_m\": 32, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 1, \"num_warps\": 2, \"version\": 1}",
+                  "time": 0.02521600015461445,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 64, \"block_m\": 32, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 2, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.025728000327944756,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 32, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 5, \"num_warps\": 8, \"version\": 1}",
+                  "time": 0.026976000517606735,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 64, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 5, \"num_warps\": 8, \"version\": 1}",
+                  "time": 0.02566399984061718,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 64, \"block_m\": 64, \"block_n\": 32, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 5, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.02707199938595295,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 16, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 2, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.027424000203609467,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 2, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.028575999662280083,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 64, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 3, \"num_warps\": 8, \"version\": 1}",
+                  "time": 0.03203200176358223,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 64, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 5, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.029311999678611755,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 3, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.027775999158620834,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 4, \"num_warps\": 8, \"version\": 1}",
+                  "time": 0.03187200054526329,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 64, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 3, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.02940800040960312,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 64, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 4, \"num_warps\": 4, \"version\": 1}",
+                  "time": 0.030368000268936157,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 32, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 2, \"num_warps\": 8, \"version\": 1}",
+                  "time": 0.031936001032590866,
+                  "version": 1
+                },
+                {
+                  "config": "{\"ACC_TYPE\": \"tl.float32\", \"ALLOW_TF32\": false, \"EVEN_K\": false, \"USE_FAST_ACCUM\": false, \"block_k\": 64, \"block_m\": 64, \"block_n\": 64, \"grid\": 1, \"group_m\": 8, \"name\": \"addmm_config\", \"num_stages\": 5, \"num_warps\": 8, \"version\": 1}",
+                  "time": 0.03235200047492981,
+                  "version": 1
+                }
+              ],
+              "version": 1
+            }
+          },
+          "version": 1
+        }
+      },
+      "version": 1
+    }
+  },
+  "version": 1
+}
