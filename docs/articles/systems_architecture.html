@@ -1,0 +1,218 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Systems Architecture &mdash; diode 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="Workflows Guide" href="workflows.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            diode
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../torch_compile_integration.html">Accelerating torch.compile with Diode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started with Training Models with Diode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/modules.html">API Documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Articles:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="readme.html">Project Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#torch-diode">torch-diode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html#contributing-to-diode">Contributing to Diode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html#testing-and-code-coverage">Testing and Code Coverage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="packaging.html">Packaging Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="packaging.html#diode-packaging-setup">Diode Packaging Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">Workflows Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html#matrix-multiplication-toolkit">Matrix Multiplication Toolkit</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Systems Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#torch-diode-systems-architecture">Torch-Diode Systems Architecture</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#key-architecture-components">Key Architecture Components</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#auto-registration-system-main-entry-point">1. <strong>Auto-registration System</strong> (Main Entry Point)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#integration-layer-pytorch-interface">2. <strong>Integration Layer</strong> (PyTorch Interface)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#model-management-system">3. <strong>Model Management System</strong></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data-collection-pipeline">4. <strong>Data Collection Pipeline</strong></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#type-system">5. <strong>Type System</strong></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#inductor-integration-flow">6. <strong>Inductor Integration Flow</strong></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data-flow">7. <strong>Data Flow</strong></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../genindex.html">Index</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">diode</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Systems Architecture</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/articles/systems_architecture.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="systems-architecture">
+<h1>Systems Architecture<a class="headerlink" href="#systems-architecture" title="Link to this heading"></a></h1>
+</section>
+<section class="tex2jax_ignore mathjax_ignore" id="torch-diode-systems-architecture">
+<h1>Torch-Diode Systems Architecture<a class="headerlink" href="#torch-diode-systems-architecture" title="Link to this heading"></a></h1>
+<p>This diagram shows how the torch-diode system components interact with PyTorch Inductor to provide ML-based kernel selection.</p>
+<section id="key-architecture-components">
+<h2>Key Architecture Components<a class="headerlink" href="#key-architecture-components" title="Link to this heading"></a></h2>
+<section id="auto-registration-system-main-entry-point">
+<h3>1. <strong>Auto-registration System</strong> (Main Entry Point)<a class="headerlink" href="#auto-registration-system-main-entry-point" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">diode.__init__.py</span></code> orchestrates the entire integration process</p></li>
+<li><p>Discovers available integrations automatically</p></li>
+<li><p>Tests PyTorch interfaces with dummy functions</p></li>
+<li><p>Loads actual models only when interfaces are available</p></li>
+<li><p>Enables relevant PyTorch configurations</p></li>
+</ul>
+</section>
+<section id="integration-layer-pytorch-interface">
+<h3>2. <strong>Integration Layer</strong> (PyTorch Interface)<a class="headerlink" href="#integration-layer-pytorch-interface" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">BaseIntegration</span></code>: Abstract framework for all integrations</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MatmulIntegration</span></code>: Specific implementation for matrix multiplication</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DiodeInductorChoices</span></code>: Extends PyTorch’s InductorChoices to inject ML predictions</p></li>
+<li><p>Seamlessly overrides <code class="docutils literal notranslate"><span class="pre">_finalize_mm_configs</span></code> method</p></li>
+</ul>
+</section>
+<section id="model-management-system">
+<h3>3. <strong>Model Management System</strong><a class="headerlink" href="#model-management-system" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ModelPointer</span></code>: Metadata and path management for trained models</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ModelWrapper</span></code>: Loads, compiles, and runs inference on trained models</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ModelRegistry</span></code>: Centralized registry of all available models</p></li>
+<li><p>Supports multiple model formats and configurations</p></li>
+</ul>
+</section>
+<section id="data-collection-pipeline">
+<h3>4. <strong>Data Collection Pipeline</strong><a class="headerlink" href="#data-collection-pipeline" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">MatmulDatasetCollector</span></code>: Hooks into PyTorch’s feedback system</p></li>
+<li><p>Collects timing data during autotune processes</p></li>
+<li><p>Extracts features from problem shapes and kernel configurations</p></li>
+<li><p>Stores structured datasets for model training</p></li>
+</ul>
+</section>
+<section id="type-system">
+<h3>5. <strong>Type System</strong><a class="headerlink" href="#type-system" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">MMShape</span></code>: Represents matrix multiplication problem characteristics</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TritonGEMMConfig</span></code>: Represents kernel configuration parameters</p></li>
+<li><p>Strong typing ensures data consistency across the system</p></li>
+</ul>
+</section>
+<section id="inductor-integration-flow">
+<h3>6. <strong>Inductor Integration Flow</strong><a class="headerlink" href="#inductor-integration-flow" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p>User imports diode → auto-registration begins</p></li>
+<li><p>System tests PyTorch interfaces with dummy functions</p></li>
+<li><p>Loads trained models from disk if interfaces are available</p></li>
+<li><p>Registers <code class="docutils literal notranslate"><span class="pre">DiodeInductorChoices</span></code> as the active choice handler</p></li>
+<li><p>During <code class="docutils literal notranslate"><span class="pre">torch.compile</span></code>, the system intercepts kernel selection</p></li>
+<li><p>Extracts features from the problem and available configurations</p></li>
+<li><p>Runs ML model inference to predict kernel performance</p></li>
+<li><p>Returns top-k configurations based on predictions</p></li>
+</ol>
+</section>
+<section id="data-flow">
+<h3>7. <strong>Data Flow</strong><a class="headerlink" href="#data-flow" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Training Time</strong>: Collector gathers timing data → Workflows train models → Models stored to disk</p></li>
+<li><p><strong>Inference Time</strong>: Models loaded → Features extracted → Predictions made → Best kernels selected</p></li>
+</ul>
+<p>This architecture allows torch-diode to seamlessly integrate with PyTorch’s compilation pipeline while maintaining modularity and extensibility for future optimization targets beyond matrix multiplication.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="workflows.html" class="btn btn-neutral float-left" title="Workflows Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Author Name.
+      <span class="lastupdated">Last updated on Sep 19, 2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

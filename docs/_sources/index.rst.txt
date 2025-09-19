@@ -10,9 +10,25 @@ Welcome to Diode's documentation!
 
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
+   :caption: Contents:
 
    torch_compile_integration
    getting_started
    api/modules
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Articles:
+
+   articles/readme
+   articles/contributing
+   articles/packaging
+   articles/workflows
+   articles/systems_architecture
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Reference:
+
    genindex

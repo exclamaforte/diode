@@ -45,10 +45,28 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <ul>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="torch_compile_integration.html">Accelerating torch.compile with Diode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started with Training Models with Diode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/modules.html">API Documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Articles:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="articles/readme.html">Project Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="articles/readme.html#torch-diode">torch-diode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="articles/contributing.html">Contributing Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="articles/contributing.html#contributing-to-diode">Contributing to Diode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="articles/contributing.html#testing-and-code-coverage">Testing and Code Coverage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="articles/packaging.html">Packaging Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="articles/packaging.html#diode-packaging-setup">Diode Packaging Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="articles/workflows.html">Workflows Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="articles/workflows.html#matrix-multiplication-toolkit">Matrix Multiplication Toolkit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="articles/systems_architecture.html">Systems Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="articles/systems_architecture.html#torch-diode-systems-architecture">Torch-Diode Systems Architecture</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference:</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="genindex.html">Index</a></li>
 </ul>
 
@@ -82,10 +100,115 @@
 </a>
 <p><cite>diode</cite> is a framework that makes it easy to develop heuristics that plug into the external interfaces of torch and torch.compile. It allows users to both gather data from torch and train Machine Learning models on the gathered data.</p>
 <div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="torch_compile_integration.html">Accelerating torch.compile with Diode</a></li>
-<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started with Training Models with Diode</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/modules.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="torch_compile_integration.html">Accelerating torch.compile with Diode</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="torch_compile_integration.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="torch_compile_integration.html#quick-start">Quick Start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="torch_compile_integration.html#complete-example">Complete Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="torch_compile_integration.html#benefits">Benefits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="torch_compile_integration.html#advanced-configuration">Advanced Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="torch_compile_integration.html#integration-with-existing-workflows">Integration with Existing Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="torch_compile_integration.html#supported-operations">Supported Operations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="torch_compile_integration.html#troubleshooting">Troubleshooting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="torch_compile_integration.html#performance-comparison">Performance Comparison</a></li>
+<li class="toctree-l2"><a class="reference internal" href="torch_compile_integration.html#best-practices">Best Practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="torch_compile_integration.html#integration-checklist">Integration Checklist</a></li>
+<li class="toctree-l2"><a class="reference internal" href="torch_compile_integration.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started with Training Models with Diode</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html#step-1-data-collection">Step 1: Data Collection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html#step-2-model-training">Step 2: Model Training</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html#step-3-creating-a-validation-dataset">Step 3: Creating a Validation Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html#step-4-model-validation">Step 4: Model Validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html#complete-workflow-script">Complete Workflow Script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html#advanced-configuration">Advanced Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html#tips">Tips</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/modules.html">API Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/diode.html">diode package</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Articles:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="articles/readme.html">Project Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="articles/readme.html#torch-diode">torch-diode</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="articles/readme.html#target-audience">Target Audience:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/readme.html#features">Features:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/readme.html#featured-models">Featured Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/readme.html#option-1-installation-with-pre-trained-models">Option 1: Installation with Pre-Trained Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/readme.html#option-2-installation-without-pre-trained-models">Option 2: Installation without Pre-Trained Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/readme.html#model-organization">Model Organization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/readme.html#get-started">Get Started</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="articles/contributing.html">Contributing Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="articles/contributing.html#contributing-to-diode">Contributing to Diode</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="articles/contributing.html#table-of-contents">Table of Contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/contributing.html#getting-started">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/contributing.html#development-setup">Development Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/contributing.html#project-structure">Project Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/contributing.html#contributing-guidelines">Contributing Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/contributing.html#code-style">Code Style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/contributing.html#testing">Testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/contributing.html#continuous-integration-ci">Continuous Integration (CI)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="articles/contributing.html#testing-and-code-coverage">Testing and Code Coverage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="articles/contributing.html#id1">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/contributing.html#id2">Running Tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/contributing.html#code-coverage">Code Coverage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/contributing.html#test-markers">Test Markers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/contributing.html#ci-cd-integration">CI/CD Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/contributing.html#submitting-changes">Submitting Changes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/contributing.html#community">Community</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="articles/packaging.html">Packaging Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="articles/packaging.html#diode-packaging-setup">Diode Packaging Setup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="articles/packaging.html#package-configurations">Package Configurations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/packaging.html#file-inclusion">File Inclusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/packaging.html#building-the-packages">Building the Packages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/packaging.html#usage-differences">Usage Differences</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/packaging.html#configuration-files">Configuration Files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/packaging.html#key-differences">Key Differences</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/packaging.html#deployment">Deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/packaging.html#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/packaging.html#file-structure">File Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/packaging.html#choosing-the-right-package">Choosing the Right Package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="articles/workflows.html">Workflows Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="articles/workflows.html#matrix-multiplication-toolkit">Matrix Multiplication Toolkit</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="articles/workflows.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/workflows.html#usage">Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/workflows.html#key-features">Key Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/workflows.html#command-line-options">Command-Line Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/workflows.html#common-options">Common Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/workflows.html#data-collection-options">Data Collection Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/workflows.html#model-training-options">Model Training Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/workflows.html#advanced-usage">Advanced Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="articles/workflows.html#internal-structure">Internal Structure</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="articles/systems_architecture.html">Systems Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="articles/systems_architecture.html#torch-diode-systems-architecture">Torch-Diode Systems Architecture</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="articles/systems_architecture.html#key-architecture-components">Key Architecture Components</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Reference:</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="genindex.html">Index</a></li>
 </ul>
 </div>
@@ -102,7 +225,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2023, Author Name.
-      <span class="lastupdated">Last updated on Sep 18, 2025.
+      <span class="lastupdated">Last updated on Sep 19, 2025.
       </span></p>
   </div>
 

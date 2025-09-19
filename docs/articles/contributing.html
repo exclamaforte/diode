@@ -1,0 +1,642 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contributing Guide &mdash; diode 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Packaging Guide" href="packaging.html" />
+    <link rel="prev" title="Project Overview" href="readme.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            diode
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../torch_compile_integration.html">Accelerating torch.compile with Diode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started with Training Models with Diode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/modules.html">API Documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Articles:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="readme.html">Project Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#torch-diode">torch-diode</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Contributing Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#contributing-to-diode">Contributing to Diode</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#table-of-contents">Table of Contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#getting-started">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#development-setup">Development Setup</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#installation">Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#project-structure">Project Structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#key-components">Key Components</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#contributing-guidelines">Contributing Guidelines</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#types-of-contributions">Types of Contributions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#code-style">Code Style</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#python-code-standards">Python Code Standards</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#linting-and-formatting">Linting and Formatting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#code-organization">Code Organization</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#testing">Testing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#running-tests">Running Tests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#writing-tests">Writing Tests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#test-structure">Test Structure</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#continuous-integration-ci">Continuous Integration (CI)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#ci-setup">CI Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#running-ci-locally">Running CI Locally</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#testing-and-code-coverage">Testing and Code Coverage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id1">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id2">Running Tests</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#all-tests">All Tests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#unit-tests-only">Unit Tests Only</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#integration-tests-only">Integration Tests Only</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#code-coverage">Code Coverage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#running-tests-with-coverage">Running Tests with Coverage</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#all-tests-with-coverage">All Tests with Coverage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#unit-tests-with-coverage">Unit Tests with Coverage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#integration-tests-with-coverage">Integration Tests with Coverage</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#coverage-reports">Coverage Reports</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#terminal-report">Terminal Report</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#html-report">HTML Report</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#xml-report">XML Report</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#coverage-configuration">Coverage Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#coverage-targets">Coverage Targets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cleaning-coverage-files">Cleaning Coverage Files</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#test-markers">Test Markers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ci-cd-integration">CI/CD Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#submitting-changes">Submitting Changes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pull-request-process">Pull Request Process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pull-request-guidelines">Pull Request Guidelines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#commit-message-format">Commit Message Format</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#community">Community</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#getting-help">Getting Help</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#contributing-models-and-datasets">Contributing Models and Datasets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hardware-support">Hardware Support</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="packaging.html">Packaging Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="packaging.html#diode-packaging-setup">Diode Packaging Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">Workflows Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html#matrix-multiplication-toolkit">Matrix Multiplication Toolkit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="systems_architecture.html">Systems Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="systems_architecture.html#torch-diode-systems-architecture">Torch-Diode Systems Architecture</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../genindex.html">Index</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">diode</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Contributing Guide</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/articles/contributing.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="contributing-guide">
+<h1>Contributing Guide<a class="headerlink" href="#contributing-guide" title="Link to this heading"></a></h1>
+</section>
+<section class="tex2jax_ignore mathjax_ignore" id="contributing-to-diode">
+<h1>Contributing to Diode<a class="headerlink" href="#contributing-to-diode" title="Link to this heading"></a></h1>
+<p>Thank you for your interest in contributing to Diode! This document provides guidelines and information for contributors.</p>
+<section id="table-of-contents">
+<h2>Table of Contents<a class="headerlink" href="#table-of-contents" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="#getting-started"><span class="std std-ref">Getting Started</span></a></p></li>
+<li><p><a class="reference internal" href="#development-setup"><span class="std std-ref">Development Setup</span></a></p></li>
+<li><p><a class="reference internal" href="#project-structure"><span class="std std-ref">Project Structure</span></a></p></li>
+<li><p><a class="reference internal" href="#contributing-guidelines"><span class="std std-ref">Contributing Guidelines</span></a></p></li>
+<li><p><a class="reference internal" href="#code-style"><span class="std std-ref">Code Style</span></a></p></li>
+<li><p><a class="reference internal" href="#testing"><span class="std std-ref">Testing</span></a></p></li>
+<li><p><a class="reference internal" href="#submitting-changes"><span class="std std-ref">Submitting Changes</span></a></p></li>
+<li><p><a class="reference internal" href="#community"><span class="std std-ref">Community</span></a></p></li>
+</ul>
+</section>
+<section id="getting-started">
+<h2>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading"></a></h2>
+<p>Diode is a framework for developing heuristics that plug into PyTorch’s external interfaces. Before contributing, please:</p>
+<ol class="arabic simple">
+<li><p>Read the <a class="reference internal" href="#/home/gabeferns/diode/README.md"><span class="xref myst">README.md</span></a> to understand the project’s goals and features</p></li>
+<li><p>Check out the <a class="reference internal" href="#/home/gabeferns/diode/workflows"><span class="xref myst">workflows</span></a> to see how the framework is used</p></li>
+<li><p>Review our <a class="reference internal" href="#/home/gabeferns/diode/CODE_OF_CONDUCT.md"><span class="xref myst">Code of Conduct</span></a></p></li>
+</ol>
+</section>
+<section id="development-setup">
+<h2>Development Setup<a class="headerlink" href="#development-setup" title="Link to this heading"></a></h2>
+<section id="prerequisites">
+<h3>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>PyTorch Nightly (3.10 or higher)</p></li>
+</ul>
+</section>
+<section id="installation">
+<h3>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h3>
+<ol class="arabic">
+<li><p>Fork the repository on GitHub</p></li>
+<li><p>Clone your fork locally:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/your-username/diode.git
+<span class="nb">cd</span><span class="w"> </span>diode
+</pre></div>
+</div>
+</li>
+<li><p>Install the project in development mode:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>./diode-models
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>./diode-datasets
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>./diode_common
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</pre></div>
+</div>
+</li>
+<li><p>Install development dependencies:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements-dev.txt<span class="w">  </span><span class="c1"># If this file exists</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+</section>
+<section id="project-structure">
+<h2>Project Structure<a class="headerlink" href="#project-structure" title="Link to this heading"></a></h2>
+<p>TODO</p>
+<section id="key-components">
+<h3>Key Components<a class="headerlink" href="#key-components" title="Link to this heading"></a></h3>
+<p>TODO</p>
+</section>
+</section>
+<section id="contributing-guidelines">
+<h2>Contributing Guidelines<a class="headerlink" href="#contributing-guidelines" title="Link to this heading"></a></h2>
+<section id="types-of-contributions">
+<h3>Types of Contributions<a class="headerlink" href="#types-of-contributions" title="Link to this heading"></a></h3>
+<p>We welcome several types of contributions:</p>
+<ol class="arabic simple">
+<li><p><strong>Bug Reports</strong>: Report issues with clear reproduction steps</p></li>
+<li><p><strong>Feature Requests</strong>: Propose new features or improvements</p></li>
+<li><p><strong>Code Contributions</strong>: Bug fixes, new features, or optimizations</p></li>
+<li><p><strong>Documentation</strong>: Improve existing docs or add new documentation</p></li>
+<li><p><strong>Models</strong>: Contribute pre-trained models for specific hardware</p></li>
+<li><p><strong>Datasets</strong>: Share datasets for training heuristics</p></li>
+</ol>
+</section>
+</section>
+<section id="code-style">
+<h2>Code Style<a class="headerlink" href="#code-style" title="Link to this heading"></a></h2>
+<section id="python-code-standards">
+<h3>Python Code Standards<a class="headerlink" href="#python-code-standards" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Follow PEP 8 style guidelines</p></li>
+<li><p>Use type hints where appropriate</p></li>
+<li><p>Write clear, descriptive variable and function names</p></li>
+<li><p>Add docstrings for public functions and classes</p></li>
+</ul>
+</section>
+<section id="linting-and-formatting">
+<h3>Linting and Formatting<a class="headerlink" href="#linting-and-formatting" title="Link to this heading"></a></h3>
+<p>Run all linters:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>lintrunner
+</pre></div>
+</div>
+</section>
+<section id="code-organization">
+<h3>Code Organization<a class="headerlink" href="#code-organization" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Keep functions focused and single-purpose</p></li>
+<li><p>Maintain consistency with the existing codebase</p></li>
+</ul>
+</section>
+</section>
+<section id="testing">
+<h2>Testing<a class="headerlink" href="#testing" title="Link to this heading"></a></h2>
+<section id="running-tests">
+<h3>Running Tests<a class="headerlink" href="#running-tests" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run all tests</span>
+python<span class="w"> </span>-m<span class="w"> </span>pytest
+
+<span class="c1"># Run specific test categories</span>
+python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/unit/
+python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/integration/
+python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>tests/workflows/
+</pre></div>
+</div>
+</section>
+<section id="writing-tests">
+<h3>Writing Tests<a class="headerlink" href="#writing-tests" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Write unit tests for new functionality</p></li>
+<li><p>Include integration tests for end-to-end workflows</p></li>
+<li><p>Test edge cases and error conditions</p></li>
+<li><p>Ensure tests are deterministic and can run in isolation</p></li>
+</ul>
+</section>
+<section id="test-structure">
+<h3>Test Structure<a class="headerlink" href="#test-structure" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Place unit tests in <code class="docutils literal notranslate"><span class="pre">tests/</span></code> mirroring the source structure</p></li>
+<li><p>Use descriptive test names that explain what is being tested</p></li>
+</ul>
+</section>
+</section>
+<section id="continuous-integration-ci">
+<h2>Continuous Integration (CI)<a class="headerlink" href="#continuous-integration-ci" title="Link to this heading"></a></h2>
+<section id="ci-setup">
+<h3>CI Setup<a class="headerlink" href="#ci-setup" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">/ci</span></code> directory contains the continuous integration setup for the Diode project:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ci.sh</span></code>: Main CI script that sets up environments and runs tests</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">requirements-ci.txt</span></code>: CI-specific dependencies including testing tools and linters</p></li>
+</ul>
+</section>
+<section id="running-ci-locally">
+<h3>Running CI Locally<a class="headerlink" href="#running-ci-locally" title="Link to this heading"></a></h3>
+<p>To run the CI pipeline locally, execute:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>bash<span class="w"> </span>ci/ci.sh
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+<section class="tex2jax_ignore mathjax_ignore" id="testing-and-code-coverage">
+<h1>Testing and Code Coverage<a class="headerlink" href="#testing-and-code-coverage" title="Link to this heading"></a></h1>
+<p>This document describes how to run tests and generate code coverage reports for the Diode project.</p>
+<section id="id1">
+<h2>Prerequisites<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
+<p>Install the test dependencies:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>install-test-deps
+<span class="c1"># OR</span>
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[test]&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="id2">
+<h2>Running Tests<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
+<section id="all-tests">
+<h3>All Tests<a class="headerlink" href="#all-tests" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run all tests</span>
+make<span class="w"> </span><span class="nb">test</span>
+<span class="c1"># OR</span>
+pytest
+</pre></div>
+</div>
+</section>
+<section id="unit-tests-only">
+<h3>Unit Tests Only<a class="headerlink" href="#unit-tests-only" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run unit tests (excludes integration tests)</span>
+make<span class="w"> </span>test-unit
+<span class="c1"># OR</span>
+pytest<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;not integration&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="integration-tests-only">
+<h3>Integration Tests Only<a class="headerlink" href="#integration-tests-only" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run integration tests only</span>
+make<span class="w"> </span>test-integration
+<span class="c1"># OR</span>
+pytest<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;integration&quot;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="code-coverage">
+<h2>Code Coverage<a class="headerlink" href="#code-coverage" title="Link to this heading"></a></h2>
+<section id="running-tests-with-coverage">
+<h3>Running Tests with Coverage<a class="headerlink" href="#running-tests-with-coverage" title="Link to this heading"></a></h3>
+<section id="all-tests-with-coverage">
+<h4>All Tests with Coverage<a class="headerlink" href="#all-tests-with-coverage" title="Link to this heading"></a></h4>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run all tests with coverage</span>
+make<span class="w"> </span>test-cov
+<span class="c1"># OR</span>
+pytest<span class="w"> </span>--cov<span class="o">=</span>diode<span class="w"> </span>--cov-branch<span class="w"> </span>--cov-report<span class="o">=</span>term-missing<span class="w"> </span>--cov-report<span class="o">=</span>html<span class="w"> </span>--cov-report<span class="o">=</span>xml
+</pre></div>
+</div>
+</section>
+<section id="unit-tests-with-coverage">
+<h4>Unit Tests with Coverage<a class="headerlink" href="#unit-tests-with-coverage" title="Link to this heading"></a></h4>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run unit tests with coverage</span>
+make<span class="w"> </span>test-cov-unit
+<span class="c1"># OR</span>
+pytest<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;not integration&quot;</span><span class="w"> </span>--cov<span class="o">=</span>diode<span class="w"> </span>--cov-branch<span class="w"> </span>--cov-report<span class="o">=</span>term-missing<span class="w"> </span>--cov-report<span class="o">=</span>html<span class="w"> </span>--cov-report<span class="o">=</span>xml
+</pre></div>
+</div>
+</section>
+<section id="integration-tests-with-coverage">
+<h4>Integration Tests with Coverage<a class="headerlink" href="#integration-tests-with-coverage" title="Link to this heading"></a></h4>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run integration tests with coverage</span>
+make<span class="w"> </span>test-cov-integration
+<span class="c1"># OR</span>
+pytest<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;integration&quot;</span><span class="w"> </span>--cov<span class="o">=</span>diode<span class="w"> </span>--cov-branch<span class="w"> </span>--cov-report<span class="o">=</span>term-missing<span class="w"> </span>--cov-report<span class="o">=</span>html<span class="w"> </span>--cov-report<span class="o">=</span>xml
+</pre></div>
+</div>
+</section>
+</section>
+<section id="coverage-reports">
+<h3>Coverage Reports<a class="headerlink" href="#coverage-reports" title="Link to this heading"></a></h3>
+<section id="terminal-report">
+<h4>Terminal Report<a class="headerlink" href="#terminal-report" title="Link to this heading"></a></h4>
+<p>The terminal report shows coverage statistics directly in your terminal with missing line numbers.</p>
+</section>
+<section id="html-report">
+<h4>HTML Report<a class="headerlink" href="#html-report" title="Link to this heading"></a></h4>
+<p>An interactive HTML report is generated at <code class="docutils literal notranslate"><span class="pre">htmlcov/index.html</span></code>. Open it in your browser to see detailed coverage information with highlighted source code.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Generate HTML report (if .coverage file exists)</span>
+make<span class="w"> </span>coverage-html
+<span class="c1"># OR</span>
+coverage<span class="w"> </span>html
+
+<span class="c1"># Run tests with coverage and automatically open HTML report</span>
+make<span class="w"> </span>test-and-view
+</pre></div>
+</div>
+</section>
+<section id="xml-report">
+<h4>XML Report<a class="headerlink" href="#xml-report" title="Link to this heading"></a></h4>
+<p>An XML report is generated at <code class="docutils literal notranslate"><span class="pre">coverage.xml</span></code> for use with CI/CD systems and code analysis tools.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Generate XML report (if .coverage file exists)</span>
+make<span class="w"> </span>coverage-xml
+<span class="c1"># OR</span>
+coverage<span class="w"> </span>xml
+</pre></div>
+</div>
+</section>
+</section>
+<section id="coverage-configuration">
+<h3>Coverage Configuration<a class="headerlink" href="#coverage-configuration" title="Link to this heading"></a></h3>
+<p>Coverage is configured in <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> under the <code class="docutils literal notranslate"><span class="pre">[tool.coverage.*]</span></code> sections:</p>
+<ul class="simple">
+<li><p><strong>Source</strong>: Only tracks coverage for the <code class="docutils literal notranslate"><span class="pre">diode</span></code> package</p></li>
+<li><p><strong>Branch Coverage</strong>: Enabled to track both statement and branch coverage</p></li>
+<li><p><strong>Omit</strong>: Excludes test files, cache files, and build artifacts</p></li>
+<li><p><strong>Exclude Lines</strong>: Common patterns that shouldn’t count against coverage (e.g., <code class="docutils literal notranslate"><span class="pre">pragma:</span> <span class="pre">no</span> <span class="pre">cover</span></code>, <code class="docutils literal notranslate"><span class="pre">if</span> <span class="pre">__name__</span> <span class="pre">==</span> <span class="pre">&quot;__main__&quot;:</span></code>)</p></li>
+<li><p><strong>Minimum Coverage</strong>: Set to 80% (configurable via <code class="docutils literal notranslate"><span class="pre">--cov-fail-under</span></code>)</p></li>
+</ul>
+</section>
+<section id="coverage-targets">
+<h3>Coverage Targets<a class="headerlink" href="#coverage-targets" title="Link to this heading"></a></h3>
+<p>The project aims for:</p>
+<ul class="simple">
+<li><p><strong>Minimum</strong>: 80% overall coverage</p></li>
+<li><p><strong>Target</strong>: 90%+ coverage for core functionality</p></li>
+<li><p><strong>Branch Coverage</strong>: Enabled to ensure both paths of conditions are tested</p></li>
+</ul>
+</section>
+<section id="cleaning-coverage-files">
+<h3>Cleaning Coverage Files<a class="headerlink" href="#cleaning-coverage-files" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Clean all coverage-related files</span>
+make<span class="w"> </span>clean-coverage
+</pre></div>
+</div>
+<p>This removes:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">htmlcov/</span></code> directory</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">coverage.xml</span></code> file</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.coverage</span></code> and <code class="docutils literal notranslate"><span class="pre">.coverage.*</span></code> files</p></li>
+</ul>
+</section>
+</section>
+<section id="test-markers">
+<h2>Test Markers<a class="headerlink" href="#test-markers" title="Link to this heading"></a></h2>
+<p>Tests are organized using pytest markers:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">unit</span></code>: Unit tests for individual components</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">integration</span></code>: End-to-end integration tests</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">slow</span></code>: Tests that take a long time to run</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mock</span></code>: Tests that use mocking extensively</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">inductor</span></code>: Tests specifically for PyTorch Inductor integration</p></li>
+</ul>
+<p>Use markers to run specific test categories:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run only unit tests</span>
+pytest<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;unit&quot;</span>
+
+<span class="c1"># Run only fast tests (exclude slow tests)</span>
+pytest<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;not slow&quot;</span>
+
+<span class="c1"># Run inductor-specific tests</span>
+pytest<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;inductor&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="ci-cd-integration">
+<h2>CI/CD Integration<a class="headerlink" href="#ci-cd-integration" title="Link to this heading"></a></h2>
+<p>For continuous integration, use:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run tests with coverage and generate XML report for CI tools</span>
+pytest<span class="w"> </span>--cov<span class="o">=</span>diode<span class="w"> </span>--cov-branch<span class="w"> </span>--cov-report<span class="o">=</span>xml<span class="w"> </span>--cov-fail-under<span class="o">=</span><span class="m">80</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">coverage.xml</span></code> file can be consumed by CI systems like:</p>
+<ul class="simple">
+<li><p>GitHub Actions</p></li>
+<li><p>GitLab CI</p></li>
+<li><p>Jenkins</p></li>
+<li><p>SonarQube</p></li>
+<li><p>Codecov</p></li>
+<li><p>Coveralls</p></li>
+</ul>
+</section>
+<section id="submitting-changes">
+<h2>Submitting Changes<a class="headerlink" href="#submitting-changes" title="Link to this heading"></a></h2>
+<section id="pull-request-process">
+<h3>Pull Request Process<a class="headerlink" href="#pull-request-process" title="Link to this heading"></a></h3>
+<ol class="arabic">
+<li><p><strong>Create a Branch</strong>: Create a feature branch from <code class="docutils literal notranslate"><span class="pre">main</span></code></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>feature/your-feature-name
+</pre></div>
+</div>
+</li>
+<li><p><strong>Make Changes</strong>: Implement your changes following the guidelines above</p></li>
+<li><p><strong>Test</strong>: Ensure all tests pass and add new tests as needed</p></li>
+<li><p><strong>Lint</strong>: Run linters and fix any issues</p></li>
+<li><p><strong>Commit</strong>: Write clear, descriptive commit messages</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Add support for new hardware heuristic&quot;</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Push</strong>: Push your branch to your fork</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>feature/your-feature-name
+</pre></div>
+</div>
+</li>
+<li><p><strong>Pull Request</strong>: Open a pull request with:</p>
+<ul class="simple">
+<li><p>Clear title and description</p></li>
+<li><p>Reference to related issues</p></li>
+<li><p>Summary of changes made</p></li>
+<li><p>Any breaking changes noted</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="pull-request-guidelines">
+<h3>Pull Request Guidelines<a class="headerlink" href="#pull-request-guidelines" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Keep pull requests focused and atomic</p></li>
+<li><p>Include tests for new functionality</p></li>
+<li><p>Update documentation as needed</p></li>
+<li><p>Ensure CI passes before requesting review</p></li>
+<li><p>Be responsive to feedback and suggestions</p></li>
+</ul>
+</section>
+<section id="commit-message-format">
+<h3>Commit Message Format<a class="headerlink" href="#commit-message-format" title="Link to this heading"></a></h3>
+<p>Use clear, descriptive commit messages:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Add</span> <span class="n">matmul</span> <span class="n">kernel</span> <span class="n">prediction</span> <span class="k">for</span> <span class="n">AMD</span> <span class="n">GPUs</span>
+
+<span class="o">-</span> <span class="n">Implement</span> <span class="n">AMD</span><span class="o">-</span><span class="n">specific</span> <span class="n">timing</span> <span class="n">model</span>
+<span class="o">-</span> <span class="n">Add</span> <span class="n">dataset</span> <span class="n">collection</span> <span class="k">for</span> <span class="n">RDNA</span> <span class="n">architecture</span>
+<span class="o">-</span> <span class="n">Include</span> <span class="n">validation</span> <span class="n">tests</span> <span class="ow">and</span> <span class="n">workflows</span>
+<span class="o">-</span> <span class="n">Update</span> <span class="n">documentation</span> <span class="k">with</span> <span class="n">AMD</span> <span class="n">support</span> <span class="n">details</span>
+
+<span class="n">Fixes</span> <span class="c1">#123</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="community">
+<h2>Community<a class="headerlink" href="#community" title="Link to this heading"></a></h2>
+<section id="getting-help">
+<h3>Getting Help<a class="headerlink" href="#getting-help" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Issues</strong>: Use GitHub issues for bug reports and feature requests</p></li>
+<li><p><strong>Discussions</strong>: Use GitHub discussions for questions and general discussion</p></li>
+<li><p><strong>Workflows</strong>: Check the <code class="docutils literal notranslate"><span class="pre">/workflows</span></code> directory for usage patterns</p></li>
+</ul>
+</section>
+<section id="contributing-models-and-datasets">
+<h3>Contributing Models and Datasets<a class="headerlink" href="#contributing-models-and-datasets" title="Link to this heading"></a></h3>
+<p>When contributing pre-trained models or datasets:</p>
+<ol class="arabic simple">
+<li><p><strong>Models</strong>: Place in <code class="docutils literal notranslate"><span class="pre">diode-models/diode_models/&lt;heuristic&gt;/&lt;hardware&gt;/</span></code></p></li>
+<li><p><strong>Datasets</strong>: Add to <code class="docutils literal notranslate"><span class="pre">diode-datasets/diode_datasets/datasets/</span></code></p></li>
+<li><p><strong>Documentation</strong>: Include clear documentation about:</p>
+<ul class="simple">
+<li><p>Hardware compatibility</p></li>
+<li><p>Performance characteristics</p></li>
+<li><p>Training methodology</p></li>
+<li><p>Usage workflows</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="hardware-support">
+<h3>Hardware Support<a class="headerlink" href="#hardware-support" title="Link to this heading"></a></h3>
+<p>We especially welcome contributions for:</p>
+<ul class="simple">
+<li><p>New hardware architectures</p></li>
+<li><p>Hardware-specific optimizations</p></li>
+<li><p>Performance benchmarks</p></li>
+<li><p>Validation datasets</p></li>
+</ul>
+<p>Thank you for contributing to Diode!</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="readme.html" class="btn btn-neutral float-left" title="Project Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="packaging.html" class="btn btn-neutral float-right" title="Packaging Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Author Name.
+      <span class="lastupdated">Last updated on Sep 19, 2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

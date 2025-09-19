@@ -1,0 +1,242 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project Overview &mdash; diode 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Contributing Guide" href="contributing.html" />
+    <link rel="prev" title="diode.utils package" href="../api/diode.utils.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            diode
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../torch_compile_integration.html">Accelerating torch.compile with Diode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started with Training Models with Diode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/modules.html">API Documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Articles:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Project Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#torch-diode">torch-diode</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#target-audience">Target Audience:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#features">Features:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#featured-models">Featured Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#option-1-installation-with-pre-trained-models">Option 1: Installation with Pre-Trained Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#option-2-installation-without-pre-trained-models">Option 2: Installation without Pre-Trained Models</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#option-3-install-from-source">Option 3: Install from Source</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#model-organization">Model Organization</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#directory-structure">Directory Structure</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#get-started">Get Started</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#package-variants">Package Variants</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html#contributing-to-diode">Contributing to Diode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html#testing-and-code-coverage">Testing and Code Coverage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="packaging.html">Packaging Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="packaging.html#diode-packaging-setup">Diode Packaging Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">Workflows Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html#matrix-multiplication-toolkit">Matrix Multiplication Toolkit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="systems_architecture.html">Systems Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="systems_architecture.html#torch-diode-systems-architecture">Torch-Diode Systems Architecture</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../genindex.html">Index</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">diode</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Project Overview</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/articles/readme.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="project-overview">
+<h1>Project Overview<a class="headerlink" href="#project-overview" title="Link to this heading"></a></h1>
+<p>Warning: code is in pre-Alpha</p>
+<a class="reference internal image-reference" href="https://github.com/user-attachments/assets/308cb05a-01d9-4fc4-9c03-7e13ade91475"><img alt="diode" src="https://github.com/user-attachments/assets/308cb05a-01d9-4fc4-9c03-7e13ade91475" style="width: 718px; height: 571px;" />
+</a>
+</section>
+<section class="tex2jax_ignore mathjax_ignore" id="torch-diode">
+<h1>torch-diode<a class="headerlink" href="#torch-diode" title="Link to this heading"></a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">torch-diode</span></code> is a library for programattically altering the performance-relevant decisions made by <code class="docutils literal notranslate"><span class="pre">torch.compile</span></code>. It makes it easy to gather data on the outcomes of decisions, and then train Machine Learning models on that data. It initially focuses on Matmul Kernel selection, but it will be expanded to other decisions in the future.</p>
+<section id="target-audience">
+<h2>Target Audience:<a class="headerlink" href="#target-audience" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Developers looking to adapt the compilation of their model to their specific situation.</p></li>
+<li><p>Hardware Vendors looking to optimize <code class="docutils literal notranslate"><span class="pre">torch.compile</span></code> heuristics for their hardware.</p></li>
+<li><p>OSS Contributors looking to add support for less popular hardware.</p></li>
+</ul>
+</section>
+<section id="features">
+<h2>Features:<a class="headerlink" href="#features" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Pre-Trained Models: Profit from community efforts to gather data and train models.</p></li>
+<li><p>Data collection: Gather data from torch external interfaces.</p></li>
+<li><p>Stable Type Definitions: storing data from the external interfaces.</p></li>
+<li><p>Model Training Code: Train ML models on the gathered data and contribute back to the <code class="docutils literal notranslate"><span class="pre">torch</span></code> community.</p></li>
+</ul>
+</section>
+<section id="featured-models">
+<h2>Featured Models<a class="headerlink" href="#featured-models" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Matmul Kernel Prediction: Predict the runtime of matmul kernels. The results of this model are enabled in <code class="docutils literal notranslate"><span class="pre">fast-autotune</span></code>.</p></li>
+</ul>
+</section>
+<section id="option-1-installation-with-pre-trained-models">
+<h2>Option 1: Installation with Pre-Trained Models<a class="headerlink" href="#option-1-installation-with-pre-trained-models" title="Link to this heading"></a></h2>
+<p>If you want to get access to the pre-trained performance models, as well as the libraries, install <code class="docutils literal notranslate"><span class="pre">torch-diode</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ pip install torch-diode
+</pre></div>
+</div>
+<p>And then import diode in python:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">diode</span>
+</pre></div>
+</div>
+<p>This import has several side-effects, each of which are dependent on the success of the previous step:</p>
+<ol class="arabic simple">
+<li><p>Attempt to import <code class="docutils literal notranslate"><span class="pre">torch</span></code>.</p></li>
+<li><p>Register dummy models to the relevant <code class="docutils literal notranslate"><span class="pre">torch.compile</span></code> interfaces.</p></li>
+<li><p>For each registration that is successful, it will load the actual model and register it.</p></li>
+<li><p>Enable the configs in <code class="docutils literal notranslate"><span class="pre">torch.compile</span></code> that engage the models.</p></li>
+</ol>
+</section>
+<section id="option-2-installation-without-pre-trained-models">
+<h2>Option 2: Installation without Pre-Trained Models<a class="headerlink" href="#option-2-installation-without-pre-trained-models" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">diode</span></code> requires nightly pytorch, or pytorch <code class="docutils literal notranslate"><span class="pre">2.9</span></code> or later.</p>
+<p>For developers who don’t want these side effects, simply installing <code class="docutils literal notranslate"><span class="pre">torch-diode-lib</span></code> will get access to the library.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ pip install torch-diode-lib
+</pre></div>
+</div>
+<p>The import remains the same:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">diode</span>
+</pre></div>
+</div>
+<section id="option-3-install-from-source">
+<h3>Option 3: Install from Source<a class="headerlink" href="#option-3-install-from-source" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/exclamaforte/diode.git
+<span class="nb">cd</span><span class="w"> </span>diode
+pip<span class="w"> </span>install<span class="w"> </span>.
+</pre></div>
+</div>
+</section>
+</section>
+<section id="model-organization">
+<h2>Model Organization<a class="headerlink" href="#model-organization" title="Link to this heading"></a></h2>
+<section id="directory-structure">
+<h3>Directory Structure<a class="headerlink" href="#directory-structure" title="Link to this heading"></a></h3>
+<p>Models are organized in a structured directory format:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">trained_models</span><span class="o">/&lt;</span><span class="n">model_purpose</span><span class="o">&gt;/&lt;</span><span class="n">model_name</span><span class="o">&gt;.</span><span class="n">pt</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="get-started">
+<h2>Get Started<a class="headerlink" href="#get-started" title="Link to this heading"></a></h2>
+<p><a class="reference external" href="https://github.com/exclamaforte/diode/tree/main/workflows#readme">The main entry point is in workflows.</a></p>
+<section id="package-variants">
+<h3>Package Variants<a class="headerlink" href="#package-variants" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>torch-diode</strong>: Full package with auto-registration to PyTorch Inductor</p></li>
+<li><p><strong>torch-diode-lib</strong>: Library-only version without auto-registration</p></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../api/diode.utils.html" class="btn btn-neutral float-left" title="diode.utils package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="contributing.html" class="btn btn-neutral float-right" title="Contributing Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Author Name.
+      <span class="lastupdated">Last updated on Sep 19, 2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

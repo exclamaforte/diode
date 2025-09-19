@@ -46,7 +46,8 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <ul class="current">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../torch_compile_integration.html">Accelerating torch.compile with Diode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started with Training Models with Diode</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Documentation</a><ul class="current">
@@ -69,6 +70,23 @@
 </li>
 </ul>
 </li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Articles:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../articles/readme.html">Project Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../articles/readme.html#torch-diode">torch-diode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../articles/contributing.html">Contributing Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../articles/contributing.html#contributing-to-diode">Contributing to Diode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../articles/contributing.html#testing-and-code-coverage">Testing and Code Coverage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../articles/packaging.html">Packaging Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../articles/packaging.html#diode-packaging-setup">Diode Packaging Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../articles/workflows.html">Workflows Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../articles/workflows.html#matrix-multiplication-toolkit">Matrix Multiplication Toolkit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../articles/systems_architecture.html">Systems Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../articles/systems_architecture.html#torch-diode-systems-architecture">Torch-Diode Systems Architecture</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference:</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../genindex.html">Index</a></li>
 </ul>
 
@@ -450,32 +468,11 @@
 <section id="module-diode">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-diode" title="Link to this heading"></a></h2>
 <p>Framework for training ML diagnostics in Torch.</p>
-<p># Import and execute integration discovery and registration as side effects
-import logging</p>
-<p>logger = logging.getLogger(__name__)</p>
-<dl>
-<dt>try:</dt><dd><p># Attempt to import torch to check availability
-import torch</p>
-<p>logger.debug(“PyTorch detected, proceeding with integration discovery”)</p>
-<p># Import the discovery and registration system
-from diode.integration.base_integration import discover_and_register_integrations, integrate_all</p>
-<p># Auto-discover and register all available integrations
-discovery_results = discover_and_register_integrations()</p>
-<p># Execute all discovered integrations
-integration_results = integrate_all()</p>
-<p>logger.info(f”Auto-integration complete: {sum(integration_results.values())}/{len(integration_results)} integrations successful”)</p>
-</dd>
-<dt>except ImportError:</dt><dd><p>logger.debug(“PyTorch not available, skipping auto-integration”)</p>
-</dd>
-<dt>except Exception as e:</dt><dd><p>logger.warning(f”Auto-integration failed: {e}”)This import has several side-effects, each dependent on the success of the previous step:</p>
-</dd>
-</dl>
-<ol class="arabic simple">
-<li><p>Attempt to import <cite>torch</cite>.</p></li>
-<li><p>Register dummy models to the relevant <cite>torch.compile</cite> interfaces.</p></li>
-<li><p>For each registration that is successful, it will load the actual model and register it.</p></li>
-<li><p>Enable the configs in <cite>torch.compile</cite> that engage the models.</p></li>
-</ol>
+<p>Importing this module has the following side effects:
+1. Attempt to import <cite>torch</cite>.
+2. Register dummy models to the relevant <cite>torch.compile</cite> interfaces.
+3. For each registration that is successful, it will load the actual model and register it.
+4. Enable the configs in <cite>torch.compile</cite> that engage the models.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="diode.get_import_status">
 <span class="sig-prename descclassname"><span class="pre">diode.</span></span><span class="sig-name descname"><span class="pre">get_import_status</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/diode.html#get_import_status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#diode.get_import_status" title="Link to this definition"></a></dt>
@@ -544,7 +541,7 @@ integration_results = integrate_all()</p>
 
   <div role="contentinfo">
     <p>&#169; Copyright 2023, Author Name.
-      <span class="lastupdated">Last updated on Sep 18, 2025.
+      <span class="lastupdated">Last updated on Sep 19, 2025.
       </span></p>
   </div>
 

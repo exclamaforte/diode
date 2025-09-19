@@ -43,10 +43,28 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <ul>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../torch_compile_integration.html">Accelerating torch.compile with Diode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../getting_started.html">Getting Started with Training Models with Diode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API Documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Articles:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../articles/readme.html">Project Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../articles/readme.html#torch-diode">torch-diode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../articles/contributing.html">Contributing Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../articles/contributing.html#contributing-to-diode">Contributing to Diode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../articles/contributing.html#testing-and-code-coverage">Testing and Code Coverage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../articles/packaging.html">Packaging Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../articles/packaging.html#diode-packaging-setup">Diode Packaging Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../articles/workflows.html">Workflows Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../articles/workflows.html#matrix-multiplication-toolkit">Matrix Multiplication Toolkit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../articles/systems_architecture.html">Systems Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../articles/systems_architecture.html#torch-diode-systems-architecture">Torch-Diode Systems Architecture</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference:</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../genindex.html">Index</a></li>
 </ul>
 
@@ -233,6 +251,7 @@
         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to load model weights: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">return</span>
 
+    <span class="nb">breakpoint</span><span class="p">()</span>
     <span class="c1"># Create model</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">&quot;model_state_dict&quot;</span> <span class="ow">in</span> <span class="n">checkpoint</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Loading from checkpoint format&quot;</span><span class="p">)</span>
@@ -909,6 +928,11 @@
         <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span>
 
+    <span class="c1"># Check if model training was successful (dataset not empty)</span>
+    <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Model training failed or dataset was empty. Exiting example.&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
+
     <span class="c1"># Plot the training history</span>
     <span class="n">history_plot_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">log_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;matmul_timing_</span><span class="si">{</span><span class="n">model_type</span><span class="si">}</span><span class="s2">_history.png&quot;</span><span class="p">)</span>
     <span class="n">plot_training_history</span><span class="p">(</span><span class="n">history</span><span class="p">,</span> <span class="n">history_plot_path</span><span class="p">)</span>
@@ -924,6 +948,12 @@
         <span class="n">num_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
         <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
     <span class="p">)</span>
+
+    <span class="c1"># Check if test dataloader was created successfully</span>
+    <span class="k">if</span> <span class="n">test_dataloader</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Test dataloader is empty, skipping test evaluation.&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Example completed&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
 
     <span class="c1"># Move the model to the device</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
@@ -1111,7 +1141,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2023, Author Name.
-      <span class="lastupdated">Last updated on Sep 18, 2025.
+      <span class="lastupdated">Last updated on Sep 19, 2025.
       </span></p>
   </div>
 

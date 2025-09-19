@@ -25,6 +25,14 @@ extensions = [
     'sphinx_copybutton',
 ]
 
+# Try to add mermaid support if available
+try:
+    import sphinxcontrib.mermaid
+    extensions.append('sphinxcontrib.mermaid')
+except ImportError:
+    # Fallback: use myst_parser's mermaid support
+    pass
+
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
@@ -92,6 +100,7 @@ myst_enable_extensions = [
     'html_image',
 ]
 myst_heading_anchors = 3
+myst_fence_as_directive = ["mermaid"]
 
 # Intersphinx settings
 intersphinx_mapping = {

@@ -43,10 +43,28 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <ul>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../torch_compile_integration.html">Accelerating torch.compile with Diode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../getting_started.html">Getting Started with Training Models with Diode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API Documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Articles:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../articles/readme.html">Project Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../articles/readme.html#torch-diode">torch-diode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../articles/contributing.html">Contributing Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../articles/contributing.html#contributing-to-diode">Contributing to Diode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../articles/contributing.html#testing-and-code-coverage">Testing and Code Coverage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../articles/packaging.html">Packaging Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../articles/packaging.html#diode-packaging-setup">Diode Packaging Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../articles/workflows.html">Workflows Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../articles/workflows.html#matrix-multiplication-toolkit">Matrix Multiplication Toolkit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../articles/systems_architecture.html">Systems Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../articles/systems_architecture.html#torch-diode-systems-architecture">Torch-Diode Systems Architecture</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference:</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../genindex.html">Index</a></li>
 </ul>
 
@@ -348,20 +366,22 @@
         <span class="n">total_loss</span> <span class="o">=</span> <span class="mf">0.0</span>
         <span class="n">num_batches</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dataloader</span><span class="p">)</span>
         <span class="n">num_samples</span> <span class="o">=</span> <span class="mi">0</span>
-        
+
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> dataset contains </span><span class="si">{</span><span class="n">num_batches</span><span class="si">}</span><span class="s2"> batches&quot;</span><span class="p">)</span>
-        
+
         <span class="c1"># Create progress bar for evaluation</span>
         <span class="n">pbar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="n">num_batches</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> Evaluation&quot;</span><span class="p">)</span>
 
         <span class="c1"># Iterate over the batches</span>
         <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
-            <span class="k">for</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="p">(</span><span class="n">problem_features</span><span class="p">,</span> <span class="n">config_features</span><span class="p">,</span> <span class="n">targets</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dataloader</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="p">(</span><span class="n">problem_features</span><span class="p">,</span> <span class="n">config_features</span><span class="p">,</span> <span class="n">targets</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span>
+                <span class="n">dataloader</span>
+            <span class="p">):</span>
                 <span class="c1"># Move the data to the device</span>
                 <span class="n">problem_features</span> <span class="o">=</span> <span class="n">problem_features</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
                 <span class="n">config_features</span> <span class="o">=</span> <span class="n">config_features</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
                 <span class="n">targets</span> <span class="o">=</span> <span class="n">targets</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
-                
+
                 <span class="n">batch_size</span> <span class="o">=</span> <span class="n">problem_features</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
                 <span class="n">num_samples</span> <span class="o">+=</span> <span class="n">batch_size</span>
 
@@ -373,34 +393,40 @@
 
                 <span class="c1"># Update the total loss</span>
                 <span class="n">total_loss</span> <span class="o">+=</span> <span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
-                
+
                 <span class="c1"># Update progress bar with current batch loss</span>
                 <span class="n">current_avg_loss</span> <span class="o">=</span> <span class="n">total_loss</span> <span class="o">/</span> <span class="p">(</span><span class="n">batch_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-                <span class="n">pbar</span><span class="o">.</span><span class="n">set_postfix</span><span class="p">({</span>
-                    <span class="s1">&#39;batch_loss&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span><span class="si">:</span><span class="s1">.6f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
-                    <span class="s1">&#39;avg_loss&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">current_avg_loss</span><span class="si">:</span><span class="s1">.6f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
-                    <span class="s1">&#39;samples&#39;</span><span class="p">:</span> <span class="n">num_samples</span>
-                <span class="p">})</span>
+                <span class="n">pbar</span><span class="o">.</span><span class="n">set_postfix</span><span class="p">(</span>
+                    <span class="p">{</span>
+                        <span class="s2">&quot;batch_loss&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;avg_loss&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">current_avg_loss</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;samples&quot;</span><span class="p">:</span> <span class="n">num_samples</span><span class="p">,</span>
+                    <span class="p">}</span>
+                <span class="p">)</span>
                 <span class="n">pbar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-                
+
                 <span class="c1"># Log progress every 10% of batches</span>
                 <span class="k">if</span> <span class="p">(</span><span class="n">batch_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_batches</span> <span class="o">//</span> <span class="mi">10</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">progress_pct</span> <span class="o">=</span> <span class="p">((</span><span class="n">batch_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">num_batches</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> evaluation progress: </span><span class="si">{</span><span class="n">progress_pct</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">% &quot;</span>
-                               <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">batch_idx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">num_batches</span><span class="si">}</span><span class="s2"> batches, &quot;</span>
-                               <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">num_samples</span><span class="si">}</span><span class="s2"> samples processed)&quot;</span><span class="p">)</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> evaluation progress: </span><span class="si">{</span><span class="n">progress_pct</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">% &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">batch_idx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">num_batches</span><span class="si">}</span><span class="s2"> batches, &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">num_samples</span><span class="si">}</span><span class="s2"> samples processed)&quot;</span>
+                    <span class="p">)</span>
 
         <span class="c1"># Close progress bar</span>
         <span class="n">pbar</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
         <span class="c1"># Calculate the average loss</span>
         <span class="n">avg_loss</span> <span class="o">=</span> <span class="n">total_loss</span> <span class="o">/</span> <span class="n">num_batches</span>
-        
+
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> evaluation completed:&quot;</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - Processed </span><span class="si">{</span><span class="n">num_samples</span><span class="si">}</span><span class="s2"> samples in </span><span class="si">{</span><span class="n">num_batches</span><span class="si">}</span><span class="s2"> batches&quot;</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - Average loss (MSE): </span><span class="si">{</span><span class="n">avg_loss</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - RMSE: </span><span class="si">{</span><span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">avg_loss</span><span class="p">))</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - RMSE (exp): </span><span class="si">{</span><span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">avg_loss</span><span class="p">)))</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;  - RMSE (exp): </span><span class="si">{</span><span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">avg_loss</span><span class="p">)))</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">avg_loss</span>
 
@@ -783,6 +809,13 @@
         <span class="n">debug</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># Enable debug mode to check data quality</span>
     <span class="p">)</span>
 
+    <span class="c1"># Check if dataloaders were created successfully</span>
+    <span class="k">if</span> <span class="n">train_dataloader</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="s2">&quot;Dataset is empty or could not create dataloaders. Returning None.&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="p">{},</span> <span class="n">config</span>
+
     <span class="c1"># Get the feature dimensions</span>
     <span class="n">problem_feature_dim</span> <span class="o">=</span> <span class="n">train_dataloader</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">problem_feature_dim</span>
     <span class="n">config_feature_dim</span> <span class="o">=</span> <span class="n">train_dataloader</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">config_feature_dim</span>
@@ -861,7 +894,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2023, Author Name.
-      <span class="lastupdated">Last updated on Sep 18, 2025.
+      <span class="lastupdated">Last updated on Sep 19, 2025.
       </span></p>
   </div>
 

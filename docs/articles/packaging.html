@@ -1,0 +1,362 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Packaging Guide &mdash; diode 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Workflows Guide" href="workflows.html" />
+    <link rel="prev" title="Contributing Guide" href="contributing.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            diode
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../torch_compile_integration.html">Accelerating torch.compile with Diode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started with Training Models with Diode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/modules.html">API Documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Articles:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="readme.html">Project Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#torch-diode">torch-diode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html#contributing-to-diode">Contributing to Diode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html#testing-and-code-coverage">Testing and Code Coverage</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Packaging Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#diode-packaging-setup">Diode Packaging Setup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#package-configurations">Package Configurations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#torch-diode-main-package">torch-diode (Main Package)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#torch-diode-lib-library-package">torch-diode-lib (Library Package)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#file-inclusion">File Inclusion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#building-the-packages">Building the Packages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#using-make-recommended">Using Make (Recommended)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#manual-build-process">Manual Build Process</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#usage-differences">Usage Differences</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#torch-diode-auto-registration">torch-diode (Auto-registration)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#torch-diode-lib-manual-registration">torch-diode-lib (Manual registration)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration-files">Configuration Files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#key-differences">Key Differences</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#deployment">Deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#file-structure">File Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#choosing-the-right-package">Choosing the Right Package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">Workflows Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html#matrix-multiplication-toolkit">Matrix Multiplication Toolkit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="systems_architecture.html">Systems Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="systems_architecture.html#torch-diode-systems-architecture">Torch-Diode Systems Architecture</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../genindex.html">Index</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">diode</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Packaging Guide</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/articles/packaging.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="packaging-guide">
+<h1>Packaging Guide<a class="headerlink" href="#packaging-guide" title="Link to this heading"></a></h1>
+</section>
+<section class="tex2jax_ignore mathjax_ignore" id="diode-packaging-setup">
+<h1>Diode Packaging Setup<a class="headerlink" href="#diode-packaging-setup" title="Link to this heading"></a></h1>
+<p>This project supports two different package distributions:</p>
+<ol class="arabic simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">torch-diode</span></code></strong> - Full package with automatic PyTorch Inductor integration</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">torch-diode-lib</span></code></strong> - Library-only package without automatic integration</p></li>
+</ol>
+<section id="package-configurations">
+<h2>Package Configurations<a class="headerlink" href="#package-configurations" title="Link to this heading"></a></h2>
+<section id="torch-diode-main-package">
+<h3>torch-diode (Main Package)<a class="headerlink" href="#torch-diode-main-package" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Package Name</strong>: <code class="docutils literal notranslate"><span class="pre">torch-diode</span></code></p></li>
+<li><p><strong>Auto-registration</strong>: ✅ Yes - automatically registers with PyTorch Inductor on import</p></li>
+<li><p><strong>Use Case</strong>: Drop-in replacement for production environments where you want automatic integration</p></li>
+<li><p><strong>Installation</strong>: <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">torch-diode</span></code></p></li>
+</ul>
+</section>
+<section id="torch-diode-lib-library-package">
+<h3>torch-diode-lib (Library Package)<a class="headerlink" href="#torch-diode-lib-library-package" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Package Name</strong>: <code class="docutils literal notranslate"><span class="pre">torch-diode-lib</span></code></p></li>
+<li><p><strong>Auto-registration</strong>: ❌ No - manual integration required</p></li>
+<li><p><strong>Use Case</strong>: Library environments where you want manual control over when/how integration happens</p></li>
+<li><p><strong>Installation</strong>: <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">torch-diode-lib</span></code></p></li>
+</ul>
+</section>
+</section>
+<section id="file-inclusion">
+<h2>File Inclusion<a class="headerlink" href="#file-inclusion" title="Link to this heading"></a></h2>
+<p>Both packages include:</p>
+<ul class="simple">
+<li><p>All Python source code from the <code class="docutils literal notranslate"><span class="pre">diode/</span></code> directory</p></li>
+<li><p><strong>Model binaries</strong>: <code class="docutils literal notranslate"><span class="pre">matmul_model.pt</span></code> (and any other <code class="docutils literal notranslate"><span class="pre">.pt</span></code> files in <code class="docutils literal notranslate"><span class="pre">diode/data/</span></code>)</p></li>
+<li><p>Documentation and examples</p></li>
+</ul>
+<p>The model files are accessible at runtime via:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">diode</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pkg_resources</span>
+<span class="n">model_path</span> <span class="o">=</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">resource_filename</span><span class="p">(</span><span class="s1">&#39;diode&#39;</span><span class="p">,</span> <span class="s1">&#39;data/matmul_model.pt&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="building-the-packages">
+<h2>Building the Packages<a class="headerlink" href="#building-the-packages" title="Link to this heading"></a></h2>
+<section id="using-make-recommended">
+<h3>Using Make (Recommended)<a class="headerlink" href="#using-make-recommended" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Build both packages</span>
+make<span class="w"> </span>build-all
+
+<span class="c1"># Build individual packages</span>
+make<span class="w"> </span>build-torch-diode<span class="w">        </span><span class="c1"># Main package with auto-registration</span>
+make<span class="w"> </span>build-torch-diode-lib<span class="w">    </span><span class="c1"># Library package without auto-registration</span>
+
+<span class="c1"># Clean build artifacts</span>
+make<span class="w"> </span>clean
+
+<span class="c1"># List built packages</span>
+make<span class="w"> </span>list-packages
+
+<span class="c1"># Test installations</span>
+make<span class="w"> </span>test-install
+</pre></div>
+</div>
+</section>
+<section id="manual-build-process">
+<h3>Manual Build Process<a class="headerlink" href="#manual-build-process" title="Link to this heading"></a></h3>
+<ol class="arabic">
+<li><p><strong>torch-diode</strong> (main package):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>build
+</pre></div>
+</div>
+</li>
+<li><p><strong>torch-diode-lib</strong> (library package):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create temporary build directory</span>
+mkdir<span class="w"> </span>-p<span class="w"> </span>/tmp/torch-diode-lib-build
+cp<span class="w"> </span>-r<span class="w"> </span>diode/<span class="w"> </span>workflows/<span class="w"> </span>README.md<span class="w"> </span>LICENSE<span class="w"> </span>/tmp/torch-diode-lib-build/
+cp<span class="w"> </span>pyproject-lib.toml<span class="w"> </span>/tmp/torch-diode-lib-build/pyproject.toml
+
+<span class="c1"># Replace __init__.py with library version (no auto-registration)</span>
+cp<span class="w"> </span>diode/__init___lib.py<span class="w"> </span>/tmp/torch-diode-lib-build/diode/__init__.py
+
+<span class="c1"># Build the package</span>
+<span class="nb">cd</span><span class="w"> </span>/tmp/torch-diode-lib-build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>build
+
+<span class="c1"># Copy results back</span>
+cp<span class="w"> </span>/tmp/torch-diode-lib-build/dist/*<span class="w"> </span>dist/
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+</section>
+<section id="usage-differences">
+<h2>Usage Differences<a class="headerlink" href="#usage-differences" title="Link to this heading"></a></h2>
+<section id="torch-diode-auto-registration">
+<h3>torch-diode (Auto-registration)<a class="headerlink" href="#torch-diode-auto-registration" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">diode</span>  <span class="c1"># Automatically registers with PyTorch Inductor</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+
+<span class="c1"># Your code here - Diode choices are automatically available</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>  <span class="c1"># May use Diode heuristics automatically</span>
+</pre></div>
+</div>
+</section>
+<section id="torch-diode-lib-manual-registration">
+<h3>torch-diode-lib (Manual registration)<a class="headerlink" href="#torch-diode-lib-manual-registration" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">diode</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">diode.integration.inductor_integration</span><span class="w"> </span><span class="kn">import</span> <span class="n">install_diode_choices</span>
+
+<span class="c1"># Manual registration when needed</span>
+<span class="n">install_diode_choices</span><span class="p">(</span><span class="n">enable_fallback</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="c1"># Now Diode choices are available</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">mm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>  <span class="c1"># May use Diode heuristics</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="configuration-files">
+<h2>Configuration Files<a class="headerlink" href="#configuration-files" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code></strong>: Configuration for <code class="docutils literal notranslate"><span class="pre">torch-diode</span></code> (main package)</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">pyproject-lib.toml</span></code></strong>: Configuration for <code class="docutils literal notranslate"><span class="pre">torch-diode-lib</span></code> (library package)</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">diode/__init__.py</span></code></strong>: Main package init with auto-registration</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">diode/__init___lib.py</span></code></strong>: Library package init without auto-registration</p></li>
+</ul>
+</section>
+<section id="key-differences">
+<h2>Key Differences<a class="headerlink" href="#key-differences" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Feature</p></th>
+<th class="head"><p>torch-diode</p></th>
+<th class="head"><p>torch-diode-lib</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Auto-registration</p></td>
+<td><p>✅ Yes</p></td>
+<td><p>❌ No</p></td>
+</tr>
+<tr class="row-odd"><td><p>Manual control</p></td>
+<td><p>Limited</p></td>
+<td><p>✅ Full</p></td>
+</tr>
+<tr class="row-even"><td><p>Import behavior</p></td>
+<td><p>Registers on import</p></td>
+<td><p>No registration</p></td>
+</tr>
+<tr class="row-odd"><td><p>Production ready</p></td>
+<td><p>✅ Yes</p></td>
+<td><p>✅ Yes</p></td>
+</tr>
+<tr class="row-even"><td><p>Library friendly</p></td>
+<td><p>⚠️ May interfere</p></td>
+<td><p>✅ Yes</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="deployment">
+<h2>Deployment<a class="headerlink" href="#deployment" title="Link to this heading"></a></h2>
+<p>Both packages can be deployed to PyPI:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Upload to test PyPI</span>
+make<span class="w"> </span>upload-test
+
+<span class="c1"># Upload to production PyPI</span>
+make<span class="w"> </span>upload
+</pre></div>
+</div>
+</section>
+<section id="dependencies">
+<h2>Dependencies<a class="headerlink" href="#dependencies" title="Link to this heading"></a></h2>
+<p>Both packages share the same dependencies:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">torch&gt;=2.0.0</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">msgpack&gt;=1.0.0</span></code></p></li>
+</ul>
+</section>
+<section id="file-structure">
+<h2>File Structure<a class="headerlink" href="#file-structure" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>dist/
+├── torch_diode-0.1.0-py3-none-any.whl      # Main package wheel
+├── torch_diode-0.1.0.tar.gz               # Main package source
+├── torch_diode_lib-0.1.0-py3-none-any.whl # Library package wheel
+└── torch_diode_lib-0.1.0.tar.gz           # Library package source
+</pre></div>
+</div>
+</section>
+<section id="choosing-the-right-package">
+<h2>Choosing the Right Package<a class="headerlink" href="#choosing-the-right-package" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Use <code class="docutils literal notranslate"><span class="pre">torch-diode</span></code></strong> if you want plug-and-play functionality</p></li>
+<li><p><strong>Use <code class="docutils literal notranslate"><span class="pre">torch-diode-lib</span></code></strong> if you’re building a library or need manual control over integration timing</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="contributing.html" class="btn btn-neutral float-left" title="Contributing Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="workflows.html" class="btn btn-neutral float-right" title="Workflows Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Author Name.
+      <span class="lastupdated">Last updated on Sep 19, 2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,353 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Workflows Guide &mdash; diode 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=f281be69"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Systems Architecture" href="systems_architecture.html" />
+    <link rel="prev" title="Packaging Guide" href="packaging.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            diode
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../torch_compile_integration.html">Accelerating torch.compile with Diode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started with Training Models with Diode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/modules.html">API Documentation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Articles:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="readme.html">Project Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="readme.html#torch-diode">torch-diode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html#contributing-to-diode">Contributing to Diode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html#testing-and-code-coverage">Testing and Code Coverage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="packaging.html">Packaging Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="packaging.html#diode-packaging-setup">Diode Packaging Setup</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Workflows Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#matrix-multiplication-toolkit">Matrix Multiplication Toolkit</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#usage">Usage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#available-modes">Available Modes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#collecting-data">Collecting Data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#training-a-model">Training a Model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#validating-a-model">Validating a Model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#end-to-end-collection-and-training">End-to-End Collection and Training</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#key-features">Key Features</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#data-collection">Data Collection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#model-training">Model Training</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#model-evaluation">Model Evaluation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#collectors">Collectors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#command-line-options">Command-Line Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#common-options">Common Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-collection-options">Data Collection Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#model-training-options">Model Training Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#advanced-usage">Advanced Usage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#hardware-and-operation-filtering">Hardware and Operation Filtering</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#skipping-steps-in-collect-and-train">Skipping Steps in Collect-and-Train</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#internal-structure">Internal Structure</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="systems_architecture.html">Systems Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="systems_architecture.html#torch-diode-systems-architecture">Torch-Diode Systems Architecture</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../genindex.html">Index</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">diode</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Workflows Guide</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/articles/workflows.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="workflows-guide">
+<h1>Workflows Guide<a class="headerlink" href="#workflows-guide" title="Link to this heading"></a></h1>
+</section>
+<section class="tex2jax_ignore mathjax_ignore" id="matrix-multiplication-toolkit">
+<h1>Matrix Multiplication Toolkit<a class="headerlink" href="#matrix-multiplication-toolkit" title="Link to this heading"></a></h1>
+<p>A unified toolkit for matrix multiplication data collection, model training, and evaluation.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">matmul_toolkit.py</span></code> script provides a comprehensive interface for working with matrix multiplication operations, including:</p>
+<ol class="arabic simple">
+<li><p>Collecting timing data for matrix multiplications</p></li>
+<li><p>Training neural network models to predict execution times</p></li>
+<li><p>Evaluating model performance</p></li>
+<li><p>Visualizing results</p></li>
+</ol>
+<p>This toolkit consolidates functionality from multiple separate scripts into a single, unified interface controlled through command-line flags.</p>
+</section>
+<section id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
+<p>The toolkit provides multiple modes of operation, each accessible through a different subcommand:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>matmul_toolkit.py<span class="w"> </span>&lt;mode&gt;<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
+</pre></div>
+</div>
+<section id="available-modes">
+<h3>Available Modes<a class="headerlink" href="#available-modes" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">collect</span></code>: Collect matrix multiplication timing data</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">create-validation</span></code>: Create a separate validation dataset</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">train</span></code>: Train a model on collected data</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">validate-model</span></code>: Validate a trained model on a validation dataset</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">collector-example</span></code>: Run an example demonstrating the MatmulDatasetCollector</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">model-example</span></code>: Run an example demonstrating model training and evaluation</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">collect-and-train</span></code>: Collect data and train a model in one step</p></li>
+</ul>
+</section>
+<section id="examples">
+<h3>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h3>
+<section id="collecting-data">
+<h4>Collecting Data<a class="headerlink" href="#collecting-data" title="Link to this heading"></a></h4>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Collect timing data for 100 matrix shapes</span>
+python<span class="w"> </span>matmul_toolkit.py<span class="w"> </span>collect<span class="w"> </span>--output<span class="w"> </span>matmul_dataset.json<span class="w"> </span>--num-shapes<span class="w"> </span><span class="m">100</span>
+
+<span class="c1"># Collect data with power-of-two sizes only</span>
+python<span class="w"> </span>matmul_toolkit.py<span class="w"> </span>collect<span class="w"> </span>--output<span class="w"> </span>matmul_dataset_pow2.json<span class="w"> </span>--num-shapes<span class="w"> </span><span class="m">50</span><span class="w"> </span>--power-of-two
+</pre></div>
+</div>
+</section>
+<section id="training-a-model">
+<h4>Training a Model<a class="headerlink" href="#training-a-model" title="Link to this heading"></a></h4>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Train a deep model on collected data</span>
+python<span class="w"> </span>matmul_toolkit.py<span class="w"> </span>train<span class="w"> </span>--dataset<span class="w"> </span>matmul_dataset.json<span class="w"> </span>--model<span class="w"> </span>matmul_model.pt
+
+<span class="c1"># Train a base model with custom parameters</span>
+python<span class="w"> </span>matmul_toolkit.py<span class="w"> </span>train<span class="w"> </span>--dataset<span class="w"> </span>matmul_dataset.json<span class="w"> </span>--model<span class="w"> </span>matmul_base_model.pt<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--model-type<span class="w"> </span>base<span class="w"> </span>--batch-size<span class="w"> </span><span class="m">128</span><span class="w"> </span>--num-epochs<span class="w"> </span><span class="m">200</span><span class="w"> </span>--learning-rate<span class="w"> </span><span class="m">0</span>.0005
+</pre></div>
+</div>
+</section>
+<section id="validating-a-model">
+<h4>Validating a Model<a class="headerlink" href="#validating-a-model" title="Link to this heading"></a></h4>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Validate a trained model on a separate validation dataset</span>
+python<span class="w"> </span>matmul_toolkit.py<span class="w"> </span>validate-model<span class="w"> </span>--model<span class="w"> </span>matmul_model.pt<span class="w"> </span>--dataset<span class="w"> </span>matmul_validation_dataset.json
+</pre></div>
+</div>
+</section>
+<section id="end-to-end-collection-and-training">
+<h4>End-to-End Collection and Training<a class="headerlink" href="#end-to-end-collection-and-training" title="Link to this heading"></a></h4>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Collect data and train a model in one step</span>
+python<span class="w"> </span>matmul_toolkit.py<span class="w"> </span>collect-and-train<span class="w"> </span>--dataset<span class="w"> </span>matmul_dataset.json<span class="w"> </span>--model<span class="w"> </span>matmul_model.pt
+
+<span class="c1"># Skip collection if dataset already exists</span>
+python<span class="w"> </span>matmul_toolkit.py<span class="w"> </span>collect-and-train<span class="w"> </span>--dataset<span class="w"> </span>matmul_dataset.json<span class="w"> </span>--model<span class="w"> </span>matmul_model.pt<span class="w"> </span>--skip-collection
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+<section id="key-features">
+<h2>Key Features<a class="headerlink" href="#key-features" title="Link to this heading"></a></h2>
+<section id="data-collection">
+<h3>Data Collection<a class="headerlink" href="#data-collection" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Configurable matrix sizes (power-of-two, rectangular, odd sizes)</p></li>
+<li><p>Support for different data types (float16, float32)</p></li>
+<li><p>Exhaustive or default search space for autotuning</p></li>
+<li><p>Separate validation dataset creation</p></li>
+</ul>
+</section>
+<section id="model-training">
+<h3>Model Training<a class="headerlink" href="#model-training" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Two model types: base and deep neural network</p></li>
+<li><p>Configurable hyperparameters (learning rate, batch size, etc.)</p></li>
+<li><p>Early stopping to prevent overfitting</p></li>
+<li><p>Training history visualization</p></li>
+</ul>
+</section>
+<section id="model-evaluation">
+<h3>Model Evaluation<a class="headerlink" href="#model-evaluation" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Performance metrics (MSE, RMSE)</p></li>
+<li><p>Analysis of worst predictions</p></li>
+<li><p>Detailed configuration information for each prediction</p></li>
+</ul>
+</section>
+<section id="collectors">
+<h3>Collectors<a class="headerlink" href="#collectors" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">MatmulDatasetCollector</span></code>: Collects data in a structured dataset format</p></li>
+</ul>
+</section>
+</section>
+<section id="command-line-options">
+<h2>Command-Line Options<a class="headerlink" href="#command-line-options" title="Link to this heading"></a></h2>
+<p>Each mode has its own set of command-line options. Use the <code class="docutils literal notranslate"><span class="pre">--help</span></code> flag to see the available options for each mode:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>matmul_toolkit.py<span class="w"> </span>&lt;mode&gt;<span class="w"> </span>--help
+</pre></div>
+</div>
+</section>
+<section id="common-options">
+<h2>Common Options<a class="headerlink" href="#common-options" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--seed</span></code>: Random seed for reproducibility (default: 42)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--device</span></code>: Device to run on (default: “cuda” if available, otherwise “cpu”)</p></li>
+</ul>
+</section>
+<section id="data-collection-options">
+<h2>Data Collection Options<a class="headerlink" href="#data-collection-options" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--num-shapes</span></code>: Number of matrix shapes to test</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--min-size</span></code>/<code class="docutils literal notranslate"><span class="pre">--max-size</span></code>: Minimum/maximum matrix dimension</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--power-of-two</span></code>: Generate only power-of-two sizes</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--no-rectangular</span></code>: Exclude rectangular matrices</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--no-odd-sizes</span></code>: Exclude odd-sized matrices</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--search-mode</span></code>: Search mode for torch.compile</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--search-space</span></code>: Search space for autotuning (EXHAUSTIVE or DEFAULT)</p></li>
+</ul>
+</section>
+<section id="model-training-options">
+<h2>Model Training Options<a class="headerlink" href="#model-training-options" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--model-type</span></code>: Type of model to train (“base” or “deep”)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--batch-size</span></code>: Batch size for training</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--num-epochs</span></code>: Number of epochs to train for</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--learning-rate</span></code>: Learning rate for the optimizer</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--weight-decay</span></code>: Weight decay for the optimizer</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--patience</span></code>: Number of epochs to wait for improvement before early stopping</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--hidden-dim</span></code>: Hidden dimension of the model</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--num-layers</span></code>: Number of layers in the model</p></li>
+</ul>
+</section>
+<section id="advanced-usage">
+<h2>Advanced Usage<a class="headerlink" href="#advanced-usage" title="Link to this heading"></a></h2>
+<section id="hardware-and-operation-filtering">
+<h3>Hardware and Operation Filtering<a class="headerlink" href="#hardware-and-operation-filtering" title="Link to this heading"></a></h3>
+<p>You can filter data by hardware name or operation name:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Train on data from a specific GPU</span>
+python<span class="w"> </span>matmul_toolkit.py<span class="w"> </span>train<span class="w"> </span>--dataset<span class="w"> </span>matmul_dataset.json<span class="w"> </span>--hardware-name<span class="w"> </span><span class="s2">&quot;NVIDIA A100&quot;</span>
+
+<span class="c1"># Train on data from a specific operation</span>
+python<span class="w"> </span>matmul_toolkit.py<span class="w"> </span>train<span class="w"> </span>--dataset<span class="w"> </span>matmul_dataset.json<span class="w"> </span>--op-name<span class="w"> </span><span class="s2">&quot;mm&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="skipping-steps-in-collect-and-train">
+<h3>Skipping Steps in Collect-and-Train<a class="headerlink" href="#skipping-steps-in-collect-and-train" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">collect-and-train</span></code> mode allows skipping specific steps:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Skip data collection</span>
+python<span class="w"> </span>matmul_toolkit.py<span class="w"> </span>collect-and-train<span class="w"> </span>--skip-collection
+
+<span class="c1"># Skip validation dataset creation</span>
+python<span class="w"> </span>matmul_toolkit.py<span class="w"> </span>collect-and-train<span class="w"> </span>--skip-validation
+
+<span class="c1"># Skip model training</span>
+python<span class="w"> </span>matmul_toolkit.py<span class="w"> </span>collect-and-train<span class="w"> </span>--skip-training
+</pre></div>
+</div>
+</section>
+</section>
+<section id="internal-structure">
+<h2>Internal Structure<a class="headerlink" href="#internal-structure" title="Link to this heading"></a></h2>
+<p>The toolkit is organized into logical sections:</p>
+<ol class="arabic simple">
+<li><p>Utility Functions: Shared functionality across all modes</p></li>
+<li><p>Data Collection Functions: Functions for collecting matrix multiplication data</p></li>
+<li><p>Model Training and Evaluation Functions: Functions for training and evaluating models</p></li>
+<li><p>Main Function: Command-line interface and mode selection</p></li>
+</ol>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="packaging.html" class="btn btn-neutral float-left" title="Packaging Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="systems_architecture.html" class="btn btn-neutral float-right" title="Systems Architecture" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Author Name.
+      <span class="lastupdated">Last updated on Sep 19, 2025.
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
