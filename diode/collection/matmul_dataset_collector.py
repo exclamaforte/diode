@@ -354,8 +354,7 @@ class MatmulDatasetCollector:
 
     def _round_small_dimension(self, dim: int) -> int:
         """
-        Round small dimensions (< 2048) to the nearest multiple of 8.
-        If the result would be 0, round up to 8.
+        round to nearest 8
 
         Args:
             dim: The dimension to potentially round
@@ -690,7 +689,7 @@ class MatmulDatasetCollector:
             logger.error(
                 f"Error creating tensors for {op_name} with size ({M}, {K}, {N}) and dtype {dtype}: {e}"
             )
-            return
+            raise
 
     def collect_data(
         self,

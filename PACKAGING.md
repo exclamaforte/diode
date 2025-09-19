@@ -66,7 +66,7 @@ make test-install
    ```bash
    # Create temporary build directory
    mkdir -p /tmp/torch-diode-lib-build
-   cp -r diode/ examples/ README.md LICENSE /tmp/torch-diode-lib-build/
+   cp -r diode/ workflows/ README.md LICENSE /tmp/torch-diode-lib-build/
    cp pyproject-lib.toml /tmp/torch-diode-lib-build/pyproject.toml
 
    # Replace __init__.py with library version (no auto-registration)

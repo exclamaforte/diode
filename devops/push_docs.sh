@@ -7,8 +7,9 @@ set -e
 
 echo "Building diode documentation..."
 
-# Store the base directory
-BASE_DIR="$(dirname "$0")"
+# Store the base directory (parent of devops directory)
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+BASE_DIR="$(dirname "$SCRIPT_DIR")"
 
 # Navigate to the documentation source directory
 cd "$BASE_DIR/docs_src"

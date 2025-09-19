@@ -262,20 +262,22 @@ class MatmulModelTrainer:
         total_loss = 0.0
         num_batches = len(dataloader)
         num_samples = 0
-        
+
         logger.info(f"{name} dataset contains {num_batches} batches")
-        
+
         # Create progress bar for evaluation
         pbar = tqdm(total=num_batches, desc=f"{name} Evaluation")
 
         # Iterate over the batches
         with torch.no_grad():
-            for batch_idx, (problem_features, config_features, targets) in enumerate(dataloader):
+            for batch_idx, (problem_features, config_features, targets) in enumerate(
+                dataloader
+            ):
                 # Move the data to the device
                 problem_features = problem_features.to(self.device)
                 config_features = config_features.to(self.device)
                 targets = targets.to(self.device)
-                
+
                 batch_size = problem_features.size(0)
                 num_samples += batch_size
 
@@ -287,34 +289,40 @@ class MatmulModelTrainer:
 
                 # Update the total loss
                 total_loss += loss.item()
-                
+
                 # Update progress bar with current batch loss
                 current_avg_loss = total_loss / (batch_idx + 1)
-                pbar.set_postfix({
-                    'batch_loss': f'{loss.item():.6f}',
-                    'avg_loss': f'{current_avg_loss:.6f}',
-                    'samples': num_samples
-                })
+                pbar.set_postfix(
+                    {
+                        "batch_loss": f"{loss.item():.6f}",
+                        "avg_loss": f"{current_avg_loss:.6f}",
+                        "samples": num_samples,
+                    }
+                )
                 pbar.update(1)
-                
+
                 # Log progress every 10% of batches
                 if (batch_idx + 1) % max(1, num_batches // 10) == 0:
                     progress_pct = ((batch_idx + 1) / num_batches) * 100
-                    logger.info(f"{name} evaluation progress: {progress_pct:.1f}% "
-                               f"({batch_idx + 1}/{num_batches} batches, "
-                               f"{num_samples} samples processed)")
+                    logger.info(
+                        f"{name} evaluation progress: {progress_pct:.1f}% "
+                        f"({batch_idx + 1}/{num_batches} batches, "
+                        f"{num_samples} samples processed)"
+                    )
 
         # Close progress bar
         pbar.close()
 
         # Calculate the average loss
         avg_loss = total_loss / num_batches
-        
+
         logger.info(f"{name} evaluation completed:")
         logger.info(f"  - Processed {num_samples} samples in {num_batches} batches")
         logger.info(f"  - Average loss (MSE): {avg_loss:.6f}")
         logger.info(f"  - RMSE: {torch.sqrt(torch.tensor(avg_loss)):.6f}")
-        logger.info(f"  - RMSE (exp): {torch.exp(torch.sqrt(torch.tensor(avg_loss))):.6f}")
+        logger.info(
+            f"  - RMSE (exp): {torch.exp(torch.sqrt(torch.tensor(avg_loss))):.6f}"
+        )
 
         return avg_loss
 
@@ -675,6 +683,13 @@ def train_model_from_dataset(
         seed=config.seed,
         debug=True,  # Enable debug mode to check data quality
     )
+
+    # Check if dataloaders were created successfully
+    if train_dataloader is None:
+        logger.warning(
+            "Dataset is empty or could not create dataloaders. Returning None."
+        )
+        return None, {}, config
 
     # Get the feature dimensions
     problem_feature_dim = train_dataloader.dataset.dataset.problem_feature_dim

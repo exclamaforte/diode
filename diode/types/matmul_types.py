@@ -1,11 +1,11 @@
+from dataclasses import dataclass, field, asdict
+from typing import Any, OrderedDict, Optional, Tuple, Union
+from .json_serializable import JSONSerializable
 import json
-import logging
-from dataclasses import asdict, dataclass, field
-from typing import Any, Optional, OrderedDict, Tuple, Union
-
 import torch
-from diode.types.json_serializable import JSONSerializable
+import logging
 from torch.utils._ordered_set import OrderedSet
+from typing_extensions import Self
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ class TritonGEMMConfig(JSONSerializable):
         )
 
     @classmethod
-    def parse(cls, string: str):
+    def parse(cls, string: str) -> Self:
         d = json.loads(string, object_pairs_hook=OrderedDict)
         # validate types, yay python :P
         if "name" not in d:

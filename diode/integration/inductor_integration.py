@@ -33,90 +33,84 @@ except ImportError:
 from diode.model.model_wrapper import ModelWrapper
 from diode.types.matmul_types import MMShape, TritonGEMMConfig
 
-# Import feature extraction functions
-try:
-    from diode.collection.data_collection_utils import (
-        extract_config_features,
-        extract_problem_features,
-    )
-except ImportError:
-    # If data collection utils are not available, create placeholder functions
-    def extract_problem_features(mm_shape, op_name):
-        """Placeholder for feature extraction when utils are not available."""
-        import torch
+# Feature extraction functions (placeholder implementations)
+# TODO: Move proper implementations to diode.collection.matmul_data_utils when available
+def extract_problem_features(mm_shape, op_name):
+    """Placeholder for feature extraction when utils are not available."""
+    import torch
 
-        # Convert dimensions to integers (handle symbolic dimensions)
-        B = int(mm_shape.B) if hasattr(mm_shape.B, "__int__") else 1
-        M = int(mm_shape.M) if hasattr(mm_shape.M, "__int__") else 64
-        N = int(mm_shape.N) if hasattr(mm_shape.N, "__int__") else 64
-        K = int(mm_shape.K) if hasattr(mm_shape.K, "__int__") else 64
+    # Convert dimensions to integers (handle symbolic dimensions)
+    B = int(mm_shape.B) if hasattr(mm_shape.B, "__int__") else 1
+    M = int(mm_shape.M) if hasattr(mm_shape.M, "__int__") else 64
+    N = int(mm_shape.N) if hasattr(mm_shape.N, "__int__") else 64
+    K = int(mm_shape.K) if hasattr(mm_shape.K, "__int__") else 64
 
-        # Return same feature set as the real function (17 features)
-        features = [
-            B,
-            M,
-            N,
-            K,
-            # dtype features (simplified)
-            32.0,
-            32.0,
-            32.0,  # Assume float32 for dtypes
-            # Log-transformed features
-            torch.log(torch.tensor(max(1, B), dtype=torch.float32)).item(),
-            torch.log(torch.tensor(max(1, M), dtype=torch.float32)).item(),
-            torch.log(torch.tensor(max(1, N), dtype=torch.float32)).item(),
-            torch.log(torch.tensor(max(1, K), dtype=torch.float32)).item(),
-            # Derived features
-            M * K,  # Input matrix size
-            K * N,  # Weight matrix size
-            M * N,  # Output matrix size
-            torch.log(torch.tensor(max(1, M * K), dtype=torch.float32)).item(),
-            torch.log(torch.tensor(max(1, K * N), dtype=torch.float32)).item(),
-            torch.log(torch.tensor(max(1, M * N), dtype=torch.float32)).item(),
-        ]
-        return features
+    # Return same feature set as the real function (17 features)
+    features = [
+        B,
+        M,
+        N,
+        K,
+        # dtype features (simplified)
+        32.0,
+        32.0,
+        32.0,  # Assume float32 for dtypes
+        # Log-transformed features
+        torch.log(torch.tensor(max(1, B), dtype=torch.float32)).item(),
+        torch.log(torch.tensor(max(1, M), dtype=torch.float32)).item(),
+        torch.log(torch.tensor(max(1, N), dtype=torch.float32)).item(),
+        torch.log(torch.tensor(max(1, K), dtype=torch.float32)).item(),
+        # Derived features
+        M * K,  # Input matrix size
+        K * N,  # Weight matrix size
+        M * N,  # Output matrix size
+        torch.log(torch.tensor(max(1, M * K), dtype=torch.float32)).item(),
+        torch.log(torch.tensor(max(1, K * N), dtype=torch.float32)).item(),
+        torch.log(torch.tensor(max(1, M * N), dtype=torch.float32)).item(),
+    ]
+    return features
 
-    def extract_config_features(config):
-        """Placeholder for config feature extraction when utils are not available."""
-        import torch
+def extract_config_features(config):
+    """Placeholder for config feature extraction when utils are not available."""
+    import torch
 
-        # Return same feature set as the real function (19 features)
-        features = [
-            config.grid,
-            config.block_m,
-            config.block_n,
-            config.block_k,
-            config.group_m,
-            config.num_stages,
-            config.num_warps,
-            int(getattr(config, "EVEN_K", False)),
-            int(getattr(config, "ALLOW_TF32", False)),
-            int(getattr(config, "USE_FAST_ACCUM", False)),
-            # Log-transformed features
-            torch.log(torch.tensor(max(1, config.block_m), dtype=torch.float32)).item(),
-            torch.log(torch.tensor(max(1, config.block_n), dtype=torch.float32)).item(),
-            torch.log(torch.tensor(max(1, config.block_k), dtype=torch.float32)).item(),
-            # Derived features
-            config.block_m * config.block_k,
-            config.block_k * config.block_n,
-            config.block_m * config.block_n,
-            torch.log(
-                torch.tensor(
-                    max(1, config.block_m * config.block_k), dtype=torch.float32
-                )
-            ).item(),
-            torch.log(
-                torch.tensor(
-                    max(1, config.block_k * config.block_n), dtype=torch.float32
-                )
-            ).item(),
-            torch.log(
-                torch.tensor(
-                    max(1, config.block_m * config.block_n), dtype=torch.float32
-                )
-            ).item(),
-        ]
-        return features
+    # Return same feature set as the real function (19 features)
+    features = [
+        config.grid,
+        config.block_m,
+        config.block_n,
+        config.block_k,
+        config.group_m,
+        config.num_stages,
+        config.num_warps,
+        int(getattr(config, "EVEN_K", False)),
+        int(getattr(config, "ALLOW_TF32", False)),
+        int(getattr(config, "USE_FAST_ACCUM", False)),
+        # Log-transformed features
+        torch.log(torch.tensor(max(1, config.block_m), dtype=torch.float32)).item(),
+        torch.log(torch.tensor(max(1, config.block_n), dtype=torch.float32)).item(),
+        torch.log(torch.tensor(max(1, config.block_k), dtype=torch.float32)).item(),
+        # Derived features
+        config.block_m * config.block_k,
+        config.block_k * config.block_n,
+        config.block_m * config.block_n,
+        torch.log(
+            torch.tensor(
+                max(1, config.block_m * config.block_k), dtype=torch.float32
+            )
+        ).item(),
+        torch.log(
+            torch.tensor(
+                max(1, config.block_k * config.block_n), dtype=torch.float32
+            )
+        ).item(),
+        torch.log(
+            torch.tensor(
+                max(1, config.block_m * config.block_n), dtype=torch.float32
+            )
+        ).item(),
+    ]
+    return features
 
 
 logger = logging.getLogger(__name__)

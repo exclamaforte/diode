@@ -65,6 +65,11 @@ lint = [
     "packaging==25.0",
     "tomli==2.2.1 ; python_version < '3.11'",
 ]
+test = [
+    "pytest>=6.0.0",
+    "pytest-cov>=4.0.0",
+    "coverage[toml]>=6.0.0",
+]
 
 [tool.setuptools]
 packages = {find = {include = ["diode", "diode.*"], exclude = ["tests", "tests.*"]}}
@@ -124,3 +129,74 @@ line_length = 88
 [tool.codespell]
 skip = "*.git,*.pdf,*.svg"
 check-hidden = true
+
+[tool.coverage.run]
+source = ["diode"]
+branch = true
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__pycache__/*",
+    "*/.*",
+    "setup.py",
+    "*/migrations/*",
+    "*/venv/*",
+    "*/virtualenv/*",
+    "*/site-packages/*",
+    "*/dist-packages/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+ignore_errors = true
+show_missing = true
+precision = 2
+skip_covered = false
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+[tool.coverage.xml]
+output = "coverage.xml"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--disable-warnings",
+    "-ra",
+    "--cov=diode",
+    "--cov-branch",
+    "--cov-report=term-missing:skip-covered",
+    "--cov-report=html:htmlcov",
+    "--cov-report=xml:coverage.xml",
+    "--cov-fail-under=80",
+]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "slow: Tests that take a long time to run",
+    "mock: Tests that use mocking extensively",
+    "inductor: Tests specifically for PyTorch Inductor integration",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+    "ignore::UserWarning:torch.*",
+    "ignore::UserWarning:numpy.*",
+]

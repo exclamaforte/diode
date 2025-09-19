@@ -435,6 +435,22 @@ class MatmulTimingDataset(Dataset):
         """
         logger.info("=== DATA QUALITY DEBUG ===")
 
+        # Check if tensors are empty
+        if self.problem_features.numel() == 0:
+            logger.warning("Problem features tensor is empty!")
+            logger.info("=== END DATA QUALITY DEBUG ===")
+            return
+
+        if self.config_features.numel() == 0:
+            logger.warning("Config features tensor is empty!")
+            logger.info("=== END DATA QUALITY DEBUG ===")
+            return
+
+        if self.timings.numel() == 0:
+            logger.warning("Timings tensor is empty!")
+            logger.info("=== END DATA QUALITY DEBUG ===")
+            return
+
         # Check problem features
         problem_nan_count = torch.isnan(self.problem_features).sum().item()
         problem_inf_count = torch.isinf(self.problem_features).sum().item()
@@ -481,7 +497,7 @@ class MatmulTimingDataset(Dataset):
                 f"Negative/zero timing locations: {neg_indices[0].tolist()[:10]}"
             )
 
-        # Statistics
+        # Statistics - only if tensors are not empty
         logger.info(
             f"Problem features - min: {self.problem_features.min():.6f}, max: {self.problem_features.max():.6f}"
         )
@@ -546,9 +562,24 @@ def create_dataloaders(
 
     # Calculate the sizes of the splits
     dataset_size = len(full_dataset)
+    
+    # Check if dataset is empty
+    if dataset_size == 0:
+        logger.warning("Dataset is empty, returning None dataloaders")
+        return None, None, None
+    
     train_size = int(train_ratio * dataset_size)
     val_size = int(val_ratio * dataset_size)
     test_size = dataset_size - train_size - val_size
+
+    # Handle cases where split sizes are 0
+    if train_size == 0:
+        train_size = min(1, dataset_size)
+        val_size = 0
+        test_size = 0
+    elif val_size == 0 and dataset_size > 1:
+        val_size = 1
+        test_size = max(0, dataset_size - train_size - val_size)
 
     # Split the dataset
     train_dataset, val_dataset, test_dataset = torch.utils.data.random_split(

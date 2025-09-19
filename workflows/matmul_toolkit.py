@@ -22,12 +22,12 @@ import torch
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # Import utility functions from the refactored modules
-from diode.collection.data_collection_utils import (
+from diode.collection.matmul_data_utils import (
     collect_data,
-    convert_json_to_msgpack,
     create_validation_dataset,
     run_collector_example,
 )
+from diode.collection.generic_data_utils import convert_json_to_msgpack
 from diode.model.model_utils import run_model_example, train_model, train_model_from_directory, validate_model, validate_max_autotune
 from diode.types.matmul_types import OperationShapeSet
 

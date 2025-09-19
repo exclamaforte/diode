@@ -153,6 +153,7 @@ def validate_max_autotune(
         logger.error(f"Failed to load model weights: {e}")
         return
 
+    breakpoint()
     # Create model
     if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
         logger.info("Loading from checkpoint format")
@@ -180,7 +181,7 @@ def validate_max_autotune(
             problem_feature_dim=problem_feature_dim,
             config_feature_dim=config_feature_dim,
         )
-        model.load_state_dict(checkpoint)
+        model.load_state_dict(checkpoint, strict=False)
 
     model.to(device)
     model.eval()
@@ -489,16 +490,20 @@ def train_model(
 
     # Load the dataset
     logger.info(f"Loading dataset from {dataset_path}")
-    if dataset_path.endswith(".msgpack"):
-        with open(dataset_path, "rb") as f:
-            dataset_data = f.read()
-        dataset = MatmulDataset.from_msgpack(dataset_data)
-    else:
-        with open(dataset_path, "r") as f:
-            dataset_json = f.read()
-        dataset = MatmulDataset.deserialize(dataset_json)
-    if dataset is None:
-        logger.error(f"Failed to load dataset from {dataset_path}")
+    try:
+        if dataset_path.endswith(".msgpack"):
+            with open(dataset_path, "rb") as f:
+                dataset_data = f.read()
+            dataset = MatmulDataset.from_msgpack(dataset_data)
+        else:
+            with open(dataset_path, "r") as f:
+                dataset_json = f.read()
+            dataset = MatmulDataset.deserialize(dataset_json)
+        if dataset is None:
+            logger.error(f"Failed to load dataset from {dataset_path}")
+            return None, {}
+    except (FileNotFoundError, OSError) as e:
+        logger.error(f"Failed to load dataset from {dataset_path}: {e}")
         return None, {}
 
     # Create dataloaders
@@ -696,7 +701,7 @@ def validate_model(
             )
 
         # Load the state dict
-        model.load_state_dict(checkpoint["model_state_dict"])
+        model.load_state_dict(checkpoint["model_state_dict"], strict=False)
     else:
         # Direct state dict loading
         # Assume it's a deep model if we don't know
@@ -816,6 +821,11 @@ def run_model_example(
         verbose=True,
     )
 
+    # Check if model training was successful (dataset not empty)
+    if model is None:
+        logger.warning("Model training failed or dataset was empty. Exiting example.")
+        return
+
     # Plot the training history
     history_plot_path = os.path.join(log_dir, f"matmul_timing_{model_type}_history.png")
     plot_training_history(history, history_plot_path)
@@ -831,6 +841,12 @@ def run_model_example(
         num_workers=4,
         seed=seed,
     )
+
+    # Check if test dataloader was created successfully
+    if test_dataloader is None:
+        logger.warning("Test dataloader is empty, skipping test evaluation.")
+        logger.info("Example completed")
+        return
 
     # Move the model to the device
     model = model.to(device)
