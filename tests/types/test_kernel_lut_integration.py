@@ -11,7 +11,7 @@ import torch
 import hypothesis
 from hypothesis import given
 
-from diode.types.matmul_types import (
+from torch_diode.types.matmul_types import (
     Hardware,
     MMShape,
     Operation,

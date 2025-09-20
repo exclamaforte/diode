@@ -8,11 +8,11 @@ from unittest.mock import Mock, patch, MagicMock
 import pytest
 import torch
 
-from diode.integration.matmul_integration import (
+from torch_diode.integration.matmul_integration import (
     MatmulIntegration,
     create_matmul_integration,
 )
-from diode.integration.base_integration import ModelPointer
+from torch_diode.integration.base_integration import ModelPointer
 
 
 class TestMatmulIntegration:
@@ -31,7 +31,7 @@ class TestMatmulIntegration:
         
         # Check first model pointer
         first_pointer = self.integration.model_pointers[0]
-        assert first_pointer.model_name == "matmul_v1.pt"
+        assert first_pointer.model_name == "v1_model.pt"
         assert first_pointer.relative_path == "matmul_kernel_runtime_prediction"
         assert first_pointer.model_purpose == "matmul_kernel_runtime_prediction"
         
@@ -83,7 +83,7 @@ class TestMatmulIntegration:
         else:
             pytest.skip("torch._inductor.choices not available in test environment")
 
-    @patch('diode.model.model_wrapper.ModelWrapper')
+    @patch('torch_diode.model.model_wrapper.ModelWrapper')
     def test_load_model_success(self, mock_model_wrapper):
         """Test successful model loading."""
         # Create temporary file
@@ -111,7 +111,7 @@ class TestMatmulIntegration:
         finally:
             tmp_path.unlink(missing_ok=True)
 
-    @patch('diode.model.model_wrapper.ModelWrapper')
+    @patch('torch_diode.model.model_wrapper.ModelWrapper')
     def test_load_model_alternative_path(self, mock_model_wrapper):
         """Test model loading with alternative path."""
         # Mock model pointer with non-existent primary path
@@ -151,7 +151,7 @@ class TestMatmulIntegration:
                 self.integration.load_model(mock_pointer)
 
     @patch('torch._inductor.virtualized.V')
-    @patch('diode.integration.inductor_integration.create_diode_choices')
+    @patch('torch_diode.integration.inductor_integration.create_diode_choices')
     def test_register_model_success(self, mock_create_choices, mock_v):
         """Test successful model registration."""
         # Mock model and pointer
@@ -171,7 +171,7 @@ class TestMatmulIntegration:
         mock_v.set_choices_handler.assert_called_once_with(mock_choices)
 
     @patch('torch._inductor.virtualized.V')
-    @patch('diode.integration.inductor_integration.create_diode_choices')
+    @patch('torch_diode.integration.inductor_integration.create_diode_choices')
     def test_register_model_exception(self, mock_create_choices, mock_v):
         """Test model registration with exception."""
         # Mock model and pointer
@@ -265,7 +265,7 @@ class TestMatmulIntegration:
 
     def test_integration_inheritance(self):
         """Test that MatmulIntegration properly inherits from BaseIntegration."""
-        from diode.integration.base_integration import BaseIntegration
+        from torch_diode.integration.base_integration import BaseIntegration
         
         assert isinstance(self.integration, BaseIntegration)
         

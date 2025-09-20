@@ -11,7 +11,7 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 import torch
 
-from diode.model.directory_dataset_loader import (
+from torch_diode.model.directory_dataset_loader import (
     _get_operations,
     _get_solutions,
     _is_cuda_available,
@@ -25,7 +25,7 @@ from diode.model.directory_dataset_loader import (
     DirectoryMatmulDataset,
     LazyDirectoryMatmulDataset,
 )
-from diode.types.matmul_dataset import Dataset as MatmulDataset
+from torch_diode.types.matmul_dataset import Dataset as MatmulDataset
 from torch.utils.data import DataLoader
 
 
@@ -50,14 +50,14 @@ class TestUtilityFunctions:
     def test_pin_memory_default_true(self):
         """Test _pin_memory_default when CUDA is available."""
         with patch(
-            "diode.model.directory_dataset_loader._is_cuda_available", return_value=True
+            "torch_diode.model.directory_dataset_loader._is_cuda_available", return_value=True
         ):
             assert _pin_memory_default() is True
 
     def test_pin_memory_default_false(self):
         """Test _pin_memory_default when CUDA is not available."""
         with patch(
-            "diode.model.directory_dataset_loader._is_cuda_available",
+            "torch_diode.model.directory_dataset_loader._is_cuda_available",
             return_value=False,
         ):
             assert _pin_memory_default() is False
@@ -216,7 +216,7 @@ class TestDirectoryMatmulDataset:
         with pytest.raises(ValueError, match="No data files found"):
             DirectoryMatmulDataset(self.temp_dir)
 
-    @patch("diode.model.directory_dataset_loader.MatmulTimingDataset")
+    @patch("torch_diode.model.directory_dataset_loader.MatmulTimingDataset")
     def test_init_basic(self, mock_timing_dataset):
         """Test basic initialization."""
         # Create a test file
@@ -244,14 +244,14 @@ class TestDirectoryMatmulDataset:
         self.create_test_file("test2.msgpack")
         Path(self.temp_dir, "test.txt").write_text("not a data file")
 
-        with patch("diode.model.directory_dataset_loader.MatmulTimingDataset"):
+        with patch("torch_diode.model.directory_dataset_loader.MatmulTimingDataset"):
             with patch.object(
                 MatmulDataset, "deserialize", return_value=Mock(hardware={})
             ):
                 with pytest.raises(ValueError):  # No valid datasets after filtering
                     DirectoryMatmulDataset(self.temp_dir)
 
-    @patch("diode.model.directory_dataset_loader.MatmulTimingDataset")
+    @patch("torch_diode.model.directory_dataset_loader.MatmulTimingDataset")
     def test_load_single_file_json(self, mock_timing_dataset):
         """Test _load_single_file with JSON file."""
         file_path = self.create_test_file("test.json")
@@ -271,7 +271,7 @@ class TestDirectoryMatmulDataset:
             # deserialize is called during init and during _load_single_file
             assert mock_deserialize.call_count >= 1
 
-    @patch("diode.model.directory_dataset_loader.MatmulTimingDataset")
+    @patch("torch_diode.model.directory_dataset_loader.MatmulTimingDataset")
     def test_load_single_file_msgpack(self, mock_timing_dataset):
         """Test _load_single_file with MessagePack file."""
         file_path = self.create_test_file("test.msgpack")
@@ -352,7 +352,7 @@ class TestDirectoryMatmulDataset:
         assert hw1_op1_sols["sol1"]["stats"]["median_us"] == 5.0  # Faster one kept
         assert hw1_op1_sols["sol2"]["stats"]["median_us"] == 15.0
 
-    @patch("diode.model.directory_dataset_loader.MatmulTimingDataset")
+    @patch("torch_diode.model.directory_dataset_loader.MatmulTimingDataset")
     def test_dataset_interface_methods(self, mock_timing_dataset):
         """Test dataset interface methods."""
         self.create_test_file("test.json")
@@ -424,7 +424,7 @@ class TestLazyDirectoryMatmulDataset:
         with pytest.raises(ValueError, match="No data files found"):
             LazyDirectoryMatmulDataset(self.temp_dir)
 
-    @patch("diode.model.directory_dataset_loader.MatmulTimingDataset")
+    @patch("torch_diode.model.directory_dataset_loader.MatmulTimingDataset")
     def test_init_no_samples(self, mock_timing_dataset):
         """Test initialization with no samples after filtering."""
         self.create_test_file("test.json", {"hardware": {}})  # Empty hardware
@@ -439,7 +439,7 @@ class TestLazyDirectoryMatmulDataset:
             with pytest.raises(ValueError, match="No samples after filtering"):
                 LazyDirectoryMatmulDataset(self.temp_dir)
 
-    @patch("diode.model.directory_dataset_loader.MatmulTimingDataset")
+    @patch("torch_diode.model.directory_dataset_loader.MatmulTimingDataset")
     def test_init_basic(self, mock_timing_dataset):
         """Test basic initialization."""
         self.create_test_file("test.json")
@@ -458,7 +458,7 @@ class TestLazyDirectoryMatmulDataset:
             assert len(dataset.data_files) == 1
             assert len(dataset) == 5
 
-    @patch("diode.model.directory_dataset_loader.MatmulTimingDataset")
+    @patch("torch_diode.model.directory_dataset_loader.MatmulTimingDataset")
     def test_getitem(self, mock_timing_dataset):
         """Test __getitem__ method."""
         self.create_test_file("test.json")
@@ -477,7 +477,7 @@ class TestLazyDirectoryMatmulDataset:
             result = dataset[1]
             assert result == ("tensor1", "tensor2", "tensor3")
 
-    @patch("diode.model.directory_dataset_loader.MatmulTimingDataset")
+    @patch("torch_diode.model.directory_dataset_loader.MatmulTimingDataset")
     def test_getitem_out_of_bounds(self, mock_timing_dataset):
         """Test __getitem__ with out of bounds index."""
         self.create_test_file("test.json")
@@ -495,7 +495,7 @@ class TestLazyDirectoryMatmulDataset:
             with pytest.raises(IndexError):
                 dataset[5]
 
-    @patch("diode.model.directory_dataset_loader.MatmulTimingDataset")
+    @patch("torch_diode.model.directory_dataset_loader.MatmulTimingDataset")
     def test_properties(self, mock_timing_dataset):
         """Test property methods."""
         self.create_test_file("test.json")
@@ -517,7 +517,7 @@ class TestLazyDirectoryMatmulDataset:
             assert dataset.config_feature_dim == 20
             assert dataset.configs == ["config1"]
 
-    @patch("diode.model.directory_dataset_loader.MatmulTimingDataset")
+    @patch("torch_diode.model.directory_dataset_loader.MatmulTimingDataset")
     def test_get_file_info(self, mock_timing_dataset):
         """Test get_file_info method."""
         self.create_test_file("test.json")
@@ -562,7 +562,7 @@ class TestCreateDirectoryDataloaders:
         with pytest.raises(ValueError, match="train_ratio \\+ val_ratio must be < 1.0"):
             create_directory_dataloaders(self.temp_dir, train_ratio=0.8, val_ratio=0.3)
 
-    @patch("diode.model.directory_dataset_loader.DirectoryMatmulDataset")
+    @patch("torch_diode.model.directory_dataset_loader.DirectoryMatmulDataset")
     def test_basic_creation_eager(self, mock_dataset_class):
         """Test basic dataloader creation with eager dataset."""
         # Mock dataset with proper __len__ implementation
@@ -593,7 +593,7 @@ class TestCreateDirectoryDataloaders:
             assert isinstance(val_dl, DataLoader)
             assert isinstance(test_dl, DataLoader)
 
-    @patch("diode.model.directory_dataset_loader.LazyDirectoryMatmulDataset")
+    @patch("torch_diode.model.directory_dataset_loader.LazyDirectoryMatmulDataset")
     def test_basic_creation_lazy(self, mock_dataset_class):
         """Test basic dataloader creation with lazy dataset."""
         # Mock dataset with proper __len__ implementation
@@ -628,7 +628,7 @@ class TestCreateDirectoryDataloaders:
             assert isinstance(val_dl, DataLoader)
             assert isinstance(test_dl, DataLoader)
 
-    @patch("diode.model.directory_dataset_loader.DirectoryMatmulDataset")
+    @patch("torch_diode.model.directory_dataset_loader.DirectoryMatmulDataset")
     @patch("torch.utils.data.DistributedSampler")
     def test_distributed_creation(self, mock_sampler_class, mock_dataset_class):
         """Test dataloader creation with distributed training."""
@@ -657,7 +657,7 @@ class TestCreateDirectoryDataloaders:
             return_value=(mock_train_ds, mock_val_ds, mock_test_ds),
         ):
             # Patch DataLoader in the specific module where it's imported
-            with patch("diode.model.directory_dataset_loader.DataLoader") as mock_dataloader:
+            with patch("torch_diode.model.directory_dataset_loader.DataLoader") as mock_dataloader:
                 # Mock DataLoader to return our test instance
                 mock_dataloader.return_value = Mock(spec=DataLoader)
                 
@@ -678,7 +678,7 @@ class TestCreateDirectoryDataloaders:
                     args, kwargs = call
                     assert 'sampler' in kwargs
 
-    @patch("diode.model.directory_dataset_loader.DirectoryMatmulDataset")
+    @patch("torch_diode.model.directory_dataset_loader.DirectoryMatmulDataset")
     def test_invalid_split_sizes(self, mock_dataset_class):
         """Test with invalid split sizes."""
         # Mock dataset with very small size
@@ -691,7 +691,7 @@ class TestCreateDirectoryDataloaders:
                 self.temp_dir, batch_size=32, train_ratio=0.8, val_ratio=0.1
             )
 
-    @patch("diode.model.directory_dataset_loader.DirectoryMatmulDataset")
+    @patch("torch_diode.model.directory_dataset_loader.DirectoryMatmulDataset")
     def test_file_info_exception(self, mock_dataset_class):
         """Test when get_file_info raises exception."""
         # Mock dataset with proper __len__ implementation

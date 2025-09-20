@@ -27,9 +27,9 @@ If you want to get access to the pre-trained performance models, as well as the 
 ```
 $ pip install torch-diode
 ```
-And then import diode in python:
+And then import torch_diode in python:
 ```
-import diode
+import torch_diode
 ```
 
 This import has several side-effects, each of which are dependent on the success of the previous step:
@@ -49,7 +49,7 @@ $ pip install torch-diode-lib
 
 The import remains the same:
 ```
-import diode
+import torch_diode
 ```
 
 ### Option 3: Install from Source

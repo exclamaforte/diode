@@ -15,12 +15,12 @@ from unittest.mock import Mock, patch
 
 import torch
 
-from diode.integration.base_integration import ModelPointer
-from diode.integration.matmul_integration import (
+from torch_diode.integration.base_integration import ModelPointer
+from torch_diode.integration.matmul_integration import (
     create_matmul_integration,
     MatmulIntegration,
 )
-from diode.model_registry import get_model_registry, register_model
+from torch_diode.model_registry import get_model_registry, register_model
 
 
 class TestMatmulModelRegistration(unittest.TestCase):
@@ -142,7 +142,7 @@ class TestMatmulModelRegistration(unittest.TestCase):
 
     def test_integration_discovery(self):
         """Test that the integration system can discover the matmul integration."""
-        from diode.integration import (
+        from torch_diode.integration import (
             discover_and_register_integrations,
             get_integration_registry,
         )
@@ -169,7 +169,7 @@ class TestMatmulModelRegistration(unittest.TestCase):
 
     def test_model_manifest_includes_v1_model(self):
         """Test that the model manifest includes the v1 model when properly registered."""
-        from diode.model_registry import generate_model_manifest
+        from torch_diode.model_registry import generate_model_manifest
 
         # Register the v1 model
         v1_model_pointer = ModelPointer(
@@ -275,7 +275,7 @@ class TestMatmulModelRegistration(unittest.TestCase):
             self.skipTest("PyTorch Inductor not available")
           
         # Set up the integration first
-        from diode.integration import integrate_all, discover_and_register_integrations
+        from torch_diode.integration import integrate_all, discover_and_register_integrations
           
         # Clear any existing integrations and discover fresh
         try:
@@ -378,7 +378,7 @@ class TestMatmulModelRegistration(unittest.TestCase):
             torch._inductor.config.max_autotune = original_max_autotune
             torch._inductor.config.benchmark_epilogue_fusion = original_benchmark_epilogue
 
-    @patch("diode.integration.matmul_integration.torch")
+    @patch("torch_diode.integration.matmul_integration.torch")
     def test_mock_model_registration_and_usage(self, mock_torch):
         """Test registering a mock model and verifying it gets used."""
         # Create a mock model that we can track
@@ -425,7 +425,7 @@ class TestMatmulModelRegistration(unittest.TestCase):
         with patch.object(integration, "load_model", return_value=mock_model):
             # Mock the DiodeInductorChoices class
             with patch(
-                "diode.integration.inductor_integration.DiodeInductorChoices"
+                "torch_diode.integration.inductor_integration.DiodeInductorChoices"
             ) as MockChoicesClass:
                 mock_choices_instance = Mock()
                 MockChoicesClass.return_value = mock_choices_instance
@@ -539,8 +539,9 @@ class TestGetModelManifestScript(unittest.TestCase):
     def test_script_cli_json_output(self):
         """Test running the script with JSON output format."""
         try:
+            import sys
             result = subprocess.run(
-                ["python", str(self.script_path), "--format", "json"],
+                [sys.executable, str(self.script_path), "--format", "json"],
                 capture_output=True,
                 text=True,
                 timeout=30,
@@ -576,8 +577,9 @@ class TestGetModelManifestScript(unittest.TestCase):
     def test_script_cli_paths_output(self):
         """Test running the script with paths output format."""
         try:
+            import sys
             result = subprocess.run(
-                ["python", str(self.script_path), "--format", "paths"],
+                [sys.executable, str(self.script_path), "--format", "paths"],
                 capture_output=True,
                 text=True,
                 timeout=30,
@@ -617,9 +619,10 @@ class TestGetModelManifestScript(unittest.TestCase):
             temp_path = Path(temp_file.name)
 
         try:
+            import sys
             result = subprocess.run(
                 [
-                    "python",
+                    sys.executable,
                     str(self.script_path),
                     "--format",
                     "json",
@@ -667,8 +670,9 @@ class TestGetModelManifestScript(unittest.TestCase):
     def test_script_cli_help(self):
         """Test that the script shows help information."""
         try:
+            import sys
             result = subprocess.run(
-                ["python", str(self.script_path), "--help"],
+                [sys.executable, str(self.script_path), "--help"],
                 capture_output=True,
                 text=True,
                 timeout=10,
@@ -697,7 +701,7 @@ class TestGetModelManifestScript(unittest.TestCase):
         sys.path.insert(0, str(self.script_path.parent))
 
         try:
-            from diode.model_registry import generate_model_manifest
+            from torch_diode.model_registry import generate_model_manifest
             from get_model_manifest import get_model_manifest
 
             # Get manifest from script
@@ -736,8 +740,9 @@ class TestGetModelManifestScript(unittest.TestCase):
     def test_script_error_handling(self):
         """Test script behavior with invalid arguments."""
         # Test with invalid format
+        import sys
         result = subprocess.run(
-            ["python", str(self.script_path), "--format", "invalid"],
+            [sys.executable, str(self.script_path), "--format", "invalid"],
             capture_output=True,
             text=True,
             timeout=10,

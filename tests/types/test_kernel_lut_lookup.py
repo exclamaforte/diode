@@ -10,7 +10,7 @@ from unittest import TestCase
 import torch
 from hypothesis import assume, given, strategies as st
 
-from diode.types.matmul_types import (
+from torch_diode.types.matmul_types import (
     Hardware,
     MMShape,
     Operation,

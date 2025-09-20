@@ -9,8 +9,8 @@ import tempfile
 import json
 from pathlib import Path
 
-from diode.model.model_wrapper import ModelWrapper
-from diode.model.matmul_timing_model import MatmulTimingModel, DeepMatmulTimingModel
+from torch_diode.model.model_wrapper import ModelWrapper
+from torch_diode.model.matmul_timing_model import MatmulTimingModel, DeepMatmulTimingModel
 
 
 class TestModelWrapperIntegration(unittest.TestCase):
@@ -165,7 +165,7 @@ class TestModelWrapperIntegration(unittest.TestCase):
     def test_list_available_models(self):
         """Test listing available models."""
         # Import the list_available_models function
-        from diode.model.model_wrapper import list_available_models
+        from torch_diode.model.model_wrapper import list_available_models
         
         # List models in the temporary directory
         models = list_available_models(str(self.model_dir))

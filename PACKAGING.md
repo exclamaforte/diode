@@ -28,7 +28,7 @@ Both packages include:
 
 The model files are accessible at runtime via:
 ```python
-import diode
+import torch_diode
 import pkg_resources
 model_path = pkg_resources.resource_filename('diode', 'data/matmul_model.pt')
 ```
@@ -84,7 +84,7 @@ make test-install
 ### torch-diode (Auto-registration)
 
 ```python
-import diode  # Automatically registers with PyTorch Inductor
+import torch_diode  # Automatically registers with PyTorch Inductor
 import torch
 
 # Your code here - Diode choices are automatically available
@@ -96,8 +96,8 @@ result = torch.mm(x, y)  # May use Diode heuristics automatically
 ### torch-diode-lib (Manual registration)
 
 ```python
-import diode
-from diode.integration.inductor_integration import install_diode_choices
+import torch_diode
+from torch_diode.integration.inductor_integration import install_diode_choices
 
 # Manual registration when needed
 install_diode_choices(enable_fallback=True)

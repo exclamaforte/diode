@@ -10,15 +10,15 @@ import shutil
 import json
 from pathlib import Path
 
-# Import from diode package
-from diode.model.matmul_timing_model import MatmulTimingModel, DeepMatmulTimingModel
-from diode.model.matmul_model_config import MatmulModelConfig
-from diode.model.matmul_model_trainer import (
+# Import from torch_diode package
+from torch_diode.model.matmul_timing_model import MatmulTimingModel, DeepMatmulTimingModel
+from torch_diode.model.matmul_model_config import MatmulModelConfig
+from torch_diode.model.matmul_model_trainer import (
     save_model_with_config, 
     load_model_with_config,
     get_model_save_path
 )
-from diode.model.model_wrapper import ModelWrapper, list_available_models
+from torch_diode.model.model_wrapper import ModelWrapper, list_available_models
 
 
 class TestDiodeModelsIntegration(unittest.TestCase):
@@ -114,14 +114,14 @@ class TestDiodeModelsIntegration(unittest.TestCase):
 
     def test_import_diode_models(self):
         """Test importing the diode model functionality."""
-        # Test that we can import the merged functionality from diode
-        from diode.model.model_wrapper import ModelWrapper, list_available_models
+        # Test that we can import the merged functionality from torch_diode
+        from torch_diode.model.model_wrapper import ModelWrapper, list_available_models
         self.assertTrue(callable(ModelWrapper))
         self.assertTrue(callable(list_available_models))
 
     def test_get_model_wrapper(self):
         """Test getting the ModelWrapper class."""
-        # ModelWrapper is now directly available from diode.model.model_wrapper
+        # ModelWrapper is now directly available from torch_diode.model.model_wrapper
         self.assertTrue(callable(ModelWrapper))
 
     def test_list_available_models(self):

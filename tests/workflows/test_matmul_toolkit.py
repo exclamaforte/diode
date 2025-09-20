@@ -21,23 +21,23 @@ import torch
 # Add the parent directory to the path so we can import the diode module
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from diode.collection.matmul_data_utils import (
+from torch_diode.collection.matmul_data_utils import (
     collect_data,
     create_validation_dataset,
     run_collector_example,
     run_matrix_multiplications,
 )
-from diode.collection.matmul_dataset_collector import MatmulDatasetCollector
-from diode.model.matmul_model_trainer import analyze_worst_predictions
-from diode.model.matmul_timing_model import DeepMatmulTimingModel, MatmulTimingModel
-from diode.model.model_utils import run_model_example, train_model, validate_model
+from torch_diode.collection.matmul_dataset_collector import MatmulDatasetCollector
+from torch_diode.model.matmul_model_trainer import analyze_worst_predictions
+from torch_diode.model.matmul_timing_model import DeepMatmulTimingModel, MatmulTimingModel
+from torch_diode.model.model_utils import run_model_example, train_model, validate_model
 
-from diode.types.matmul_dataset import Dataset
-from diode.types.matmul_types import MMShape, TritonGEMMConfig
+from torch_diode.types.matmul_dataset import Dataset
+from torch_diode.types.matmul_types import MMShape, TritonGEMMConfig
 
 # Import the functions from their actual locations
-from diode.utils.dataset_utils import generate_matrix_sizes, print_dataset_statistics
-from diode.utils.visualization_utils import plot_training_history
+from torch_diode.utils.dataset_utils import generate_matrix_sizes, print_dataset_statistics
+from torch_diode.utils.visualization_utils import plot_training_history
 from workflows.matmul_toolkit import main
 
 ###########################################
@@ -201,7 +201,7 @@ def test_print_dataset_statistics_with_filters(mock_dataset, capsys):
     assert "Operation 'mm'" in captured.out
 
 
-@patch("diode.utils.visualization_utils.plot_training_history")
+@patch("torch_diode.utils.visualization_utils.plot_training_history")
 def test_plot_training_history(mock_plot, mock_history):
     """Test the plot_training_history function."""
     # Call the function with the mock history
@@ -211,7 +211,7 @@ def test_plot_training_history(mock_plot, mock_history):
     mock_plot.assert_called_once_with(mock_history)
 
 
-@patch("diode.utils.visualization_utils.plot_training_history")
+@patch("torch_diode.utils.visualization_utils.plot_training_history")
 def test_plot_training_history_with_save(mock_plot, mock_history, tmp_path):
     """Test the plot_training_history function with saving."""
     # Create a temporary file path
@@ -224,7 +224,7 @@ def test_plot_training_history_with_save(mock_plot, mock_history, tmp_path):
     mock_plot.assert_called_once_with(mock_history, save_path)
 
 
-@patch("diode.utils.visualization_utils.plot_training_history")
+@patch("torch_diode.utils.visualization_utils.plot_training_history")
 def test_plot_training_history_no_matplotlib(mock_plot, mock_history):
     """Test the plot_training_history function when matplotlib is not available."""
     # Call the function with the mock history
@@ -301,10 +301,10 @@ def test_run_matrix_multiplications(mock_compile):
     assert mock_compiled_fn.call_count == 2
 
 
-@patch("diode.collection.matmul_data_utils.MatmulDatasetCollector")
-@patch("diode.collection.matmul_data_utils.torch.cuda")
-@patch("diode.utils.dataset_utils.generate_matrix_sizes")
-@patch("diode.collection.matmul_data_utils.print_dataset_statistics")
+@patch("torch_diode.collection.matmul_data_utils.MatmulDatasetCollector")
+@patch("torch_diode.collection.matmul_data_utils.torch.cuda")
+@patch("torch_diode.utils.dataset_utils.generate_matrix_sizes")
+@patch("torch_diode.collection.matmul_data_utils.print_dataset_statistics")
 def test_collect_data(
     mock_print_stats,
     mock_generate_sizes,
@@ -353,7 +353,7 @@ def test_collect_data(
     mock_print_stats.assert_called_once()
 
 
-@patch("diode.collection.matmul_data_utils.collect_data")
+@patch("torch_diode.collection.matmul_data_utils.collect_data")
 def test_create_validation_dataset(mock_collect_data, tmp_path):
     """Test the create_validation_dataset function."""
     # Set up the mock collect_data function
@@ -372,9 +372,9 @@ def test_create_validation_dataset(mock_collect_data, tmp_path):
     assert result == "mock_dataset_path"
 
 
-@patch("diode.collection.matmul_data_utils.run_matrix_multiplications")
-@patch("diode.collection.matmul_data_utils.MatmulDatasetCollector")
-@patch("diode.collection.matmul_data_utils.torch.cuda")
+@patch("torch_diode.collection.matmul_data_utils.run_matrix_multiplications")
+@patch("torch_diode.collection.matmul_data_utils.MatmulDatasetCollector")
+@patch("torch_diode.collection.matmul_data_utils.torch.cuda")
 @patch("builtins.print")
 def test_run_collector_example(
     mock_print,
@@ -396,7 +396,7 @@ def test_run_collector_example(
     output_dir = str(tmp_path)
 
     # Patch print_dataset_statistics to avoid issues
-    with patch("diode.utils.dataset_utils.print_dataset_statistics"):
+    with patch("torch_diode.utils.dataset_utils.print_dataset_statistics"):
         run_collector_example(
             output_dir=output_dir, use_context_manager=True, num_shapes=2
         )
@@ -415,11 +415,11 @@ def test_run_collector_example(
 ###########################################
 
 
-@patch("diode.utils.visualization_utils.plot_training_history")
-@patch("diode.model.model_utils.MatmulModelTrainer")
-@patch("diode.model.matmul_dataset_loader.MatmulTimingDataset")
-@patch("diode.model.matmul_timing_model.DeepMatmulTimingModel")
-@patch("diode.model.matmul_timing_model.MatmulTimingModel")
+@patch("torch_diode.utils.visualization_utils.plot_training_history")
+@patch("torch_diode.model.model_utils.MatmulModelTrainer")
+@patch("torch_diode.model.matmul_dataset_loader.MatmulTimingDataset")
+@patch("torch_diode.model.matmul_timing_model.DeepMatmulTimingModel")
+@patch("torch_diode.model.matmul_timing_model.MatmulTimingModel")
 @patch("builtins.open", new_callable=mock_open, read_data='{"mock": "data"}')
 @patch("os.makedirs")
 def test_train_model(
@@ -487,12 +487,12 @@ def test_train_model(
     mock_trainer._evaluate.return_value = 0.1
 
     # Patch MatmulDataset.deserialize
-    with patch("diode.types.matmul_dataset.Dataset.deserialize") as mock_deserialize:
+    with patch("torch_diode.types.matmul_dataset.Dataset.deserialize") as mock_deserialize:
         mock_deserialize.return_value = MagicMock()
 
         # Patch create_dataloaders to return our mock dataloaders
         with patch(
-            "diode.model.matmul_dataset_loader.create_dataloaders"
+            "torch_diode.model.matmul_dataset_loader.create_dataloaders"
         ) as mock_create_dataloaders:
             mock_create_dataloaders.return_value = (
                 mock_train_dataloader,
@@ -501,7 +501,7 @@ def test_train_model(
             )
 
             # Patch the plot_training_history function at the model_utils level
-            with patch("diode.model.model_utils.plot_training_history"):
+            with patch("torch_diode.model.model_utils.plot_training_history"):
                 # Patch torch.manual_seed to avoid issues
                 with patch("torch.manual_seed"):
                     # Call the function with minimal parameters
@@ -530,9 +530,9 @@ def test_train_model(
                     assert isinstance(result[1], dict)
 
 
-@patch("diode.model.matmul_model_trainer.MatmulModelTrainer")
-@patch("diode.model.matmul_dataset_loader.MatmulTimingDataset")
-@patch("diode.model.matmul_timing_model.DeepMatmulTimingModel")
+@patch("torch_diode.model.matmul_model_trainer.MatmulModelTrainer")
+@patch("torch_diode.model.matmul_dataset_loader.MatmulTimingDataset")
+@patch("torch_diode.model.matmul_timing_model.DeepMatmulTimingModel")
 @patch("builtins.open", new_callable=mock_open, read_data='{"mock": "data"}')
 @patch("torch.load")
 @patch("os.path.exists")
@@ -589,13 +589,13 @@ def test_validate_model(
     mock_exists.return_value = True
 
     # Patch MatmulDataset.deserialize
-    with patch("diode.types.matmul_dataset.Dataset.deserialize") as mock_deserialize:
+    with patch("torch_diode.types.matmul_dataset.Dataset.deserialize") as mock_deserialize:
         # Create a mock dataset with at least one timing entry
         mock_dataset_from_file = MagicMock()
         mock_deserialize.return_value = mock_dataset_from_file
 
         # Patch create_dataloaders to return our mock dataloader directly
-        with patch("diode.model.matmul_dataset_loader.create_dataloaders") as mock_create_dataloaders:
+        with patch("torch_diode.model.matmul_dataset_loader.create_dataloaders") as mock_create_dataloaders:
             mock_create_dataloaders.return_value = (None, mock_val_dataloader, None)
             
             # Mock the torch.nn.Module.load_state_dict method to skip loading
@@ -619,8 +619,8 @@ def test_validate_model(
                 # The real trainer is used, so we can't assert on the mock
 
 
-@patch("diode.model.model_utils.train_model_from_dataset")
-@patch("diode.model.matmul_dataset_loader.MatmulTimingDataset")
+@patch("torch_diode.model.model_utils.train_model_from_dataset")
+@patch("torch_diode.model.matmul_dataset_loader.MatmulTimingDataset")
 @patch("os.path.exists")
 @patch("os.makedirs")
 def test_run_model_example(
@@ -657,7 +657,7 @@ def test_run_model_example(
     mock_exists.return_value = True
 
     # Patch MatmulDataset.deserialize
-    with patch("diode.types.matmul_dataset.Dataset.deserialize") as mock_deserialize:
+    with patch("torch_diode.types.matmul_dataset.Dataset.deserialize") as mock_deserialize:
         mock_deserialize.return_value = MagicMock()
 
         # Create a temporary dataset file for the test
@@ -666,11 +666,11 @@ def test_run_model_example(
             f.write('{"mock": "dataset"}')
 
         # Patch print_dataset_statistics to avoid issues
-        with patch("diode.utils.dataset_utils.print_dataset_statistics"):
+        with patch("torch_diode.utils.dataset_utils.print_dataset_statistics"):
             # Patch the plot_training_history function directly to avoid matplotlib issues
-            with patch("diode.model.model_utils.plot_training_history") as mock_plot:
+            with patch("torch_diode.model.model_utils.plot_training_history") as mock_plot:
                 # Patch the second create_dataloaders call in run_model_example
-                with patch("diode.model.model_utils.create_dataloaders") as mock_create_dataloaders2:
+                with patch("torch_diode.model.model_utils.create_dataloaders") as mock_create_dataloaders2:
                     # Create a mock test dataloader that returns actual tensors
                     mock_test_dataloader = MagicMock()
                     batch_data = [(

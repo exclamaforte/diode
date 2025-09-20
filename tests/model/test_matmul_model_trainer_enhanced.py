@@ -10,7 +10,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 
-from diode.model.matmul_model_trainer import (
+from torch_diode.model.matmul_model_trainer import (
     MatmulModelTrainer,
     train_model_from_dataset,
 )
@@ -328,14 +328,14 @@ class TestMatmulModelTrainerEnhanced:
         """Test train_model_from_dataset with validation data."""
         mock_dataset = self._create_mock_dataset()
         
-        with patch("diode.model.matmul_model_trainer.create_dataloaders") as mock_create_dl:
+        with patch("torch_diode.model.matmul_model_trainer.create_dataloaders") as mock_create_dl:
             mock_train_loader = self._create_mock_dataloader()
             mock_val_loader = self._create_mock_dataloader()
             mock_test_loader = self._create_mock_dataloader()
             mock_create_dl.return_value = (mock_train_loader, mock_val_loader, mock_test_loader)
             
-            with patch("diode.model.matmul_model_trainer.DeepMatmulTimingModel") as mock_model_class:
-                with patch("diode.model.matmul_model_trainer.MatmulModelTrainer") as mock_trainer_class:
+            with patch("torch_diode.model.matmul_model_trainer.DeepMatmulTimingModel") as mock_model_class:
+                with patch("torch_diode.model.matmul_model_trainer.MatmulModelTrainer") as mock_trainer_class:
                     mock_model = self._create_mock_model()
                     mock_model_class.return_value = mock_model
                     
@@ -357,14 +357,14 @@ class TestMatmulModelTrainerEnhanced:
         """Test train_model_from_dataset without validation data."""
         mock_dataset = self._create_mock_dataset()
         
-        with patch("diode.model.matmul_model_trainer.create_dataloaders") as mock_create_dl:
+        with patch("torch_diode.model.matmul_model_trainer.create_dataloaders") as mock_create_dl:
             mock_train_loader = self._create_mock_dataloader()
             mock_val_loader = self._create_mock_dataloader() 
             mock_test_loader = self._create_mock_dataloader()
             mock_create_dl.return_value = (mock_train_loader, mock_val_loader, mock_test_loader)
             
-            with patch("diode.model.matmul_model_trainer.DeepMatmulTimingModel") as mock_model_class:
-                with patch("diode.model.matmul_model_trainer.MatmulModelTrainer") as mock_trainer_class:
+            with patch("torch_diode.model.matmul_model_trainer.DeepMatmulTimingModel") as mock_model_class:
+                with patch("torch_diode.model.matmul_model_trainer.MatmulModelTrainer") as mock_trainer_class:
                     mock_model = self._create_mock_model()
                     mock_model_class.return_value = mock_model
                     
@@ -384,14 +384,14 @@ class TestMatmulModelTrainerEnhanced:
         """Test train_model_from_dataset with default parameters."""
         mock_dataset = self._create_mock_dataset()
         
-        with patch("diode.model.matmul_model_trainer.create_dataloaders") as mock_create_dl:
+        with patch("torch_diode.model.matmul_model_trainer.create_dataloaders") as mock_create_dl:
             mock_train_loader = self._create_mock_dataloader()
             mock_val_loader = self._create_mock_dataloader()
             mock_test_loader = self._create_mock_dataloader()
             mock_create_dl.return_value = (mock_train_loader, mock_val_loader, mock_test_loader)
             
-            with patch("diode.model.matmul_model_trainer.DeepMatmulTimingModel") as mock_model_class:
-                with patch("diode.model.matmul_model_trainer.MatmulModelTrainer") as mock_trainer_class:
+            with patch("torch_diode.model.matmul_model_trainer.DeepMatmulTimingModel") as mock_model_class:
+                with patch("torch_diode.model.matmul_model_trainer.MatmulModelTrainer") as mock_trainer_class:
                     mock_model = self._create_mock_model()
                     mock_model_class.return_value = mock_model
                     
@@ -491,14 +491,14 @@ class TestMatmulModelTrainerEnhanced:
         
         log_dir = os.path.join(self.temp_dir, "logs")
         
-        with patch("diode.model.matmul_model_trainer.create_dataloaders") as mock_create_dl:
+        with patch("torch_diode.model.matmul_model_trainer.create_dataloaders") as mock_create_dl:
             mock_train_loader = self._create_mock_dataloader()
             mock_val_loader = self._create_mock_dataloader()
             mock_test_loader = self._create_mock_dataloader()
             mock_create_dl.return_value = (mock_train_loader, mock_val_loader, mock_test_loader)
             
-            with patch("diode.model.matmul_model_trainer.DeepMatmulTimingModel") as mock_model_class:
-                with patch("diode.model.matmul_model_trainer.MatmulModelTrainer") as mock_trainer_class:
+            with patch("torch_diode.model.matmul_model_trainer.DeepMatmulTimingModel") as mock_model_class:
+                with patch("torch_diode.model.matmul_model_trainer.MatmulModelTrainer") as mock_trainer_class:
                     mock_model = self._create_mock_model()
                     mock_model_class.return_value = mock_model
                     

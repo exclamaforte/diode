@@ -8,12 +8,12 @@ from collections import OrderedDict
 # Add the parent directory to the path so we can import the module
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from diode.collection.matmul_dataset_collector import MatmulDatasetCollector
-from diode.types.matmul_dataset import (
+from torch_diode.collection.matmul_dataset_collector import MatmulDatasetCollector
+from torch_diode.types.matmul_dataset import (
     Dataset,
     TimedConfig,
 )
-from diode.types.matmul_types import (
+from torch_diode.types.matmul_types import (
     TritonGEMMConfig,
     MMShape,
     Table,
@@ -32,7 +32,7 @@ class TestMatmulDatasetCollector(unittest.TestCase):
         self.assertFalse(self.collector._is_collecting)
         self.assertEqual(len(self.collector.dataset.hardware), 0)
 
-    @patch('diode.collection.matmul_dataset_collector.add_feedback_saver')
+    @patch('torch_diode.collection.matmul_dataset_collector.add_feedback_saver')
     def test_start_collection(self, mock_add_feedback_saver):
         """Test starting collection."""
         self.collector.start_collection()
@@ -45,7 +45,7 @@ class TestMatmulDatasetCollector(unittest.TestCase):
         self.collector.start_collection()
         mock_add_feedback_saver.assert_called_once()
 
-    @patch('diode.collection.matmul_dataset_collector.clear_feedback_savers')
+    @patch('torch_diode.collection.matmul_dataset_collector.clear_feedback_savers')
     def test_stop_collection(self, mock_clear_feedback_savers):
         """Test stopping collection."""
         # Set _is_collecting to True to simulate an active collection
@@ -303,7 +303,7 @@ class TestMatmulDatasetCollector(unittest.TestCase):
         mock_file().write.assert_called_once_with(serialized_dataset)
 
     @patch('builtins.open', new_callable=mock_open, read_data='{"hardware": {}}')
-    @patch('diode.collection.matmul_dataset_collector.Dataset.deserialize')
+    @patch('torch_diode.collection.matmul_dataset_collector.Dataset.deserialize')
     def test_load_from_file(self, mock_deserialize, mock_file):
         """Test loading the dataset from a file."""
         # Create a mock dataset to return from deserialize
@@ -370,8 +370,8 @@ class TestMatmulDatasetCollector(unittest.TestCase):
         serialized_table = table.serialize()
         mock_file().write.assert_called_once_with(serialized_table)
 
-    @patch('diode.collection.matmul_dataset_collector.add_feedback_saver')
-    @patch('diode.collection.matmul_dataset_collector.clear_feedback_savers')
+    @patch('torch_diode.collection.matmul_dataset_collector.add_feedback_saver')
+    @patch('torch_diode.collection.matmul_dataset_collector.clear_feedback_savers')
     def test_context_manager(self, mock_clear, mock_add):
         """Test using the collector as a context manager."""
         with self.collector as collector:
@@ -500,7 +500,7 @@ class TestMatmulDatasetCollector(unittest.TestCase):
         mock_compile.assert_called_once()
         mock_compiled_fn.assert_called_once()
 
-    @patch('diode.collection.matmul_dataset_collector.logger')
+    @patch('torch_diode.collection.matmul_dataset_collector.logger')
     def test_memory_check_logging(self, mock_logger):
         """Test that memory check failures are properly logged."""
         # Test with a size that will definitely fail memory check

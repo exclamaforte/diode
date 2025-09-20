@@ -10,7 +10,7 @@ import pytest
 import torch
 from torch.utils._ordered_set import OrderedSet
 
-from diode.types.matmul_types import (
+from torch_diode.types.matmul_types import (
     TritonGEMMConfig,
     MMShape,
     Solution,
@@ -656,7 +656,7 @@ class TestMatmulTypesEnhanced:
         """Test Table.deserialize with invalid JSON."""
         invalid_json = "{ invalid json structure"
         
-        with patch("diode.types.matmul_types.logger") as mock_logger:
+        with patch("torch_diode.types.matmul_types.logger") as mock_logger:
             result = Table.deserialize(invalid_json)
             
             assert result is None

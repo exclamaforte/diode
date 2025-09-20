@@ -15,7 +15,7 @@ from unittest import TestCase
 
 import torch
 
-from diode.types.matmul_types import (
+from torch_diode.types.matmul_types import (
     Hardware,
     MMShape,
     Operation,
@@ -278,7 +278,7 @@ class TestKernelLUTMalformedJSON(TestCase):
 
     def test_get_table_with_malformed_file(self):
         """Test get_table function with malformed JSON files."""
-        from diode.types.kernel_lut import get_table, get_table_safe
+        from torch_diode.types.kernel_lut import get_table, get_table_safe
 
         malformed_json_cases = [
             '{"name": "test", "grid": 1',  # Missing closing brace
@@ -315,7 +315,7 @@ class TestKernelLUTMalformedJSON(TestCase):
 
     def test_get_table_with_nonexistent_file(self):
         """Test get_table function with nonexistent files."""
-        from diode.types.kernel_lut import get_table, get_table_safe
+        from torch_diode.types.kernel_lut import get_table, get_table_safe
 
         nonexistent_path = "/path/that/does/not/exist.json"
 
@@ -332,7 +332,7 @@ class TestKernelLUTMalformedJSON(TestCase):
         # Set up a string stream to capture log messages
         log_stream = StringIO()
         handler = logging.StreamHandler(log_stream)
-        logger = logging.getLogger("diode.types.matmul_types")
+        logger = logging.getLogger("torch_diode.types.matmul_types")
         logger.addHandler(handler)
         logger.setLevel(logging.ERROR)
 

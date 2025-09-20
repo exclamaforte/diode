@@ -13,7 +13,7 @@ from unittest import TestCase
 import msgpack
 import torch
 
-from diode.types.matmul_types import (
+from torch_diode.types.matmul_types import (
     Hardware,
     MMShape,
     Operation,

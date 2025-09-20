@@ -159,7 +159,7 @@
 <li><p>Documentation and examples</p></li>
 </ul>
 <p>The model files are accessible at runtime via:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">diode</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch_diode</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pkg_resources</span>
 <span class="n">model_path</span> <span class="o">=</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">resource_filename</span><span class="p">(</span><span class="s1">&#39;diode&#39;</span><span class="p">,</span> <span class="s1">&#39;data/matmul_model.pt&#39;</span><span class="p">)</span>
 </pre></div>
@@ -219,7 +219,7 @@ cp<span class="w"> </span>/tmp/torch-diode-lib-build/dist/*<span class="w"> </sp
 <h2>Usage Differences<a class="headerlink" href="#usage-differences" title="Link to this heading"></a></h2>
 <section id="torch-diode-auto-registration">
 <h3>torch-diode (Auto-registration)<a class="headerlink" href="#torch-diode-auto-registration" title="Link to this heading"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">diode</span>  <span class="c1"># Automatically registers with PyTorch Inductor</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch_diode</span>  <span class="c1"># Automatically registers with PyTorch Inductor</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 
 <span class="c1"># Your code here - Diode choices are automatically available</span>
@@ -231,8 +231,8 @@ cp<span class="w"> </span>/tmp/torch-diode-lib-build/dist/*<span class="w"> </sp
 </section>
 <section id="torch-diode-lib-manual-registration">
 <h3>torch-diode-lib (Manual registration)<a class="headerlink" href="#torch-diode-lib-manual-registration" title="Link to this heading"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">diode</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">diode.integration.inductor_integration</span><span class="w"> </span><span class="kn">import</span> <span class="n">install_diode_choices</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch_diode</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch_diode.integration.inductor_integration</span><span class="w"> </span><span class="kn">import</span> <span class="n">install_diode_choices</span>
 
 <span class="c1"># Manual registration when needed</span>
 <span class="n">install_diode_choices</span><span class="p">(</span><span class="n">enable_fallback</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -338,7 +338,7 @@ make<span class="w"> </span>upload
 
   <div role="contentinfo">
     <p>&#169; Copyright 2023, Author Name.
-      <span class="lastupdated">Last updated on Sep 19, 2025.
+      <span class="lastupdated">Last updated on Sep 20, 2025.
       </span></p>
   </div>
 

@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, Mock, patch, mock_open
 import pytest
 
 # Import the functions we want to test
-from diode.__init___lib import (
+from torch_diode.__init___lib import (
     install_diode_integrations,
     get_diode_status,
     discover_and_register_integrations,
@@ -36,8 +36,8 @@ class TestInitLibEnhanced:
 
     def test_install_diode_integrations_success(self):
         """Test install_diode_integrations with successful installation."""
-        with patch("diode.__init___lib.discover_and_register_integrations") as mock_discover:
-            with patch("diode.__init___lib.integrate_all") as mock_integrate:
+        with patch("torch_diode.__init___lib.discover_and_register_integrations") as mock_discover:
+            with patch("torch_diode.__init___lib.integrate_all") as mock_integrate:
                 mock_discover.return_value = {"integration1": True, "integration2": True}
                 mock_integrate.return_value = {"integration1": True, "integration2": False}
                 
@@ -49,28 +49,28 @@ class TestInitLibEnhanced:
 
     def test_install_diode_integrations_pytorch_not_available(self):
         """Test install_diode_integrations when PyTorch is not available."""
-        with patch("diode.__init___lib.discover_and_register_integrations", side_effect=ImportError("No module named 'torch'")):
+        with patch("torch_diode.__init___lib.discover_and_register_integrations", side_effect=ImportError("No module named 'torch'")):
             result = install_diode_integrations(enable_fallback=True)
             
             assert result == {}
 
     def test_install_diode_integrations_exception_with_fallback(self):
         """Test install_diode_integrations exception handling with fallback enabled."""
-        with patch("diode.__init___lib.discover_and_register_integrations", side_effect=Exception("General error")):
+        with patch("torch_diode.__init___lib.discover_and_register_integrations", side_effect=Exception("General error")):
             result = install_diode_integrations(enable_fallback=True)
             
             assert result == {}
 
     def test_install_diode_integrations_exception_without_fallback(self):
         """Test install_diode_integrations exception handling with fallback disabled."""
-        with patch("diode.__init___lib.discover_and_register_integrations", side_effect=Exception("General error")):
+        with patch("torch_diode.__init___lib.discover_and_register_integrations", side_effect=Exception("General error")):
             with pytest.raises(Exception, match="General error"):
                 install_diode_integrations(enable_fallback=False)
 
     def test_install_diode_integrations_torch_import_logging(self):
         """Test install_diode_integrations logs appropriately when torch is available."""
-        with patch("diode.__init___lib.discover_and_register_integrations") as mock_discover:
-            with patch("diode.__init___lib.integrate_all") as mock_integrate:
+        with patch("torch_diode.__init___lib.discover_and_register_integrations") as mock_discover:
+            with patch("torch_diode.__init___lib.integrate_all") as mock_integrate:
                 with patch("logging.Logger.info") as mock_log_info:
                     mock_discover.return_value = {"integration1": True}
                     mock_integrate.return_value = {"integration1": True}
@@ -83,8 +83,8 @@ class TestInitLibEnhanced:
 
     def test_install_diode_integrations_partial_success_logging(self):
         """Test install_diode_integrations logs correctly with partial success."""
-        with patch("diode.__init___lib.discover_and_register_integrations") as mock_discover:
-            with patch("diode.__init___lib.integrate_all") as mock_integrate:
+        with patch("torch_diode.__init___lib.discover_and_register_integrations") as mock_discover:
+            with patch("torch_diode.__init___lib.integrate_all") as mock_integrate:
                 with patch("logging.Logger.info") as mock_log_info:
                     mock_discover.return_value = {"integration1": True, "integration2": True, "integration3": True}
                     mock_integrate.return_value = {"integration1": True, "integration2": False, "integration3": True}
@@ -98,7 +98,7 @@ class TestInitLibEnhanced:
 
     def test_install_diode_integrations_import_error_logging(self):
         """Test install_diode_integrations logs import error correctly."""
-        with patch("diode.__init___lib.discover_and_register_integrations", side_effect=ImportError("No module named 'torch'")):
+        with patch("torch_diode.__init___lib.discover_and_register_integrations", side_effect=ImportError("No module named 'torch'")):
             with patch("logging.Logger.error") as mock_log_error:
                 result = install_diode_integrations()
                 
@@ -108,7 +108,7 @@ class TestInitLibEnhanced:
 
     def test_install_diode_integrations_general_error_logging(self):
         """Test install_diode_integrations logs general errors correctly."""
-        with patch("diode.__init___lib.discover_and_register_integrations", side_effect=RuntimeError("Connection failed")):
+        with patch("torch_diode.__init___lib.discover_and_register_integrations", side_effect=RuntimeError("Connection failed")):
             with patch("logging.Logger.error") as mock_log_error:
                 result = install_diode_integrations(enable_fallback=True)
                 
@@ -122,7 +122,7 @@ class TestInitLibEnhanced:
         """Test get_diode_status calls get_integration_status correctly."""
         mock_status = {"integration1": {"status": "active", "info": "test"}}
         
-        with patch("diode.__init___lib.get_integration_status", return_value=mock_status) as mock_get_status:
+        with patch("torch_diode.__init___lib.get_integration_status", return_value=mock_status) as mock_get_status:
             result = get_diode_status()
             
             assert result == mock_status
@@ -130,21 +130,21 @@ class TestInitLibEnhanced:
 
     def test_version_attribute_exists(self):
         """Test that __version__ attribute exists and is correct."""
-        import diode.__init___lib as init_lib
+        import torch_diode.__init___lib as init_lib
         
         assert hasattr(init_lib, '__version__')
         assert init_lib.__version__ == "0.1.0"
 
     def test_all_exports_exist(self):
         """Test that all exports in __all__ actually exist."""
-        import diode.__init___lib as init_lib
+        import torch_diode.__init___lib as init_lib
         
         for name in init_lib.__all__:
             assert hasattr(init_lib, name), f"Export {name} does not exist in module"
 
     def test_all_exports_are_callable_or_classes(self):
         """Test that all exports are either callable functions or classes."""
-        import diode.__init___lib as init_lib
+        import torch_diode.__init___lib as init_lib
         
         for name in init_lib.__all__:
             obj = getattr(init_lib, name)
@@ -153,16 +153,16 @@ class TestInitLibEnhanced:
 
     def test_logger_setup(self):
         """Test that logger is properly set up."""
-        import diode.__init___lib as init_lib
+        import torch_diode.__init___lib as init_lib
         
         assert hasattr(init_lib, 'logger')
         assert isinstance(init_lib.logger, logging.Logger)
-        assert init_lib.logger.name == "diode.__init___lib"
+        assert init_lib.logger.name == "torch_diode.__init___lib"
 
     def test_import_paths_exist(self):
         """Test that all imported functions/classes actually exist."""
         # Test that the imports work
-        from diode.integration.base_integration import (
+        from torch_diode.integration.base_integration import (
             discover_and_register_integrations,
             integrate_all,
             get_integration_status,
@@ -183,8 +183,8 @@ class TestInitLibEnhanced:
 
     def test_install_diode_integrations_no_results(self):
         """Test install_diode_integrations when integration functions return empty results."""
-        with patch("diode.__init___lib.discover_and_register_integrations") as mock_discover:
-            with patch("diode.__init___lib.integrate_all") as mock_integrate:
+        with patch("torch_diode.__init___lib.discover_and_register_integrations") as mock_discover:
+            with patch("torch_diode.__init___lib.integrate_all") as mock_integrate:
                 mock_discover.return_value = {}
                 mock_integrate.return_value = {}
                 
@@ -194,8 +194,8 @@ class TestInitLibEnhanced:
 
     def test_install_diode_integrations_all_failed(self):
         """Test install_diode_integrations when all integrations fail."""
-        with patch("diode.__init___lib.discover_and_register_integrations") as mock_discover:
-            with patch("diode.__init___lib.integrate_all") as mock_integrate:
+        with patch("torch_diode.__init___lib.discover_and_register_integrations") as mock_discover:
+            with patch("torch_diode.__init___lib.integrate_all") as mock_integrate:
                 with patch("logging.Logger.info") as mock_log_info:
                     mock_discover.return_value = {"integration1": True, "integration2": True}
                     mock_integrate.return_value = {"integration1": False, "integration2": False}
@@ -211,8 +211,8 @@ class TestInitLibEnhanced:
 
     def test_install_diode_integrations_single_integration_success(self):
         """Test install_diode_integrations with single successful integration."""
-        with patch("diode.__init___lib.discover_and_register_integrations") as mock_discover:
-            with patch("diode.__init___lib.integrate_all") as mock_integrate:
+        with patch("torch_diode.__init___lib.discover_and_register_integrations") as mock_discover:
+            with patch("torch_diode.__init___lib.integrate_all") as mock_integrate:
                 with patch("logging.Logger.info") as mock_log_info:
                     mock_discover.return_value = {"only_integration": True}
                     mock_integrate.return_value = {"only_integration": True}
@@ -228,8 +228,8 @@ class TestInitLibEnhanced:
 
     def test_install_diode_integrations_with_default_parameters(self):
         """Test install_diode_integrations with default parameter values."""
-        with patch("diode.__init___lib.discover_and_register_integrations") as mock_discover:
-            with patch("diode.__init___lib.integrate_all") as mock_integrate:
+        with patch("torch_diode.__init___lib.discover_and_register_integrations") as mock_discover:
+            with patch("torch_diode.__init___lib.integrate_all") as mock_integrate:
                 mock_discover.return_value = {"integration1": True}
                 mock_integrate.return_value = {"integration1": True}
                 
@@ -240,7 +240,7 @@ class TestInitLibEnhanced:
 
     def test_docstring_content(self):
         """Test that the module has appropriate docstring content."""
-        import diode.__init___lib as init_lib
+        import torch_diode.__init___lib as init_lib
         
         assert init_lib.__doc__ is not None
         assert "library version" in init_lib.__doc__.lower()

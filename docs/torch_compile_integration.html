@@ -133,16 +133,11 @@
              
   <section id="accelerating-torch-compile-with-diode">
 <h1>Accelerating torch.compile with Diode<a class="headerlink" href="#accelerating-torch-compile-with-diode" title="Link to this heading"></a></h1>
-<p>Diode can significantly speed up PyTorch’s <code class="docutils literal notranslate"><span class="pre">torch.compile</span></code> by providing pre-trained models that predict optimal matrix multiplication configurations, eliminating the need for expensive runtime autotuning. This integration allows you to get the performance benefits of extensive autotuning with minimal compilation time.</p>
+<p>Diode can speeds up PyTorch’s <code class="docutils literal notranslate"><span class="pre">torch.compile</span></code> by providing pre-trained models that predict optimal matrix multiplication configurations, eliminating the need for expensive runtime autotuning. This integration allows you to get the performance benefits of extensive autotuning with minimal compilation time.</p>
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
 <p>When PyTorch compiles matrix multiplication operations, it typically needs to search through many different kernel configurations to find the optimal one for your specific hardware and problem size. This process, called autotuning, can take substantial time during compilation.</p>
-<p>Diode solves this by:</p>
-<ol class="arabic simple">
-<li><p><strong>Pre-trained Models</strong>: Using machine learning models trained on extensive performance data</p></li>
-<li><p><strong>Hardware-Specific Optimization</strong>: Automatically selecting the best model for your GPU</p></li>
-<li><p><strong>Fast Predictions</strong>: Providing optimal configurations instantly without runtime search</p></li>
-</ol>
+<p>Diode solves this by providing a pre-trained model that predicts the optimal configuration for a given hardware and problem size. This saves compilation time by eliminating the need for runtime autotuning, while still providing optimal performance.</p>
 </section>
 <section id="quick-start">
 <h2>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading"></a></h2>
@@ -150,7 +145,7 @@
 <section id="step-1-install-torch-diode-models">
 <h3>Step 1: Install torch-diode-models<a class="headerlink" href="#step-1-install-torch-diode-models" title="Link to this heading"></a></h3>
 <p>Install the pre-trained models package:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>torch-diode-models
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>torch-diode
 </pre></div>
 </div>
 <p>This package contains pre-trained models for popular hardware configurations including NVIDIA H100 and AMD MI300X GPUs.</p>
@@ -515,7 +510,7 @@
 
   <div role="contentinfo">
     <p>&#169; Copyright 2023, Author Name.
-      <span class="lastupdated">Last updated on Sep 19, 2025.
+      <span class="lastupdated">Last updated on Sep 20, 2025.
       </span></p>
   </div>
 

@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, Mock, mock_open, patch
 
 import pytest
 
-from diode.collection.generic_data_utils import convert_json_to_msgpack
+from torch_diode.collection.generic_data_utils import convert_json_to_msgpack
 
 
 class TestConvertJsonToMsgpack:
@@ -100,7 +100,7 @@ class TestConvertJsonToMsgpack:
         nonexistent_file = "/path/that/does/not/exist.json"
 
         # Should not raise exception, but log error
-        with patch("diode.collection.generic_data_utils.logger") as mock_logger:
+        with patch("torch_diode.collection.generic_data_utils.logger") as mock_logger:
             convert_json_to_msgpack([nonexistent_file])
 
             # Verify error was logged
@@ -116,7 +116,7 @@ class TestConvertJsonToMsgpack:
             with open(input_file, "w") as f:
                 f.write("{ invalid json content")
 
-            with patch("diode.collection.generic_data_utils.logger") as mock_logger:
+            with patch("torch_diode.collection.generic_data_utils.logger") as mock_logger:
                 convert_json_to_msgpack([input_file])
 
                 # Verify JSON decode error was logged
@@ -134,10 +134,10 @@ class TestConvertJsonToMsgpack:
 
             # Mock msgpack.pack to raise an exception
             with patch(
-                "diode.collection.generic_data_utils.msgpack.pack",
+                "torch_diode.collection.generic_data_utils.msgpack.pack",
                 side_effect=Exception("Mock error"),
             ):
-                with patch("diode.collection.generic_data_utils.logger") as mock_logger:
+                with patch("torch_diode.collection.generic_data_utils.logger") as mock_logger:
                     convert_json_to_msgpack([input_file])
 
                     # Verify error was logged
@@ -149,7 +149,7 @@ class TestConvertJsonToMsgpack:
 
     def test_convert_empty_file_list(self):
         """Test conversion with empty file list."""
-        with patch("diode.collection.generic_data_utils.logger") as mock_logger:
+        with patch("torch_diode.collection.generic_data_utils.logger") as mock_logger:
             convert_json_to_msgpack([])
 
             # Should log completion with 0 files
@@ -186,7 +186,7 @@ class TestConvertJsonToMsgpack:
                     json.dump({"data": i}, f)
                 input_files.append(input_file)
 
-            with patch("diode.collection.generic_data_utils.logger") as mock_logger:
+            with patch("torch_diode.collection.generic_data_utils.logger") as mock_logger:
                 convert_json_to_msgpack(input_files)
 
                 # Check summary logs
@@ -211,7 +211,7 @@ class TestConvertJsonToMsgpack:
             # Include one nonexistent file
             nonexistent_file = os.path.join(temp_dir, "nonexistent.json")
 
-            with patch("diode.collection.generic_data_utils.logger") as mock_logger:
+            with patch("torch_diode.collection.generic_data_utils.logger") as mock_logger:
                 convert_json_to_msgpack([valid_file, invalid_file, nonexistent_file])
 
                 # Check summary

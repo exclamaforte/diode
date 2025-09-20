@@ -13,9 +13,9 @@ from unittest import TestCase
 import torch
 
 import triton
-from diode.types.json_serializable import JSONSerializable
-from diode.types.kernel_lut import convert_triton_configs_to_gemm_configs
-from diode.types.matmul_types import (
+from torch_diode.types.json_serializable import JSONSerializable
+from torch_diode.types.kernel_lut import convert_triton_configs_to_gemm_configs
+from torch_diode.types.matmul_types import (
     Hardware,
     MMShape,
     Operation,

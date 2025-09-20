@@ -72,11 +72,11 @@ test = [
 ]
 
 [tool.setuptools]
-packages = {find = {include = ["diode", "diode.*"], exclude = ["tests", "tests.*"]}}
+packages = {find = {include = ["torch_diode", "torch_diode.*"], exclude = ["tests", "tests.*"]}}
 include-package-data = true
 
 [tool.setuptools.package-data]
-diode = ["trained_models/**/*.pt", "trained_models/**/*.json"]
+torch_diode = ["trained_models/**/*.pt", "trained_models/**/*.json"]
 
 [tool.ruff]
 target-version = "py38"
@@ -101,7 +101,7 @@ ignore = [
 "tests/**/*.py" = ["B011"]  # assert False
 
 [tool.ruff.isort]
-known-first-party = ["diode"]
+known-first-party = ["torch_diode"]
 
 [tool.black]
 line-length = 88
@@ -123,7 +123,7 @@ extend-exclude = '''
 
 [tool.isort]
 profile = "black"
-known_first_party = ["diode"]
+known_first_party = ["torch_diode"]
 line_length = 88
 
 [tool.codespell]
@@ -131,7 +131,7 @@ skip = "*.git,*.pdf,*.svg"
 check-hidden = true
 
 [tool.coverage.run]
-source = ["diode"]
+source = ["torch_diode"]
 branch = true
 omit = [
     "*/tests/*",
@@ -180,7 +180,7 @@ addopts = [
     "--strict-config",
     "--disable-warnings",
     "-ra",
-    "--cov=diode",
+    "--cov=torch_diode",
     "--cov-branch",
     "--cov-report=term-missing:skip-covered",
     "--cov-report=html:htmlcov",

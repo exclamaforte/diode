@@ -8,7 +8,7 @@ from pathlib import Path
 import tempfile
 import os
 
-from diode.integration.base_integration import (
+from torch_diode.integration.base_integration import (
     ModelPointer,
     BaseIntegration,
     IntegrationRegistry,
@@ -513,14 +513,14 @@ class TestGlobalFunctions:
         registry2 = get_integration_registry()
         assert registry is registry2
 
-    @patch('diode.integration.base_integration._integration_registry')
+    @patch('torch_diode.integration.base_integration._integration_registry')
     def test_register_integration(self, mock_registry):
         """Test global register_integration function."""
         integration = Mock()
         register_integration(integration, execute_order=5)
         mock_registry.register.assert_called_once_with(integration, 5)
 
-    @patch('diode.integration.base_integration._integration_registry')
+    @patch('torch_diode.integration.base_integration._integration_registry')
     def test_integrate_all(self, mock_registry):
         """Test global integrate_all function."""
         expected_results = {"int1": True, "int2": False}
@@ -530,7 +530,7 @@ class TestGlobalFunctions:
         assert result == expected_results
         mock_registry.integrate_all.assert_called_once()
 
-    @patch('diode.integration.base_integration._integration_registry')
+    @patch('torch_diode.integration.base_integration._integration_registry')
     def test_get_integration_status(self, mock_registry):
         """Test global get_integration_status function."""
         expected_status = {"int1": {"status": "success"}}
@@ -545,7 +545,7 @@ class TestDiscoverAndRegisterIntegrations:
     """Test the discover_and_register_integrations function."""
 
     @patch('importlib.import_module')
-    @patch('diode.integration.base_integration.register_integration')
+    @patch('torch_diode.integration.base_integration.register_integration')
     def test_discover_success(self, mock_register, mock_import):
         """Test successful discovery and registration."""
         # Mock module with factory function
@@ -581,7 +581,7 @@ class TestDiscoverAndRegisterIntegrations:
         mock_module = Mock()
         # Explicitly mock hasattr to return False for the factory function
         mock_module.spec = Mock()
-        mock_module.spec.name = "diode.integration.matmul_integration"
+        mock_module.spec.name = "torch_diode.integration.matmul_integration"
         
         def mock_hasattr(obj, name):
             # Return False for the factory function, True for other attributes
@@ -598,7 +598,7 @@ class TestDiscoverAndRegisterIntegrations:
         assert results["matmul_integration"] is False
 
     @patch('importlib.import_module')
-    @patch('diode.integration.base_integration.register_integration')
+    @patch('torch_diode.integration.base_integration.register_integration')
     def test_discover_registration_error(self, mock_register, mock_import):
         """Test discovery when registration fails."""
         # Mock successful module loading

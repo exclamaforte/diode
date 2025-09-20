@@ -14,7 +14,7 @@ from unittest.mock import patch, MagicMock
 # Add the parent directory to the path so we can import the module
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from diode.model.matmul_model_v1 import (
+from torch_diode.model.matmul_model_v1 import (
     MatmulModelV1, 
     NeuralNetwork, 
     ModelWrapper,
@@ -22,7 +22,7 @@ from diode.model.matmul_model_v1 import (
     get_total_gb_feature,
     get_total_gflop_feature
 )
-from diode.model.matmul_timing_model import MatmulTimingModel, DeepMatmulTimingModel
+from torch_diode.model.matmul_timing_model import MatmulTimingModel, DeepMatmulTimingModel
 
 
 class TestMatmulModelV1(unittest.TestCase):
@@ -503,7 +503,7 @@ class TestModelWrapper(unittest.TestCase):
                 mock_df_class.return_value = mock_df
                 mock_get_nn_x = MagicMock()
                 
-                with patch('diode.model.matmul_model_v1.get_nn_x', mock_get_nn_x):
+                with patch('torch_diode.model.matmul_model_v1.get_nn_x', mock_get_nn_x):
                     mock_tensor = torch.randn(3, 12)  # 3 configs, 12 features
                     mock_get_nn_x.return_value = (mock_tensor, None, None)
                     

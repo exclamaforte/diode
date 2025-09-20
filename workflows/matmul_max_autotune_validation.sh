@@ -11,7 +11,6 @@
 # - This script will use the same paths and parameters
 
 set -e  # Exit on any error
-set -x
 
 # Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -23,11 +22,11 @@ SEED=41
 
 # Define paths (same as workflow script)
 DATA_DIR="${SCRIPT_DIR}/data"
-VALIDATION_DATASET="${DATA_DIR}/validation"
+VALIDATION_DATASET="${DATA_DIR}/validation/my_validation_86.msgpack"
 MODEL_PATH="${DATA_DIR}/matmul_model.pt"
 
 # Define max-autotune solution path
-MAX_AUTOTUNE_SOLUTION="${DATA_DIR}/max_autotune.json"
+MAX_AUTOTUNE_SOLUTION="${SCRIPT_DIR}/max_autotune.json"
 
 # Create max-autotune solution file if it doesn't exist
 if [ ! -f "${MAX_AUTOTUNE_SOLUTION}" ]; then
@@ -71,13 +70,21 @@ echo ""
 # Check prerequisites
 echo "Checking prerequisites..."
 
-# Check if validation dataset directory exists
-if [ ! -d "${VALIDATION_DATASET}" ]; then
-    echo "✗ Error: Validation dataset directory not found at: ${VALIDATION_DATASET}"
+# Check if validation dataset exists (file or directory)
+if [ ! -e "${VALIDATION_DATASET}" ]; then
+    echo "✗ Error: Validation dataset not found at: ${VALIDATION_DATASET}"
     echo "Please run matmul_workflow.sh first to generate the validation dataset."
     exit 1
 fi
-echo "✓ Found validation dataset directory: ${VALIDATION_DATASET}"
+
+if [ -d "${VALIDATION_DATASET}" ]; then
+    echo "✓ Found validation dataset directory: ${VALIDATION_DATASET}"
+elif [ -f "${VALIDATION_DATASET}" ]; then
+    echo "✓ Found validation dataset file: ${VALIDATION_DATASET}"
+else
+    echo "✗ Error: Validation dataset path is neither a file nor directory: ${VALIDATION_DATASET}"
+    exit 1
+fi
 
 # Check if trained model exists
 if [ ! -f "${MODEL_PATH}" ]; then

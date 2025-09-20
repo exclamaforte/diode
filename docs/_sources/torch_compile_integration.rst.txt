@@ -1,18 +1,14 @@
 Accelerating torch.compile with Diode
 =====================================
 
-Diode can significantly speed up PyTorch's ``torch.compile`` by providing pre-trained models that predict optimal matrix multiplication configurations, eliminating the need for expensive runtime autotuning. This integration allows you to get the performance benefits of extensive autotuning with minimal compilation time.
+Diode can speeds up PyTorch's ``torch.compile`` by providing pre-trained models that predict optimal matrix multiplication configurations, eliminating the need for expensive runtime autotuning. This integration allows you to get the performance benefits of extensive autotuning with minimal compilation time.
 
 Overview
 --------
 
 When PyTorch compiles matrix multiplication operations, it typically needs to search through many different kernel configurations to find the optimal one for your specific hardware and problem size. This process, called autotuning, can take substantial time during compilation.
 
-Diode solves this by:
-
-1. **Pre-trained Models**: Using machine learning models trained on extensive performance data
-2. **Hardware-Specific Optimization**: Automatically selecting the best model for your GPU
-3. **Fast Predictions**: Providing optimal configurations instantly without runtime search
+Diode solves this by providing a pre-trained model that predicts the optimal configuration for a given hardware and problem size. This saves compilation time by eliminating the need for runtime autotuning, while still providing optimal performance.
 
 Quick Start
 -----------
@@ -26,7 +22,7 @@ Install the pre-trained models package:
 
 .. code-block:: bash
 
-    pip install torch-diode-models
+    pip install torch-diode
 
 This package contains pre-trained models for popular hardware configurations including NVIDIA H100 and AMD MI300X GPUs.
 

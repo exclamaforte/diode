@@ -11,9 +11,9 @@ from unittest.mock import MagicMock, Mock, mock_open, patch
 import numpy as np
 import pytest
 import torch
-from diode.model.matmul_model_trainer import train_model_from_dataset
+from torch_diode.model.matmul_model_trainer import train_model_from_dataset
 
-from diode.model.model_utils import (
+from torch_diode.model.model_utils import (
     run_model_example,
     train_model,
     train_model_from_directory,
@@ -143,7 +143,7 @@ class TestModelUtils:
         # Test passes if no exception is raised
 
     @patch("builtins.open", mock_open(read_data='{"config": []}'))
-    @patch("diode.types.matmul_types.Solution.parse")
+    @patch("torch_diode.types.matmul_types.Solution.parse")
     def test_validate_max_autotune_invalid_solution(self, mock_parse):
         """Test validate_max_autotune with invalid solution format."""
         mock_parse.return_value = None
@@ -178,7 +178,7 @@ class TestModelUtils:
             validate_max_autotune(model_path, validation_path, solution_path)
             # Test passes if no exception is raised
 
-    @patch("diode.model.directory_dataset_loader.create_directory_dataloaders")
+    @patch("torch_diode.model.directory_dataset_loader.create_directory_dataloaders")
     @patch("os.path.isdir")
     def test_validate_max_autotune_directory_dataset_exception(
         self, mock_isdir, mock_create_loaders
@@ -197,7 +197,7 @@ class TestModelUtils:
         with open(solution_path, "w") as f:
             f.write('{"config": []}')
 
-        with patch("diode.types.matmul_types.Solution.parse") as mock_parse:
+        with patch("torch_diode.types.matmul_types.Solution.parse") as mock_parse:
             mock_solution = Mock()
             mock_solution.config = []
             mock_parse.return_value = mock_solution
@@ -206,8 +206,8 @@ class TestModelUtils:
             validate_max_autotune(model_path, validation_path, solution_path)
             # Test passes if no exception is raised
 
-    @patch("diode.model.matmul_dataset_loader.create_dataloaders")
-    @patch("diode.types.matmul_dataset.Dataset.from_msgpack")
+    @patch("torch_diode.model.matmul_dataset_loader.create_dataloaders")
+    @patch("torch_diode.types.matmul_dataset.Dataset.from_msgpack")
     @patch("os.path.isdir")
     def test_validate_max_autotune_msgpack_dataset_none(
         self, mock_isdir, mock_from_msgpack, mock_create_loaders
@@ -228,7 +228,7 @@ class TestModelUtils:
         with open(solution_path, "w") as f:
             f.write('{"config": []}')
 
-        with patch("diode.types.matmul_types.Solution.parse") as mock_parse:
+        with patch("torch_diode.types.matmul_types.Solution.parse") as mock_parse:
             mock_solution = Mock()
             mock_solution.config = []
             mock_parse.return_value = mock_solution
@@ -237,8 +237,8 @@ class TestModelUtils:
             validate_max_autotune(model_path, validation_path, solution_path)
             # Test passes if no exception is raised
 
-    @patch("diode.model.matmul_dataset_loader.create_dataloaders")
-    @patch("diode.types.matmul_dataset.Dataset.deserialize")
+    @patch("torch_diode.model.matmul_dataset_loader.create_dataloaders")
+    @patch("torch_diode.types.matmul_dataset.Dataset.deserialize")
     @patch("os.path.isdir")
     def test_validate_max_autotune_json_dataset_none(
         self, mock_isdir, mock_deserialize, mock_create_loaders
@@ -256,7 +256,7 @@ class TestModelUtils:
             with open(path, "w") as f:
                 f.write('{"config": []}')
 
-        with patch("diode.types.matmul_types.Solution.parse") as mock_parse:
+        with patch("torch_diode.types.matmul_types.Solution.parse") as mock_parse:
             mock_solution = Mock()
             mock_solution.config = []
             mock_parse.return_value = mock_solution
@@ -279,9 +279,9 @@ class TestModelUtils:
             with open(path, "w") as f:
                 f.write("{}")
 
-        with patch("diode.types.matmul_types.Solution.parse") as mock_parse:
+        with patch("torch_diode.types.matmul_types.Solution.parse") as mock_parse:
             with patch(
-                "diode.model.matmul_dataset_loader.create_dataloaders"
+                "torch_diode.model.matmul_dataset_loader.create_dataloaders"
             ) as mock_create_loaders:
                 mock_solution = Mock()
                 mock_solution.config = []
@@ -309,7 +309,7 @@ class TestModelUtils:
         # Should return None and empty dict for missing dataset
         assert result == (None, {})
 
-    @patch("diode.types.matmul_dataset.Dataset.from_msgpack")
+    @patch("torch_diode.types.matmul_dataset.Dataset.from_msgpack")
     def test_train_model_msgpack_dataset_none(self, mock_from_msgpack):
         """Test train_model with msgpack dataset that returns None."""
         mock_from_msgpack.return_value = None
@@ -326,7 +326,7 @@ class TestModelUtils:
         # Should return None and empty dict for invalid dataset
         assert result == (None, {})
 
-    @patch("diode.types.matmul_dataset.Dataset.deserialize")
+    @patch("torch_diode.types.matmul_dataset.Dataset.deserialize")
     def test_train_model_json_dataset_none(self, mock_deserialize):
         """Test train_model with JSON dataset that returns None."""
         mock_deserialize.return_value = None
@@ -343,8 +343,8 @@ class TestModelUtils:
         # Should return None and empty dict for invalid dataset
         assert result == (None, {})
 
-    @patch("diode.model.model_utils.create_dataloaders")
-    @patch("diode.types.matmul_dataset.Dataset.deserialize")
+    @patch("torch_diode.model.model_utils.create_dataloaders")
+    @patch("torch_diode.types.matmul_dataset.Dataset.deserialize")
     @patch("torch.manual_seed")
     @patch("os.makedirs")
     def test_train_model_base_model_type(
@@ -365,8 +365,8 @@ class TestModelUtils:
         )
 
         # Mock trainer completely to avoid actual training
-        with patch("diode.model.model_utils.MatmulTimingModel") as mock_model_class:
-            with patch("diode.utils.visualization_utils.plot_training_history"):
+        with patch("torch_diode.model.model_utils.MatmulTimingModel") as mock_model_class:
+            with patch("torch_diode.utils.visualization_utils.plot_training_history"):
                 # Return the actual model and history without going through trainer
                 mock_model = self._create_mock_model()
                 mock_model.parameters.return_value = [
@@ -383,7 +383,7 @@ class TestModelUtils:
 
                 # Mock the entire train_model function to avoid actual training
                 with patch(
-                    "diode.model.model_utils.MatmulModelTrainer"
+                    "torch_diode.model.model_utils.MatmulModelTrainer"
                 ) as mock_trainer_class:
                     mock_trainer = Mock()
                     mock_trainer.train.return_value = {
@@ -418,8 +418,8 @@ class TestModelUtils:
                     # Verify base model was created
                     mock_model_class.assert_called_once()
 
-    @patch("diode.model.model_utils.create_dataloaders")
-    @patch("diode.types.matmul_dataset.Dataset.deserialize")
+    @patch("torch_diode.model.model_utils.create_dataloaders")
+    @patch("torch_diode.types.matmul_dataset.Dataset.deserialize")
     @patch("torch.manual_seed")
     @patch("os.makedirs")
     def test_train_model_deep_model_type(
@@ -440,8 +440,8 @@ class TestModelUtils:
         )
 
         # Mock trainer completely to avoid actual training
-        with patch("diode.model.model_utils.DeepMatmulTimingModel") as mock_model_class:
-            with patch("diode.utils.visualization_utils.plot_training_history"):
+        with patch("torch_diode.model.model_utils.DeepMatmulTimingModel") as mock_model_class:
+            with patch("torch_diode.utils.visualization_utils.plot_training_history"):
                 mock_model = self._create_mock_model()
                 mock_model.parameters.return_value = [
                     torch.randn(10, 10)
@@ -457,7 +457,7 @@ class TestModelUtils:
 
                 # Mock the entire train_model function to avoid actual training
                 with patch(
-                    "diode.model.model_utils.MatmulModelTrainer"
+                    "torch_diode.model.model_utils.MatmulModelTrainer"
                 ) as mock_trainer_class:
                     mock_trainer = Mock()
                     mock_trainer.train.return_value = {
@@ -510,7 +510,7 @@ class TestModelUtils:
         validate_model(model_path, validation_path)
         # Test passes if no exception is raised
 
-    @patch("diode.model.directory_dataset_loader.create_directory_dataloaders")
+    @patch("torch_diode.model.directory_dataset_loader.create_directory_dataloaders")
     @patch("os.path.isdir")
     def test_validate_model_directory_dataset_exception(
         self, mock_isdir, mock_create_loaders
@@ -530,8 +530,8 @@ class TestModelUtils:
         validate_model(model_path, validation_path)
         # Test passes if no exception is raised
 
-    @patch("diode.model.matmul_dataset_loader.create_dataloaders")
-    @patch("diode.types.matmul_dataset.Dataset.from_msgpack")
+    @patch("torch_diode.model.matmul_dataset_loader.create_dataloaders")
+    @patch("torch_diode.types.matmul_dataset.Dataset.from_msgpack")
     @patch("os.path.isdir")
     def test_validate_model_msgpack_dataset_none(
         self, mock_isdir, mock_from_msgpack, mock_create_loaders
@@ -553,8 +553,8 @@ class TestModelUtils:
         validate_model(model_path, validation_path)
         # Test passes if no exception is raised
 
-    @patch("diode.model.matmul_dataset_loader.create_dataloaders")
-    @patch("diode.types.matmul_dataset.Dataset.deserialize")
+    @patch("torch_diode.model.matmul_dataset_loader.create_dataloaders")
+    @patch("torch_diode.types.matmul_dataset.Dataset.deserialize")
     @patch("os.path.isdir")
     def test_validate_model_json_dataset_none(
         self, mock_isdir, mock_deserialize, mock_create_loaders
@@ -589,7 +589,7 @@ class TestModelUtils:
                 f.write("{}")
 
         with patch(
-            "diode.model.matmul_dataset_loader.create_dataloaders"
+            "torch_diode.model.matmul_dataset_loader.create_dataloaders"
         ) as mock_create_loaders:
             mock_dataloader = self._create_mock_dataloader()
             mock_create_loaders.return_value = (
@@ -602,8 +602,8 @@ class TestModelUtils:
             validate_model(model_path, validation_path)
             # Test passes if no exception is raised
 
-    @patch("diode.model.model_utils.create_dataloaders")
-    @patch("diode.types.matmul_dataset.Dataset.deserialize")
+    @patch("torch_diode.model.model_utils.create_dataloaders")
+    @patch("torch_diode.types.matmul_dataset.Dataset.deserialize")
     @patch("torch.load")
     @patch("os.path.isdir")
     def test_validate_model_checkpoint_format_base_model(
@@ -636,12 +636,12 @@ class TestModelUtils:
             mock_dataloader,
         )
 
-        with patch("diode.model.model_utils.MatmulTimingModel") as mock_model_class:
+        with patch("torch_diode.model.model_utils.MatmulTimingModel") as mock_model_class:
             with patch(
-                "diode.model.matmul_model_trainer.MatmulModelTrainer"
+                "torch_diode.model.matmul_model_trainer.MatmulModelTrainer"
             ) as mock_trainer_class:
                 with patch(
-                    "diode.model.matmul_model_trainer.analyze_worst_predictions"
+                    "torch_diode.model.matmul_model_trainer.analyze_worst_predictions"
                 ):
                     mock_model = self._create_mock_model()
                     mock_model_class.return_value = mock_model
@@ -673,8 +673,8 @@ class TestModelUtils:
                     # Verify base model was created
                     mock_model_class.assert_called_once()
 
-    @patch("diode.model.model_utils.create_dataloaders")
-    @patch("diode.types.matmul_dataset.Dataset.deserialize")
+    @patch("torch_diode.model.model_utils.create_dataloaders")
+    @patch("torch_diode.types.matmul_dataset.Dataset.deserialize")
     @patch("torch.load")
     @patch("os.path.isdir")
     def test_validate_model_checkpoint_format_deep_model(
@@ -707,12 +707,12 @@ class TestModelUtils:
             mock_dataloader,
         )
 
-        with patch("diode.model.model_utils.DeepMatmulTimingModel") as mock_model_class:
+        with patch("torch_diode.model.model_utils.DeepMatmulTimingModel") as mock_model_class:
             with patch(
-                "diode.model.matmul_model_trainer.MatmulModelTrainer"
+                "torch_diode.model.matmul_model_trainer.MatmulModelTrainer"
             ) as mock_trainer_class:
                 with patch(
-                    "diode.model.matmul_model_trainer.analyze_worst_predictions"
+                    "torch_diode.model.matmul_model_trainer.analyze_worst_predictions"
                 ):
                     mock_model = self._create_mock_model()
                     mock_model_class.return_value = mock_model
@@ -744,8 +744,8 @@ class TestModelUtils:
                     assert kwargs["hidden_dim"] == 256
                     assert kwargs["num_layers"] == 15
 
-    @patch("diode.model.model_utils.create_dataloaders")
-    @patch("diode.types.matmul_dataset.Dataset.deserialize")
+    @patch("torch_diode.model.model_utils.create_dataloaders")
+    @patch("torch_diode.types.matmul_dataset.Dataset.deserialize")
     @patch("torch.load")
     @patch("os.path.isdir")
     def test_validate_model_direct_state_dict(
@@ -776,9 +776,9 @@ class TestModelUtils:
             mock_dataloader,
         )
 
-        with patch("diode.model.model_utils.DeepMatmulTimingModel") as mock_model_class:
+        with patch("torch_diode.model.model_utils.DeepMatmulTimingModel") as mock_model_class:
             with patch(
-                "diode.model.matmul_model_trainer.MatmulModelTrainer"
+                "torch_diode.model.matmul_model_trainer.MatmulModelTrainer"
             ) as mock_trainer_class:
                 mock_model = self._create_mock_model()
 
@@ -808,7 +808,7 @@ class TestModelUtils:
                 # Verify deep model was assumed (default for direct state dict)
                 mock_model_class.assert_called_once()
 
-    @patch("diode.types.matmul_dataset.Dataset.deserialize")
+    @patch("torch_diode.types.matmul_dataset.Dataset.deserialize")
     @patch("os.makedirs")
     def test_run_model_example_missing_dataset(self, mock_makedirs, mock_deserialize):
         """Test run_model_example with missing dataset file."""
@@ -824,7 +824,7 @@ class TestModelUtils:
         run_model_example(dataset_path)
         # Test passes if no exception is raised
 
-    @patch("diode.types.matmul_dataset.Dataset.from_msgpack")
+    @patch("torch_diode.types.matmul_dataset.Dataset.from_msgpack")
     @patch("os.makedirs")
     def test_run_model_example_msgpack_dataset_none(
         self, mock_makedirs, mock_from_msgpack
@@ -842,9 +842,9 @@ class TestModelUtils:
         run_model_example(dataset_path)
         # Test passes if no exception is raised
 
-    @patch("diode.model.model_utils.print_dataset_statistics")
-    @patch("diode.model.model_utils.train_model_from_dataset")
-    @patch("diode.types.matmul_dataset.Dataset.deserialize")
+    @patch("torch_diode.model.model_utils.print_dataset_statistics")
+    @patch("torch_diode.model.model_utils.train_model_from_dataset")
+    @patch("torch_diode.types.matmul_dataset.Dataset.deserialize")
     @patch("os.makedirs")
     def test_run_model_example_success(
         self, mock_makedirs, mock_deserialize, mock_train_from_dataset, mock_print_stats
@@ -875,12 +875,12 @@ class TestModelUtils:
 
         # Mock the create_dataloaders function both in train_model_from_dataset and for test evaluation
         with patch(
-            "diode.model.matmul_model_trainer.create_dataloaders"
+            "torch_diode.model.matmul_model_trainer.create_dataloaders"
         ) as mock_create_dataloaders_trainer:
             with patch(
-                "diode.model.model_utils.create_dataloaders"
+                "torch_diode.model.model_utils.create_dataloaders"
             ) as mock_create_dataloaders:
-                with patch("diode.utils.visualization_utils.plot_training_history"):
+                with patch("torch_diode.utils.visualization_utils.plot_training_history"):
                     with patch("torch.nn.MSELoss") as mock_mse:
                         # Create valid mock test dataloader
                         mock_dataloader = self._create_mock_dataloader()
@@ -926,7 +926,7 @@ class TestModelUtils:
                         mock_print_stats.assert_called_once()
                         mock_train_from_dataset.assert_called_once()
 
-    @patch("diode.model.directory_dataset_loader.create_directory_dataloaders")
+    @patch("torch_diode.model.directory_dataset_loader.create_directory_dataloaders")
     @patch("torch.manual_seed")
     @patch("os.makedirs")
     def test_train_model_from_directory_base_model(
@@ -969,7 +969,7 @@ class TestModelUtils:
                 file_extensions=["json", "msgpack"],
             )
 
-    @patch("diode.model.directory_dataset_loader.create_directory_dataloaders")
+    @patch("torch_diode.model.directory_dataset_loader.create_directory_dataloaders")
     @patch("torch.manual_seed")
     @patch("os.makedirs")
     def test_train_model_from_directory_deep_model(
@@ -1002,7 +1002,7 @@ class TestModelUtils:
                 num_layers=20,
             )
 
-    @patch("diode.model.model_utils.create_directory_dataloaders")
+    @patch("torch_diode.model.model_utils.create_directory_dataloaders")
     @patch("torch.manual_seed")
     @patch("os.makedirs")
     def test_train_model_from_directory_successful_training(
@@ -1027,11 +1027,11 @@ class TestModelUtils:
             json.dump(dummy_data, f)
 
         # Mock the model classes and trainer to avoid actual training
-        with patch("diode.model.model_utils.DeepMatmulTimingModel") as mock_model_class:
+        with patch("torch_diode.model.model_utils.DeepMatmulTimingModel") as mock_model_class:
             with patch(
-                "diode.model.model_utils.MatmulModelTrainer"
+                "torch_diode.model.model_utils.MatmulModelTrainer"
             ) as mock_trainer_class:
-                with patch("diode.utils.visualization_utils.plot_training_history"):
+                with patch("torch_diode.utils.visualization_utils.plot_training_history"):
                     # Create mock model
                     mock_model = self._create_mock_model()
                     mock_model.parameters.return_value = [torch.randn(10, 10)]
@@ -1087,7 +1087,7 @@ class TestModelUtils:
                     mock_trainer_class.assert_called_once()
                     mock_trainer.train.assert_called_once()
 
-    @patch("diode.model.model_utils.create_directory_dataloaders")
+    @patch("torch_diode.model.model_utils.create_directory_dataloaders")
     @patch("torch.manual_seed")
     @patch("os.makedirs")
     def test_train_model_from_directory_base_model_successful(
@@ -1112,11 +1112,11 @@ class TestModelUtils:
             json.dump(dummy_data, f)
 
         # Mock the model classes and trainer to avoid actual training
-        with patch("diode.model.model_utils.MatmulTimingModel") as mock_model_class:
+        with patch("torch_diode.model.model_utils.MatmulTimingModel") as mock_model_class:
             with patch(
-                "diode.model.model_utils.MatmulModelTrainer"
+                "torch_diode.model.model_utils.MatmulModelTrainer"
             ) as mock_trainer_class:
-                with patch("diode.utils.visualization_utils.plot_training_history"):
+                with patch("torch_diode.utils.visualization_utils.plot_training_history"):
                     # Create mock model
                     mock_model = self._create_mock_model()
                     mock_model.parameters.return_value = [torch.randn(5, 5)]

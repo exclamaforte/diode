@@ -6,7 +6,7 @@ import pytest
 from unittest.mock import Mock, patch, MagicMock
 from pathlib import Path
 
-from diode.model_registry import (
+from torch_diode.model_registry import (
     ModelRegistry,
     get_model_registry,
     register_model,
@@ -14,7 +14,7 @@ from diode.model_registry import (
     get_model_info_for_build,
     generate_model_manifest
 )
-from diode.integration.base_integration import ModelPointer
+from torch_diode.integration.base_integration import ModelPointer
 
 
 class TestModelRegistry:
@@ -43,7 +43,7 @@ class TestModelRegistry:
         assert len(self.registry._models) > 0
         
         # Check for specific default models
-        matmul_v1_key = "matmul_kernel_runtime_prediction_matmul_v1.pt"
+        matmul_v1_key = "matmul_kernel_runtime_prediction_v1_model.pt"
         matmul_exhaustive_key = "matmul_kernel_runtime_prediction_matmul_model_exhaustive.pt"
         
         assert matmul_v1_key in self.registry._models
@@ -341,14 +341,14 @@ class TestGlobalFunctions:
         registry2 = get_model_registry()
         assert registry is registry2
 
-    @patch('diode.model_registry._model_registry')
+    @patch('torch_diode.model_registry._model_registry')
     def test_register_model(self, mock_registry):
         """Test global register_model function."""
         model = Mock(spec=ModelPointer)
         register_model(model)
         mock_registry.register_model.assert_called_once_with(model)
 
-    @patch('diode.model_registry._model_registry')
+    @patch('torch_diode.model_registry._model_registry')
     def test_get_model_paths_for_build(self, mock_registry):
         """Test global get_model_paths_for_build function."""
         expected_paths = [Path("/path1"), Path("/path2")]
@@ -358,7 +358,7 @@ class TestGlobalFunctions:
         assert result == expected_paths
         mock_registry.get_model_paths_for_build.assert_called_once()
 
-    @patch('diode.model_registry._model_registry')
+    @patch('torch_diode.model_registry._model_registry')
     def test_get_model_info_for_build(self, mock_registry):
         """Test global get_model_info_for_build function."""
         expected_info = {"purpose": {"models": []}}
@@ -368,7 +368,7 @@ class TestGlobalFunctions:
         assert result == expected_info
         mock_registry.get_model_info_for_build.assert_called_once()
 
-    @patch('diode.model_registry._model_registry')
+    @patch('torch_diode.model_registry._model_registry')
     def test_generate_model_manifest(self, mock_registry):
         """Test global generate_model_manifest function."""
         expected_manifest = {"version": "1.0", "total_models": 0}

@@ -34,7 +34,7 @@ The ``MatmulDatasetCollector`` class provides flexible data collection capabilit
 
 .. code-block:: python
 
-    from diode.collection.matmul_dataset_collector import MatmulDatasetCollector, CollectionMode
+    from torch_diode.collection.matmul_dataset_collector import MatmulDatasetCollector, CollectionMode
 
     # Initialize the collector with log-normal distribution mode
     collector = MatmulDatasetCollector(

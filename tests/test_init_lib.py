@@ -6,14 +6,14 @@ import pytest
 from unittest.mock import Mock, patch, MagicMock
 import logging
 
-import diode.__init___lib as init_lib
+import torch_diode.__init___lib as init_lib
 
 
 class TestInstallDiodeIntegrations:
     """Test the install_diode_integrations function."""
 
-    @patch('diode.__init___lib.discover_and_register_integrations')
-    @patch('diode.__init___lib.integrate_all')
+    @patch('torch_diode.__init___lib.discover_and_register_integrations')
+    @patch('torch_diode.__init___lib.integrate_all')
     def test_successful_installation(self, mock_integrate_all, mock_discover):
         """Test successful integration installation."""
         # Mock the functions
@@ -30,8 +30,8 @@ class TestInstallDiodeIntegrations:
             mock_discover.assert_called_once()
             mock_integrate_all.assert_called_once()
 
-    @patch('diode.__init___lib.discover_and_register_integrations')
-    @patch('diode.__init___lib.integrate_all')
+    @patch('torch_diode.__init___lib.discover_and_register_integrations')
+    @patch('torch_diode.__init___lib.integrate_all')
     def test_installation_with_fallback_disabled(self, mock_integrate_all, mock_discover):
         """Test installation with fallback disabled."""
         mock_discover.side_effect = Exception("Discovery failed")
@@ -40,8 +40,8 @@ class TestInstallDiodeIntegrations:
             with pytest.raises(Exception, match="Discovery failed"):
                 init_lib.install_diode_integrations(enable_fallback=False)
 
-    @patch('diode.__init___lib.discover_and_register_integrations')
-    @patch('diode.__init___lib.integrate_all')
+    @patch('torch_diode.__init___lib.discover_and_register_integrations')
+    @patch('torch_diode.__init___lib.integrate_all')
     def test_installation_with_fallback_enabled(self, mock_integrate_all, mock_discover):
         """Test installation with fallback enabled (default)."""
         mock_discover.side_effect = Exception("Discovery failed")
@@ -57,8 +57,8 @@ class TestInstallDiodeIntegrations:
             result = init_lib.install_diode_integrations()
             assert result == {}
 
-    @patch('diode.__init___lib.discover_and_register_integrations')
-    @patch('diode.__init___lib.integrate_all')
+    @patch('torch_diode.__init___lib.discover_and_register_integrations')
+    @patch('torch_diode.__init___lib.integrate_all')
     def test_partial_success(self, mock_integrate_all, mock_discover):
         """Test with partial integration success."""
         mock_discover.return_value = {'int1': True, 'int2': True, 'int3': True}
@@ -73,7 +73,7 @@ class TestInstallDiodeIntegrations:
 class TestGetDiodeStatus:
     """Test the get_diode_status function."""
 
-    @patch('diode.__init___lib.get_integration_status')
+    @patch('torch_diode.__init___lib.get_integration_status')
     def test_get_status(self, mock_get_status):
         """Test getting diode status."""
         expected_status = {
@@ -88,7 +88,7 @@ class TestGetDiodeStatus:
         assert result == expected_status
         mock_get_status.assert_called_once()
 
-    @patch('diode.__init___lib.get_integration_status')
+    @patch('torch_diode.__init___lib.get_integration_status')
     def test_get_status_empty(self, mock_get_status):
         """Test getting empty status."""
         mock_get_status.return_value = {}

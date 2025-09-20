@@ -7,15 +7,15 @@ from unittest.mock import patch
 
 import torch
 
-from diode.model.matmul_dataset_loader import MatmulTimingDataset
-from diode.types.matmul_dataset import (
+from torch_diode.model.matmul_dataset_loader import MatmulTimingDataset
+from torch_diode.types.matmul_dataset import (
     Dataset,
     DatasetHardware,
     DatasetOperation,
     DatasetSolution,
     TimedConfig,
 )
-from diode.types.matmul_types import MMShape, TritonGEMMConfig
+from torch_diode.types.matmul_types import MMShape, TritonGEMMConfig
 
 
 class TestDebugDataQuality:
@@ -69,7 +69,7 @@ class TestDebugDataQuality:
         timing_values = [0.1, 0.2, 0.3, 0.4, 0.5]
         dataset = self.create_mock_dataset(timing_values)
 
-        matmul_dataset = MatmulTimingDataset(dataset=dataset, debug=True)
+        matmul_dataset = MatmulTimingDataset(dataset=dataset, hardware_name="test_gpu", debug=True)
 
         # With log transform enabled, the timing values will be negative (log of < 1)
         # So we expect warnings about negative/zero timing locations
@@ -92,7 +92,7 @@ class TestDebugDataQuality:
         timing_values = [0.1, float("nan"), 0.3, float("nan"), 0.5]
         dataset = self.create_mock_dataset(timing_values)
 
-        matmul_dataset = MatmulTimingDataset(dataset=dataset, debug=True)
+        matmul_dataset = MatmulTimingDataset(dataset=dataset, hardware_name="test_gpu", debug=True)
 
         # Check that warnings were logged for NaN values
         warnings = [
@@ -109,7 +109,7 @@ class TestDebugDataQuality:
         timing_values = [0.1, float("inf"), 0.3, float("-inf"), 0.5]
         dataset = self.create_mock_dataset(timing_values)
 
-        matmul_dataset = MatmulTimingDataset(dataset=dataset, debug=True)
+        matmul_dataset = MatmulTimingDataset(dataset=dataset, hardware_name="test_gpu", debug=True)
 
         # Check that warnings were logged for Inf values
         warnings = [
@@ -131,7 +131,7 @@ class TestDebugDataQuality:
         timing_values = [0.1, -0.1, 0.0, -5.0, 0.5]
         dataset = self.create_mock_dataset(timing_values)
 
-        matmul_dataset = MatmulTimingDataset(dataset=dataset, debug=True)
+        matmul_dataset = MatmulTimingDataset(dataset=dataset, hardware_name="test_gpu", debug=True)
 
         # Check that warnings were logged for invalid timing values
         warnings = [
@@ -148,7 +148,7 @@ class TestDebugDataQuality:
         timing_values = [0.1, float("nan"), -0.1, float("inf"), 0.0, 0.5, float("-inf")]
         dataset = self.create_mock_dataset(timing_values)
 
-        matmul_dataset = MatmulTimingDataset(dataset=dataset, debug=True)
+        matmul_dataset = MatmulTimingDataset(dataset=dataset, hardware_name="test_gpu", debug=True)
 
         # Check that appropriate warnings were logged
         warnings = [
@@ -174,7 +174,7 @@ class TestDebugDataQuality:
         hardware = DatasetHardware(operation=OrderedDict())
         dataset = Dataset(hardware=OrderedDict({"empty_gpu": hardware}))
 
-        matmul_dataset = MatmulTimingDataset(dataset=dataset, debug=True)
+        matmul_dataset = MatmulTimingDataset(dataset=dataset, hardware_name="empty_gpu", debug=True)
 
         # Check that warnings were logged for empty tensors
         warnings = [
@@ -190,13 +190,13 @@ class TestDebugDataQuality:
         dataset = self.create_mock_dataset(timing_values)
 
         matmul_dataset = MatmulTimingDataset(
-            dataset=dataset, log_transform=True, debug=True  # Enable log transform
+            dataset=dataset, hardware_name="test_gpu", log_transform=True, debug=True  # Enable log transform
         )
 
         # Check that the dataset was created (log transform should handle small values)
         assert len(matmul_dataset.timings) >= 1
 
-    @patch("diode.model.matmul_dataset_loader.logger")
+    @patch("torch_diode.model.matmul_dataset_loader.logger")
     def test_debug_data_quality_feature_nan_detection(self, mock_logger):
         """Test _debug_data_quality detection of NaN values in features."""
         timing_values = [0.1, 0.2, 0.3]
@@ -204,7 +204,7 @@ class TestDebugDataQuality:
 
         # Create dataset and manually inject NaN values
         matmul_dataset = MatmulTimingDataset(
-            dataset=dataset, debug=False  # Don't trigger debug in constructor
+            dataset=dataset, hardware_name="test_gpu", debug=False  # Don't trigger debug in constructor
         )
 
         # Manually inject NaN values into features for testing
@@ -223,7 +223,7 @@ class TestDebugDataQuality:
         ]
         assert len(warning_calls) >= 1
 
-    @patch("diode.model.matmul_dataset_loader.logger")
+    @patch("torch_diode.model.matmul_dataset_loader.logger")
     def test_debug_data_quality_extreme_values(self, mock_logger):
         """Test _debug_data_quality detection of extreme values."""
         timing_values = [0.1, 0.2, 0.3]
@@ -231,7 +231,7 @@ class TestDebugDataQuality:
 
         # Create dataset
         matmul_dataset = MatmulTimingDataset(
-            dataset=dataset, debug=False  # Don't trigger debug in constructor
+            dataset=dataset, hardware_name="test_gpu", debug=False  # Don't trigger debug in constructor
         )
 
         # Manually inject extreme values for testing
@@ -259,7 +259,7 @@ class TestDebugDataQuality:
         timing_values = [0.1, 0.2, 0.3, 0.4, 0.5]
         dataset = self.create_mock_dataset(timing_values)
 
-        matmul_dataset = MatmulTimingDataset(dataset=dataset, debug=True)
+        matmul_dataset = MatmulTimingDataset(dataset=dataset, hardware_name="test_gpu", debug=True)
 
         # Check that statistics were logged
         info_logs = [record for record in caplog.records if record.levelname == "INFO"]
@@ -281,7 +281,7 @@ class TestDebugDataQuality:
         dataset = self.create_mock_dataset(timing_values)
 
         matmul_dataset = MatmulTimingDataset(
-            dataset=dataset, debug=False  # Debug disabled
+            dataset=dataset, hardware_name="test_gpu", debug=False  # Debug disabled
         )
 
         # Check that no debug logs were created
@@ -305,7 +305,7 @@ class TestDebugDataQuality:
         dataset = self.create_mock_dataset(timing_values)
 
         matmul_dataset = MatmulTimingDataset(
-            dataset=dataset, log_transform=False, debug=True  # Disable log transform
+            dataset=dataset, hardware_name="test_gpu", log_transform=False, debug=True  # Disable log transform
         )
 
         # Check that debug ran successfully
@@ -362,7 +362,7 @@ class TestDebugDataQuality:
         dataset = self.create_mock_dataset(timing_values)
 
         matmul_dataset = MatmulTimingDataset(
-            dataset=dataset, log_transform=True, debug=True
+            dataset=dataset, hardware_name="test_gpu", log_transform=True, debug=True
         )
 
         # Should have 4 valid values: 0.001, 0.1, 1e-10, 10.0

@@ -39,12 +39,12 @@ build-torch-diode-lib:
 test-install:
 	@echo "Testing torch-diode installation..."
 	pip install dist/torch_diode-*.whl --force-reinstall
-	python -c "import diode; print('torch-diode installed successfully')"
+	python -c "import torch_diode; print('torch-diode installed successfully')"
 	pip uninstall torch-diode -y
 
 	@echo "Testing torch-diode-lib installation..."
 	pip install dist/torch_diode_lib-*.whl --force-reinstall
-	python -c "import diode; print('torch-diode-lib installed successfully')"
+	python -c "import torch_diode; print('torch-diode-lib installed successfully')"
 	pip uninstall torch-diode-lib -y
 
 # Upload to PyPI (test)

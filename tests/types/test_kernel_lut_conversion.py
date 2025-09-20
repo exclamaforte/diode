@@ -15,7 +15,7 @@ import torch
 import unittest
 from unittest import TestCase
 
-from diode.types.matmul_types import (
+from torch_diode.types.matmul_types import (
     Hardware,
     MMShape,
     Operation,
@@ -23,7 +23,7 @@ from diode.types.matmul_types import (
     Table,
     TritonGEMMConfig,
 )
-from diode.types.kernel_lut import convert_triton_configs_to_gemm_configs
+from torch_diode.types.kernel_lut import convert_triton_configs_to_gemm_configs
 
 
 def run_tests():

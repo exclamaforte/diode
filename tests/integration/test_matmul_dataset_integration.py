@@ -9,9 +9,9 @@ import torch
 # Add the parent directory to the path so we can import the module
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from diode.collection.matmul_dataset_collector import MatmulDatasetCollector
-from diode.types.matmul_dataset import Dataset
-from diode.types.matmul_types import MMShape, Table, TritonGEMMConfig
+from torch_diode.collection.matmul_dataset_collector import MatmulDatasetCollector
+from torch_diode.types.matmul_dataset import Dataset
+from torch_diode.types.matmul_types import MMShape, Table, TritonGEMMConfig
 
 
 class TestMatmulDatasetIntegration(unittest.TestCase):
@@ -65,7 +65,7 @@ class TestMatmulDatasetIntegration(unittest.TestCase):
 
         # Instead of using the feedback mechanism, let's manually populate some data for testing
         # This will ensure the test passes while we debug the feedback mechanism separately
-        from diode.types.matmul_types import MMShape, TritonGEMMConfig
+        from torch_diode.types.matmul_types import MMShape, TritonGEMMConfig
 
         # Create test data manually
         problem = MMShape(

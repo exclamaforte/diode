@@ -13,12 +13,12 @@ from pathlib import Path
 
 def get_model_manifest():
     """Get the model manifest from the diode package."""
-    # Add the project root to the path so we can import diode
+    # Add the project root to the path so we can import torch_diode
     project_root = Path(__file__).parent.parent
     sys.path.insert(0, str(project_root))
     
     try:
-        from diode.model_registry import generate_model_manifest, get_model_paths_for_build
+        from torch_diode.model_registry import generate_model_manifest, get_model_paths_for_build
         
         manifest = generate_model_manifest()
         model_paths = get_model_paths_for_build()

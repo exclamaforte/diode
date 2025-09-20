@@ -18,7 +18,7 @@ TOOLKIT_PATH="${SCRIPT_DIR}/matmul_toolkit.py"
 PYTHON_CMD="${HOME}/.conda/envs/foo2/bin/python"
 
 # Set random seed for reproducibility
-SEED=51
+SEED=52
 
 # Define paths
 DATA_DIR="${SCRIPT_DIR}/data"
@@ -27,7 +27,7 @@ TRAIN_DATASET="${DATA_DIR}/seed_${SEED}_train_dataset.msgpack"
 VALIDATION_DATASET="${DATA_DIR}/validation/my_validation.msgpack"
 MODEL_PATH="${DATA_DIR}/matmul_model.pt"
 LOG_DIR="${DATA_DIR}/logs"
-NUM_SHAPES=0
+NUM_SHAPES=100
 NUM_EPOCHS=5000
 CHUNK_SIZE=5
 SEARCH_SPACE="EXHAUSTIVE"
@@ -79,21 +79,21 @@ echo "✓ Training data collection completed"
 echo "Training dataset saved to: ${TRAIN_DATASET}"
 echo ""
 
-# Step 3: Train deep model on the collected data
-# echo "Step 3: Training deep model on collected data"
-# echo "Command: ${PYTHON_CMD} ${TOOLKIT_PATH} --seed ${SEED} train --data-dir ${DATA_DIR} --model ${MODEL_PATH} --model-type deep --batch-size 64 --num-epochs ${NUM_EPOCHS} --learning-rate 0.001 --log-dir ${LOG_DIR}"
-# echo ""
+Step 3: Train deep model on the collected data
+echo "Step 3: Training deep model on collected data"
+echo "Command: ${PYTHON_CMD} ${TOOLKIT_PATH} --seed ${SEED} train --data-dir ${DATA_DIR} --model ${MODEL_PATH} --model-type deep --batch-size 64 --num-epochs ${NUM_EPOCHS} --learning-rate 0.001 --log-dir ${LOG_DIR}"
+echo ""
 
-# ${PYTHON_CMD} "${TOOLKIT_PATH}" \
-#     --seed "${SEED}" \
-#     train \
-#     --data-dir "${DATA_DIR}" \
-#     --model "${MODEL_PATH}" \
-#     --model-type deep \
-#     --batch-size 64 \
-#     --num-epochs ${NUM_EPOCHS} \
-#     --learning-rate 0.001 \
-#     --log-dir "${LOG_DIR}"
+${PYTHON_CMD} "${TOOLKIT_PATH}" \
+    --seed "${SEED}" \
+    train \
+    --data-dir "${DATA_DIR}" \
+    --model "${MODEL_PATH}" \
+    --model-type deep \
+    --batch-size 64 \
+    --num-epochs ${NUM_EPOCHS} \
+    --learning-rate 0.001 \
+    --log-dir "${LOG_DIR}"
 
 echo ""
 echo "✓ Model training completed"
@@ -132,6 +132,26 @@ ${PYTHON_CMD} "${TOOLKIT_PATH}" \
     --dataset "${VALIDATION_DIR}" \
     --batch-size 64 \
     --top-n-worst 10
+
+echo "Running max-autotune validation..."
+echo "This will compare the model's config selection ability against max-autotune configs"
+echo "for n ∈ {1, 5, 10, 20, 50, 100} and provide comprehensive statistics."
+echo ""
+
+CMD=(
+    "${PYTHON_CMD}" "${TOOLKIT_PATH}"
+    --seed "${SEED}"
+    validate-max-autotune
+    --model "${MODEL_PATH}"
+    --dataset "${VALIDATION_DATASET}"
+    --batch-size 64
+    --max-autotune-solution "${MAX_AUTOTUNE_SOLUTION}"
+)
+echo "Command: ${CMD[*]}"
+echo ""
+
+# Execute the command
+"${CMD[@]}"
 
 echo ""
 echo "========================================="

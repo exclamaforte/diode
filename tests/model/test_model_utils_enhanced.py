@@ -10,14 +10,14 @@ from unittest.mock import MagicMock, mock_open, patch
 import pytest
 import torch
 
-from diode.model.model_utils import (
+from torch_diode.model.model_utils import (
     run_model_example,
     train_model,
     train_model_from_directory,
     validate_max_autotune,
     validate_model,
 )
-from diode.types.matmul_types import Solution, TritonGEMMConfig
+from torch_diode.types.matmul_types import Solution, TritonGEMMConfig
 
 
 class TestValidateMaxAutotune:
@@ -87,7 +87,7 @@ class TestValidateMaxAutotune:
                     solution_file.write('{"invalid": "structure"}')
                     solution_file.flush()
 
-                    with patch("diode.types.matmul_types.Solution.parse") as mock_parse:
+                    with patch("torch_diode.types.matmul_types.Solution.parse") as mock_parse:
                         mock_parse.return_value = None
                         validate_max_autotune(
                             model_path=model_file.name,
@@ -113,7 +113,7 @@ class TestValidateMaxAutotune:
                     solution_file.flush()
 
                     with patch(
-                        "diode.model.directory_dataset_loader.create_directory_dataloaders"
+                        "torch_diode.model.directory_dataset_loader.create_directory_dataloaders"
                     ) as mock_create:
                         mock_create.side_effect = Exception(
                             "Failed to create dataloaders"
@@ -166,7 +166,7 @@ class TestTrainModel:
             dataset_file.flush()
 
             with patch(
-                "diode.types.matmul_dataset.Dataset.deserialize"
+                "torch_diode.types.matmul_dataset.Dataset.deserialize"
             ) as mock_deserialize:
                 mock_deserialize.return_value = None
                 model, history = train_model(
@@ -187,7 +187,7 @@ class TestTrainModel:
 
     def test_base_model_creation(self):
         """Test creation of base model type."""
-        with patch("diode.model.model_utils.create_dataloaders") as mock_create:
+        with patch("torch_diode.model.model_utils.create_dataloaders") as mock_create:
             mock_train_loader = MagicMock()
             mock_val_loader = MagicMock()
             mock_test_loader = MagicMock()
@@ -228,12 +228,12 @@ class TestTrainModel:
             )
 
             with patch(
-                "diode.types.matmul_dataset.Dataset.deserialize"
+                "torch_diode.types.matmul_dataset.Dataset.deserialize"
             ) as mock_deserialize:
                 mock_deserialize.return_value = MagicMock()
 
                 with patch(
-                    "diode.model.matmul_model_trainer.MatmulModelTrainer"
+                    "torch_diode.model.matmul_model_trainer.MatmulModelTrainer"
                 ) as mock_trainer_class:
                     mock_trainer = MagicMock()
                     mock_trainer.train.return_value = {"train_loss": [1.0, 0.5]}
@@ -243,7 +243,7 @@ class TestTrainModel:
                     # The model is created within the train_model function by direct import
                     # So we need to patch it in the model_utils module where it's imported
                     with patch(
-                        "diode.model.model_utils.MatmulTimingModel"
+                        "torch_diode.model.model_utils.MatmulTimingModel"
                     ) as mock_model_class:
                         mock_model = MagicMock()
                         # Create actual parameters for the optimizer
@@ -316,7 +316,7 @@ class TestValidateModel:
         with tempfile.NamedTemporaryFile(suffix=".pt") as model_file:
             with tempfile.TemporaryDirectory() as temp_dir:
                 with patch(
-                    "diode.model.model_utils.create_directory_dataloaders"
+                    "torch_diode.model.model_utils.create_directory_dataloaders"
                 ) as mock_create:
                     mock_create.side_effect = Exception("Failed to create dataloaders")
                     validate_model(
@@ -332,7 +332,7 @@ class TestValidateModel:
                 dataset_file.flush()
 
                 with patch(
-                    "diode.types.matmul_dataset.Dataset.from_msgpack"
+                    "torch_diode.types.matmul_dataset.Dataset.from_msgpack"
                 ) as mock_from_msgpack:
                     mock_from_msgpack.return_value = None
                     validate_model(
@@ -349,7 +349,7 @@ class TestValidateModel:
                 dataset_file.flush()
 
                 with patch(
-                    "diode.types.matmul_dataset.Dataset.deserialize"
+                    "torch_diode.types.matmul_dataset.Dataset.deserialize"
                 ) as mock_deserialize:
                     mock_deserialize.return_value = None
                     validate_model(
@@ -366,12 +366,12 @@ class TestValidateModel:
                 dataset_file.flush()
 
                 with patch(
-                    "diode.types.matmul_dataset.Dataset.deserialize"
+                    "torch_diode.types.matmul_dataset.Dataset.deserialize"
                 ) as mock_deserialize:
                     mock_deserialize.return_value = MagicMock()
 
                     with patch(
-                        "diode.model.model_utils.create_dataloaders"
+                        "torch_diode.model.model_utils.create_dataloaders"
                     ) as mock_create:
                         mock_loader = MagicMock()
                         mock_dataset = MagicMock()
@@ -396,12 +396,12 @@ class TestValidateModel:
                 dataset_file.flush()
 
                 with patch(
-                    "diode.types.matmul_dataset.Dataset.deserialize"
+                    "torch_diode.types.matmul_dataset.Dataset.deserialize"
                 ) as mock_deserialize:
                     mock_deserialize.return_value = MagicMock()
 
                     with patch(
-                        "diode.model.model_utils.create_dataloaders"
+                        "torch_diode.model.model_utils.create_dataloaders"
                     ) as mock_create:
                         mock_loader = MagicMock()
                         mock_dataset = MagicMock()
@@ -441,7 +441,7 @@ class TestValidateModel:
                             mock_torch_load.return_value = checkpoint
 
                             with patch(
-                                "diode.model.model_utils.MatmulTimingModel"
+                                "torch_diode.model.model_utils.MatmulTimingModel"
                             ) as mock_model_class:
                                 mock_model = MagicMock()
                                 # Create actual parameters for the optimizer
@@ -463,7 +463,7 @@ class TestValidateModel:
                                 mock_model_class.return_value = mock_model
 
                                 with patch(
-                                    "diode.model.matmul_model_trainer.MatmulModelTrainer"
+                                    "torch_diode.model.matmul_model_trainer.MatmulModelTrainer"
                                 ) as mock_trainer_class:
                                     mock_trainer = MagicMock()
                                     mock_trainer._evaluate.return_value = 0.25
@@ -487,12 +487,12 @@ class TestValidateModel:
                 dataset_file.flush()
 
                 with patch(
-                    "diode.types.matmul_dataset.Dataset.deserialize"
+                    "torch_diode.types.matmul_dataset.Dataset.deserialize"
                 ) as mock_deserialize:
                     mock_deserialize.return_value = MagicMock()
 
                     with patch(
-                        "diode.model.model_utils.create_dataloaders"
+                        "torch_diode.model.model_utils.create_dataloaders"
                     ) as mock_create:
                         mock_loader = MagicMock()
                         mock_dataset = MagicMock()
@@ -533,7 +533,7 @@ class TestValidateModel:
                             mock_torch_load.return_value = checkpoint
 
                             with patch(
-                                "diode.model.matmul_timing_model.DeepMatmulTimingModel"
+                                "torch_diode.model.matmul_timing_model.DeepMatmulTimingModel"
                             ) as mock_model_class:
                                 mock_model = MagicMock()
                                 mock_model.eval.return_value = mock_model
@@ -548,14 +548,14 @@ class TestValidateModel:
                                 mock_model_class.return_value = mock_model
 
                                 with patch(
-                                    "diode.model.matmul_model_trainer.MatmulModelTrainer"
+                                    "torch_diode.model.matmul_model_trainer.MatmulModelTrainer"
                                 ) as mock_trainer_class:
                                     mock_trainer = MagicMock()
                                     mock_trainer._evaluate.return_value = 0.25
                                     mock_trainer_class.return_value = mock_trainer
 
                                     with patch(
-                                        "diode.model.model_utils.analyze_worst_predictions"
+                                        "torch_diode.model.model_utils.analyze_worst_predictions"
                                     ) as mock_analyze:
                                         validate_model(
                                             model_path=model_file.name,
@@ -576,7 +576,7 @@ class TestRunModelExample:
             dataset_file.flush()
 
             with patch(
-                "diode.types.matmul_dataset.Dataset.from_msgpack"
+                "torch_diode.types.matmul_dataset.Dataset.from_msgpack"
             ) as mock_from_msgpack:
                 mock_from_msgpack.return_value = None
                 run_model_example(dataset_path=dataset_file.name)
@@ -589,7 +589,7 @@ class TestRunModelExample:
             dataset_file.flush()
 
             with patch(
-                "diode.types.matmul_dataset.Dataset.deserialize"
+                "torch_diode.types.matmul_dataset.Dataset.deserialize"
             ) as mock_deserialize:
                 mock_deserialize.return_value = None
                 run_model_example(dataset_path=dataset_file.name)
@@ -602,13 +602,13 @@ class TestRunModelExample:
             dataset_file.flush()
 
             with patch(
-                "diode.types.matmul_dataset.Dataset.deserialize"
+                "torch_diode.types.matmul_dataset.Dataset.deserialize"
             ) as mock_deserialize:
                 mock_deserialize.return_value = MagicMock()
 
-                with patch("diode.utils.dataset_utils.print_dataset_statistics"):
+                with patch("torch_diode.utils.dataset_utils.print_dataset_statistics"):
                     with patch(
-                        "diode.model.matmul_model_trainer.train_model_from_dataset"
+                        "torch_diode.model.matmul_model_trainer.train_model_from_dataset"
                     ) as mock_train:
                         mock_train.return_value = (None, {}, None)
                         run_model_example(dataset_path=dataset_file.name)
@@ -623,13 +623,13 @@ class TestRunModelExample:
             dataset_file.flush()
 
             with patch(
-                "diode.types.matmul_dataset.Dataset.deserialize"
+                "torch_diode.types.matmul_dataset.Dataset.deserialize"
             ) as mock_deserialize:
                 mock_deserialize.return_value = MagicMock()
 
-                with patch("diode.utils.dataset_utils.print_dataset_statistics"):
+                with patch("torch_diode.utils.dataset_utils.print_dataset_statistics"):
                     with patch(
-                        "diode.model.matmul_model_trainer.train_model_from_dataset"
+                        "torch_diode.model.matmul_model_trainer.train_model_from_dataset"
                     ) as mock_train:
                         mock_model = MagicMock()
                         mock_train.return_value = (
@@ -639,10 +639,10 @@ class TestRunModelExample:
                         )
 
                         with patch(
-                            "diode.utils.visualization_utils.plot_training_history"
+                            "torch_diode.utils.visualization_utils.plot_training_history"
                         ):
                             with patch(
-                                "diode.model.model_utils.create_dataloaders"
+                                "torch_diode.model.model_utils.create_dataloaders"
                             ) as mock_create:
                                 mock_create.return_value = (
                                     None,
@@ -662,13 +662,13 @@ class TestRunModelExample:
             dataset_file.flush()
 
             with patch(
-                "diode.types.matmul_dataset.Dataset.deserialize"
+                "torch_diode.types.matmul_dataset.Dataset.deserialize"
             ) as mock_deserialize:
                 mock_deserialize.return_value = MagicMock()
 
-                with patch("diode.utils.dataset_utils.print_dataset_statistics"):
+                with patch("torch_diode.utils.dataset_utils.print_dataset_statistics"):
                     with patch(
-                        "diode.model.matmul_model_trainer.train_model_from_dataset"
+                        "torch_diode.model.matmul_model_trainer.train_model_from_dataset"
                     ) as mock_train:
                         mock_model = MagicMock()
                         mock_model.to.return_value = mock_model
@@ -679,10 +679,10 @@ class TestRunModelExample:
                         )
 
                         with patch(
-                            "diode.utils.visualization_utils.plot_training_history"
+                            "torch_diode.utils.visualization_utils.plot_training_history"
                         ):
                             with patch(
-                                "diode.model.model_utils.create_dataloaders"
+                                "torch_diode.model.model_utils.create_dataloaders"
                             ) as mock_create:
                                 # Create mock test dataloader with data
                                 mock_test_loader = MagicMock()
@@ -750,7 +750,7 @@ class TestTrainModelFromDirectory:
             mock_test_loader.__iter__.return_value = iter(test_samples)
 
             with patch(
-                "diode.model.model_utils.create_directory_dataloaders"
+                "torch_diode.model.model_utils.create_directory_dataloaders"
             ) as mock_create:
                 mock_create.return_value = (
                     mock_train_loader,
@@ -759,7 +759,7 @@ class TestTrainModelFromDirectory:
                 )
 
                 with patch(
-                    "diode.model.matmul_model_trainer.MatmulModelTrainer"
+                    "torch_diode.model.matmul_model_trainer.MatmulModelTrainer"
                 ) as mock_trainer_class:
                     mock_trainer = MagicMock()
                     mock_trainer.train.return_value = {"train_loss": [1.0, 0.5]}
@@ -767,7 +767,7 @@ class TestTrainModelFromDirectory:
                     mock_trainer_class.return_value = mock_trainer
 
                     with patch(
-                        "diode.model.model_utils.DeepMatmulTimingModel"
+                        "torch_diode.model.model_utils.DeepMatmulTimingModel"
                     ) as mock_model_class:
                         mock_model = MagicMock()
                         # Create actual parameters for the optimizer
@@ -786,7 +786,7 @@ class TestTrainModelFromDirectory:
                         mock_model_class.return_value = mock_model
 
                         with patch(
-                            "diode.utils.visualization_utils.plot_training_history"
+                            "torch_diode.utils.visualization_utils.plot_training_history"
                         ):
                             model, history = train_model_from_directory(
                                 data_dir=temp_dir, model_path="/tmp/model.pt"
@@ -800,7 +800,7 @@ class TestTrainModelFromDirectory:
         """Test base model creation from directory."""
         with tempfile.TemporaryDirectory() as temp_dir:
             with patch(
-                "diode.model.model_utils.create_directory_dataloaders"
+                "torch_diode.model.model_utils.create_directory_dataloaders"
             ) as mock_create:
                 mock_train_loader = MagicMock()
                 mock_val_loader = MagicMock()
@@ -842,7 +842,7 @@ class TestTrainModelFromDirectory:
                 )
 
                 with patch(
-                    "diode.model.matmul_model_trainer.MatmulModelTrainer"
+                    "torch_diode.model.matmul_model_trainer.MatmulModelTrainer"
                 ) as mock_trainer_class:
                     mock_trainer = MagicMock()
                     mock_trainer.train.return_value = {"train_loss": [1.0, 0.5]}
@@ -850,7 +850,7 @@ class TestTrainModelFromDirectory:
                     mock_trainer_class.return_value = mock_trainer
 
                     with patch(
-                        "diode.model.model_utils.MatmulTimingModel"
+                        "torch_diode.model.model_utils.MatmulTimingModel"
                     ) as mock_model_class:
                         mock_model = MagicMock()
                         # Create actual parameters for the optimizer
@@ -869,7 +869,7 @@ class TestTrainModelFromDirectory:
                         mock_model_class.return_value = mock_model
 
                         with patch(
-                            "diode.utils.visualization_utils.plot_training_history"
+                            "torch_diode.utils.visualization_utils.plot_training_history"
                         ):
                             model, history = train_model_from_directory(
                                 data_dir=temp_dir,

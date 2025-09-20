@@ -11,7 +11,7 @@ import pytest
 import torch
 import msgpack
 
-from diode.collection.matmul_data_utils import (
+from torch_diode.collection.matmul_data_utils import (
     _collect_data_chunked,
     _create_validation_dataset_chunked,
     collect_data,
@@ -19,7 +19,7 @@ from diode.collection.matmul_data_utils import (
     run_collector_example,
     run_matrix_multiplications,
 )
-from diode.collection.matmul_dataset_collector import CollectionMode
+from torch_diode.collection.matmul_dataset_collector import CollectionMode
 
 
 class TestMatmulDataUtilsEnhanced:
@@ -79,7 +79,7 @@ class TestMatmulDataUtilsEnhanced:
 
     def _create_mock_collector_with_proper_dataset(self):
         """Create a mock collector that passes isinstance check and has proper dataset."""
-        from diode.collection.matmul_dataset_collector import MatmulDatasetCollector
+        from torch_diode.collection.matmul_dataset_collector import MatmulDatasetCollector
 
         # Create a mock collector that will pass isinstance check
         mock_collector = Mock(spec=MatmulDatasetCollector)
@@ -111,17 +111,17 @@ class TestMatmulDataUtilsEnhanced:
 
     @patch("torch.cuda.is_available")
     @patch("torch.cuda.get_device_name")
-    @patch("diode.collection.matmul_data_utils.print_dataset_statistics")
+    @patch("torch_diode.collection.matmul_data_utils.print_dataset_statistics")
     def test_collect_data_operation_shape_set_mode(self, mock_print_stats, mock_device_name, mock_cuda_available):
         """Test data collection with operation_shape_set mode."""
         mock_cuda_available.return_value = True
         mock_device_name.return_value = "NVIDIA A100"
         
         # Create a mock operation shape set
-        from diode.types.matmul_types import OperationShapeSet
+        from torch_diode.types.matmul_types import OperationShapeSet
         mock_shape_set = Mock(spec=OperationShapeSet)
 
-        with patch("diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
+        with patch("torch_diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
             mock_collector = self._create_mock_collector_with_proper_dataset()
             mock_collector_class.return_value = mock_collector
 
@@ -140,12 +140,12 @@ class TestMatmulDataUtilsEnhanced:
             assert kwargs["operation_shape_set"] == mock_shape_set
 
     @patch("torch.cuda.is_available")
-    @patch("diode.collection.matmul_data_utils.print_dataset_statistics")
+    @patch("torch_diode.collection.matmul_data_utils.print_dataset_statistics")
     def test_collect_data_power_of_two_mode(self, mock_print_stats, mock_cuda_available):
         """Test data collection with power_of_two enabled."""
         mock_cuda_available.return_value = False
 
-        with patch("diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
+        with patch("torch_diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
             mock_collector = self._create_mock_collector_with_proper_dataset()
             mock_collector_class.return_value = mock_collector
 
@@ -162,12 +162,12 @@ class TestMatmulDataUtilsEnhanced:
             assert kwargs["power_of_two"] is True
 
     @patch("torch.cuda.is_available")
-    @patch("diode.collection.matmul_data_utils.print_dataset_statistics")
+    @patch("torch_diode.collection.matmul_data_utils.print_dataset_statistics")
     def test_collect_data_custom_operations(self, mock_print_stats, mock_cuda_available):
         """Test data collection with custom operations."""
         mock_cuda_available.return_value = False
 
-        with patch("diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
+        with patch("torch_diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
             mock_collector = self._create_mock_collector_with_proper_dataset()
             mock_collector_class.return_value = mock_collector
 
@@ -184,12 +184,12 @@ class TestMatmulDataUtilsEnhanced:
             assert kwargs["operations"] == custom_operations
 
     @patch("torch.cuda.is_available")
-    @patch("diode.collection.matmul_data_utils.print_dataset_statistics")
+    @patch("torch_diode.collection.matmul_data_utils.print_dataset_statistics")
     def test_collect_data_log_normal_parameters(self, mock_print_stats, mock_cuda_available):
         """Test data collection with log normal distribution parameters."""
         mock_cuda_available.return_value = False
 
-        with patch("diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
+        with patch("torch_diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
             mock_collector = self._create_mock_collector_with_proper_dataset()
             mock_collector_class.return_value = mock_collector
 
@@ -215,14 +215,14 @@ class TestMatmulDataUtilsEnhanced:
             assert kwargs["log_normal_k_mean"] == 6.5
             assert kwargs["log_normal_k_std"] == 2.2
 
-    @patch("diode.collection.matmul_data_utils._collect_data_chunked")
+    @patch("torch_diode.collection.matmul_data_utils._collect_data_chunked")
     @patch("torch.cuda.is_available")
     def test_collect_data_chunked_with_parameters(self, mock_cuda_available, mock_chunked):
         """Test chunked data collection with all parameters."""
         mock_cuda_available.return_value = True
         mock_chunked.return_value = "chunked_output.json"
 
-        with patch("diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
+        with patch("torch_diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
             mock_collector = self._create_mock_collector_with_proper_dataset()
             mock_collector_class.return_value = mock_collector
 
@@ -244,7 +244,7 @@ class TestMatmulDataUtilsEnhanced:
             assert kwargs["search_space"] == "DEFAULT"
             assert kwargs["file_format"] == "msgpack"
 
-    @patch("diode.collection.matmul_data_utils._create_validation_dataset_chunked")
+    @patch("torch_diode.collection.matmul_data_utils._create_validation_dataset_chunked")
     def test_create_validation_dataset_chunked_with_all_params(self, mock_chunked):
         """Test chunked validation dataset creation with all parameters."""
         mock_chunked.return_value = "chunked_validation.json"
@@ -280,8 +280,8 @@ class TestMatmulDataUtilsEnhanced:
         """Test collector example with CPU device."""
         mock_cuda_available.return_value = False
 
-        with patch("diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
-            with patch("diode.collection.matmul_data_utils.run_matrix_multiplications") as mock_run_mm:
+        with patch("torch_diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
+            with patch("torch_diode.collection.matmul_data_utils.run_matrix_multiplications") as mock_run_mm:
                 mock_collector = self._create_mock_collector_with_proper_dataset()
                 mock_collector.__enter__ = Mock(return_value=mock_collector)
                 mock_collector.__exit__ = Mock(return_value=None)
@@ -307,8 +307,8 @@ class TestMatmulDataUtilsEnhanced:
         with patch("torch.cuda.get_device_name") as mock_device_name:
             mock_device_name.return_value = "NVIDIA RTX 3080"
             
-            with patch("diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
-                with patch("diode.collection.matmul_data_utils.run_matrix_multiplications") as mock_run_mm:
+            with patch("torch_diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
+                with patch("torch_diode.collection.matmul_data_utils.run_matrix_multiplications") as mock_run_mm:
                     mock_collector = self._create_mock_collector_with_proper_dataset()
                     mock_collector_class.return_value = mock_collector
 
@@ -330,7 +330,7 @@ class TestMatmulDataUtilsEnhanced:
         with patch("os.path.exists") as mock_exists:
             with patch("builtins.open", mock_open(read_data='{"test": "data"}')) as mock_file:
                 with patch("json.load") as mock_json_load:
-                    with patch("diode.types.matmul_dataset.Dataset.from_dict") as mock_from_dict:
+                    with patch("torch_diode.types.matmul_dataset.Dataset.from_dict") as mock_from_dict:
                         # Mock existing files
                         mock_exists.side_effect = lambda path: path.endswith("_1.json")
                         
@@ -366,7 +366,7 @@ class TestMatmulDataUtilsEnhanced:
         with patch("os.path.exists") as mock_exists:
             with patch("builtins.open", mock_open()) as mock_file:
                 with patch("msgpack.unpack") as mock_msgpack_unpack:
-                    with patch("diode.types.matmul_dataset.Dataset.from_dict") as mock_from_dict:
+                    with patch("torch_diode.types.matmul_dataset.Dataset.from_dict") as mock_from_dict:
                         # Mock existing files
                         mock_exists.side_effect = lambda path: path.endswith("_1.msgpack")
                         
@@ -403,7 +403,7 @@ class TestMatmulDataUtilsEnhanced:
         with patch("os.path.exists") as mock_exists:
             with patch("builtins.open", mock_open()) as mock_file:
                 with patch("json.load") as mock_json_load:
-                    with patch("diode.types.matmul_dataset.Dataset.from_dict") as mock_from_dict:
+                    with patch("torch_diode.types.matmul_dataset.Dataset.from_dict") as mock_from_dict:
                         with patch("torch.set_grad_enabled"):
                             with patch("torch._inductor.config"):
                                 with patch("torch.cuda.is_available", return_value=True):
@@ -463,7 +463,7 @@ class TestMatmulDataUtilsEnhanced:
                         mock_collector_class.return_value = mock_collector
                         mock_collector._generate_shapes_and_dtypes.return_value = []
                         
-                        with patch("diode.collection.matmul_data_utils.MatmulDatasetCollector", mock_collector_class):
+                        with patch("torch_diode.collection.matmul_data_utils.MatmulDatasetCollector", mock_collector_class):
                             with patch("torch.set_grad_enabled"):
                                 with patch("torch._inductor.config"):
                                     # Test with directory path
@@ -529,7 +529,7 @@ class TestMatmulDataUtilsEnhanced:
     def test_collect_data_with_none_operations(self):
         """Test collect_data when operations is None (uses default)."""
         with patch("torch.cuda.is_available", return_value=False):
-            with patch("diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
+            with patch("torch_diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
                 mock_collector = self._create_mock_collector_with_proper_dataset()
                 mock_collector_class.return_value = mock_collector
 
@@ -546,7 +546,7 @@ class TestMatmulDataUtilsEnhanced:
         """Test collect_data when dtypes is None with CUDA available."""
         with patch("torch.cuda.is_available", return_value=True):
             with patch("torch.cuda.get_device_name", return_value="NVIDIA A100"):
-                with patch("diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
+                with patch("torch_diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
                     mock_collector = self._create_mock_collector_with_proper_dataset()
                     mock_collector_class.return_value = mock_collector
 
@@ -562,7 +562,7 @@ class TestMatmulDataUtilsEnhanced:
     def test_collect_data_with_none_dtypes_cpu(self):  
         """Test collect_data when dtypes is None with CPU only."""
         with patch("torch.cuda.is_available", return_value=False):
-            with patch("diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
+            with patch("torch_diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
                 mock_collector = self._create_mock_collector_with_proper_dataset()
                 mock_collector_class.return_value = mock_collector
 
@@ -589,7 +589,7 @@ class TestMatmulDataUtilsEnhanced:
                         mock_collector_class.return_value = mock_collector
                         mock_collector._generate_shapes_and_dtypes.return_value = []
                         
-                        with patch("diode.collection.matmul_data_utils.MatmulDatasetCollector", mock_collector_class):
+                        with patch("torch_diode.collection.matmul_data_utils.MatmulDatasetCollector", mock_collector_class):
                             with patch("torch.set_grad_enabled"):
                                 with patch("torch._inductor.config"):
                                     result = _create_validation_dataset_chunked(
@@ -654,8 +654,8 @@ class TestMatmulDataUtilsEnhanced:
         """Test run_collector_example with None dtypes and CUDA available."""
         with patch("torch.cuda.is_available", return_value=True):
             with patch("torch.cuda.get_device_name", return_value="NVIDIA A100"):
-                with patch("diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
-                    with patch("diode.collection.matmul_data_utils.run_matrix_multiplications") as mock_run_mm:
+                with patch("torch_diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
+                    with patch("torch_diode.collection.matmul_data_utils.run_matrix_multiplications") as mock_run_mm:
                         mock_collector = self._create_mock_collector_with_proper_dataset()
                         mock_collector.__enter__ = Mock(return_value=mock_collector)
                         mock_collector.__exit__ = Mock(return_value=None)
@@ -677,8 +677,8 @@ class TestMatmulDataUtilsEnhanced:
     def test_run_collector_example_with_none_dtypes_cpu(self):
         """Test run_collector_example with None dtypes and CPU only."""
         with patch("torch.cuda.is_available", return_value=False):
-            with patch("diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
-                with patch("diode.collection.matmul_data_utils.run_matrix_multiplications") as mock_run_mm:
+            with patch("torch_diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
+                with patch("torch_diode.collection.matmul_data_utils.run_matrix_multiplications") as mock_run_mm:
                     mock_collector = self._create_mock_collector_with_proper_dataset()
                     mock_collector_class.return_value = mock_collector
 

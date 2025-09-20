@@ -11,11 +11,11 @@ import torch
 from collections import OrderedDict
 from unittest.mock import patch, MagicMock, call
 
-from diode.collection.matmul_dataset_collector import (
+from torch_diode.collection.matmul_dataset_collector import (
     MatmulDatasetCollector,
     CollectionMode,
 )
-from diode.types.matmul_types import MMShape, OperationShapeSet
+from torch_diode.types.matmul_types import MMShape, OperationShapeSet
 
 
 class TestMatmulDatasetCollectorInit:
@@ -79,7 +79,7 @@ class TestMatmulDatasetCollectorCollection:
         """Test starting collection when already in progress."""
         collector = MatmulDatasetCollector()
         
-        with patch('diode.collection.matmul_dataset_collector.add_feedback_saver'):
+        with patch('torch_diode.collection.matmul_dataset_collector.add_feedback_saver'):
             collector.start_collection()
             assert collector._is_collecting is True
             
@@ -98,8 +98,8 @@ class TestMatmulDatasetCollectorCollection:
         """Test using collector as context manager."""
         collector = MatmulDatasetCollector()
           
-        with patch('diode.collection.matmul_dataset_collector.add_feedback_saver') as mock_add:
-            with patch('diode.collection.matmul_dataset_collector.clear_feedback_savers') as mock_clear:
+        with patch('torch_diode.collection.matmul_dataset_collector.add_feedback_saver') as mock_add:
+            with patch('torch_diode.collection.matmul_dataset_collector.clear_feedback_savers') as mock_clear:
                 with collector:
                     assert collector._is_collecting is True
                     mock_add.assert_called_once()
@@ -415,7 +415,7 @@ class TestMatmulDatasetCollectorShapeGeneration:
             seed=42
         )
         
-        with patch('diode.utils.dataset_utils.generate_matrix_sizes') as mock_generate:
+        with patch('torch_diode.utils.dataset_utils.generate_matrix_sizes') as mock_generate:
             mock_generate.return_value = [(64, 32, 128), (128, 64, 256), (256, 128, 512), (512, 256, 1024), (1024, 512, 2048)]
             
             shapes_and_dtypes = collector._generate_shapes_and_dtypes()
