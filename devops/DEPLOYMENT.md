@@ -4,10 +4,10 @@ This document explains how to build and deploy the diode packages to PyPI using 
 
 ## Overview
 
-The diode project consists of 4 separate Python packages:
+The diode project consists of 2 separate Python packages:
 
-1. **`torch-diode`** - All code and models. Self registers into Inductor upon import.
-2. **`torch-diode-lib`** - All code and models. Does not register into Inductor.
+1. **`torch-diode`** - Full package with all code and models. Self registers into Inductor upon import.
+2. **`torch-diode-lib`** - Library package with all code and models. Does not register into Inductor.
 
 ## Deployment Scripts
 

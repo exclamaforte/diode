@@ -7,7 +7,7 @@ graph TB
     %% User Code and Entry Points
     subgraph "User Code"
         UC[User Code using torch.compile]
-        IMPORT[import diode]
+        IMPORT[import torch_diode]
     end
 
     %% PyTorch Inductor

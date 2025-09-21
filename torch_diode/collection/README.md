@@ -115,4 +115,4 @@ Convert the dataset to a table and save it to a file.
 
 ### Example
 
-See the [example script](../../examples/matmul_dataset_collector_example.py) for a complete example of how to use the `MatmulDatasetCollector` class.
+For a complete example of how to use the `MatmulDatasetCollector` class, see the collector examples in the `workflows/` directory.

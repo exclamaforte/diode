@@ -17,15 +17,15 @@ Thank you for your interest in contributing to Diode! This document provides gui
 
 Diode is a framework for developing heuristics that plug into PyTorch's external interfaces. Before contributing, please:
 
-1. Read the [README.md](/home/gabeferns/diode/README.md) to understand the project's goals and features
-2. Check out the [workflows](/home/gabeferns/diode/workflows) to see how the framework is used
-3. Review our [Code of Conduct](/home/gabeferns/diode/CODE_OF_CONDUCT.md)
+1. Read the [README.md](README.md) to understand the project's goals and features
+2. Check out the [workflows](workflows/) to see how the framework is used
 
 ## Development Setup
 
 ### Prerequisites
 
-- PyTorch Nightly (3.10 or higher)
+- Python 3.10 or higher
+- PyTorch Nightly or PyTorch 2.9 or later
 
 ### Installation
 

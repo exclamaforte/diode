@@ -4,7 +4,7 @@ Warning: code is in pre-Alpha
 <img width="718" height="571" alt="diode" src="https://github.com/user-attachments/assets/308cb05a-01d9-4fc4-9c03-7e13ade91475" />
 
 # torch-diode
-`torch-diode` is a library for programattically altering the performance-relevant decisions made by `torch.compile`. It makes it easy to gather data on the outcomes of decisions, and then train Machine Learning models on that data. It initially focuses on Matmul Kernel selection, but it will be expanded to other decisions in the future.
+`torch-diode` is a library for programattically altering the performance-relevant decisions made by `torch.compile`. It makes it easy to gather data on the outcomes of decisions, and then train Machine Learning models on that data. It initially focuses on Matmul Kernel selection, but it will be expanded to other decisions in the future. [Documentation](https://exclamaforte.github.io/diode/)
 
 ## Target Audience:
 - Developers looking to adapt the compilation of their model to their specific situation.
@@ -19,7 +19,7 @@ Warning: code is in pre-Alpha
 
 
 ## Featured Models
-- Matmul Kernel Prediction: Predict the runtime of matmul kernels. The results of this model are enabled in `fast-autotune`.
+- Matrix Multiplication Kernel Prediction: Predict the runtime of matrix multiplication kernels. The results of this model are enabled in `fast-autotune`.
 
 ## Option 1: Installation with Pre-Trained Models
 
@@ -64,7 +64,20 @@ pip install .
 ### Directory Structure
 Models are organized in a structured directory format:
 ```
-trained_models/<model_purpose>/<model_name>.pt
+trained_models/
+├── <model_purpose>/
+│   ├── <model_name>.pt
+│   └── ...
+└── <other_model_file>.pt
+```
+
+Example:
+```
+trained_models/
+├── matmul_kernel_runtime_prediction/
+│   ├── v1_model.pt
+│   └── v2_model.pt
+└── matmul_model_exhaustive.pt
 ```
 ## Get Started
 
