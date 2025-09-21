@@ -121,7 +121,7 @@
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="torch-diode">
 <h1>torch-diode<a class="headerlink" href="#torch-diode" title="Link to this heading"></a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">torch-diode</span></code> is a library for programattically altering the performance-relevant decisions made by <code class="docutils literal notranslate"><span class="pre">torch.compile</span></code>. It makes it easy to gather data on the outcomes of decisions, and then train Machine Learning models on that data. It initially focuses on Matmul Kernel selection, but it will be expanded to other decisions in the future.</p>
+<p><code class="docutils literal notranslate"><span class="pre">torch-diode</span></code> is a library for programattically altering the performance-relevant decisions made by <code class="docutils literal notranslate"><span class="pre">torch.compile</span></code>. It makes it easy to gather data on the outcomes of decisions, and then train Machine Learning models on that data. It initially focuses on Matmul Kernel selection, but it will be expanded to other decisions in the future. <a class="reference external" href="https://exclamaforte.github.io/diode/">Documentation</a></p>
 <section id="target-audience">
 <h2>Target Audience:<a class="headerlink" href="#target-audience" title="Link to this heading"></a></h2>
 <ul class="simple">
@@ -142,7 +142,7 @@
 <section id="featured-models">
 <h2>Featured Models<a class="headerlink" href="#featured-models" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>Matmul Kernel Prediction: Predict the runtime of matmul kernels. The results of this model are enabled in <code class="docutils literal notranslate"><span class="pre">fast-autotune</span></code>.</p></li>
+<li><p>Matrix Multiplication Kernel Prediction: Predict the runtime of matrix multiplication kernels. The results of this model are enabled in <code class="docutils literal notranslate"><span class="pre">fast-autotune</span></code>.</p></li>
 </ul>
 </section>
 <section id="option-1-installation-with-pre-trained-models">
@@ -188,7 +188,19 @@ pip<span class="w"> </span>install<span class="w"> </span>.
 <section id="directory-structure">
 <h3>Directory Structure<a class="headerlink" href="#directory-structure" title="Link to this heading"></a></h3>
 <p>Models are organized in a structured directory format:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">trained_models</span><span class="o">/&lt;</span><span class="n">model_purpose</span><span class="o">&gt;/&lt;</span><span class="n">model_name</span><span class="o">&gt;.</span><span class="n">pt</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>trained_models/
+├── &lt;model_purpose&gt;/
+│   ├── &lt;model_name&gt;.pt
+│   └── ...
+└── &lt;other_model_file&gt;.pt
+</pre></div>
+</div>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>trained_models/
+├── matmul_kernel_runtime_prediction/
+│   ├── v1_model.pt
+│   └── v2_model.pt
+└── matmul_model_exhaustive.pt
 </pre></div>
 </div>
 </section>
