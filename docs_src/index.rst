@@ -6,7 +6,7 @@ Welcome to Diode's documentation!
    :width: 718px
    :height: 571px
 
-`diode` is a framework that makes it easy to develop heuristics that plug into the external interfaces of torch and torch.compile. It allows users to both gather data from torch and train Machine Learning models on the gathered data.
+`diode` is a framework that makes it easy to develop machine learning models that plug into the external interfaces of torch and torch.compile. It allows users to both gather data from torch and train Machine Learning models on the gathered data.
 
 
 .. toctree::
