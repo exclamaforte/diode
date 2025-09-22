@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.abspath(".."))
 project = "diode"
 copyright = "2023, Author Name"
 author = "Author Name"
-release = "0.1.0"
+release = "0.0.1"
 
 # -- General configuration ---------------------------------------------------
 extensions = [
