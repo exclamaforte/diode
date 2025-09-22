@@ -64,9 +64,13 @@ def _setup_integrations() -> Dict[str, bool]:
         # Import integration components
         from .integration import discover_and_register_integrations, integrate_all
 
-        logger.info("Integration discovery completed, starting integration process...")
+        logger.info("Starting integration discovery...")
 
-        # Execute all integrations
+        # First discover and register all available integrations
+        discovery_results = discover_and_register_integrations()
+        logger.info(f"Integration discovery completed: {len(discovery_results)} integrations discovered")
+
+        # Execute all discovered integrations
         results = integrate_all()
 
         # Store results
@@ -164,6 +168,7 @@ else:
 # Expose public API
 from . import collection, integration, model, types, utils
 from .model_registry import get_model_registry
+from .utils.debug_config import get_debug_flags, set_debug_flag
 
 __all__ = [
     "__version__",

@@ -12,6 +12,7 @@ from torch.utils.data import DataLoader, Dataset
 
 from torch_diode.types.matmul_dataset import Dataset as MatmulDataset
 from torch_diode.types.matmul_types import MMShape, TritonGEMMConfig
+from torch_diode.utils.debug_config import type_assert
 from torch_diode.utils.feature_extraction import (
     extract_config_features,
     extract_problem_features,
@@ -46,6 +47,13 @@ class MatmulTimingDataset:
             log_transform: Whether to apply log transform to the timing values
             debug: Whether to enable debug logging and checks
         """
+        type_assert(dataset is not None, "dataset cannot be None")
+        type_assert(isinstance(dataset, MatmulDataset), f"dataset must be MatmulDataset, got {type(dataset)}")
+        type_assert(hardware_name is None or isinstance(hardware_name, str), f"hardware_name must be str or None, got {type(hardware_name)}")
+        type_assert(op_name is None or isinstance(op_name, str), f"op_name must be str or None, got {type(op_name)}")
+        type_assert(isinstance(log_transform, bool), f"log_transform must be bool, got {type(log_transform)}")
+        type_assert(isinstance(debug, bool), f"debug must be bool, got {type(debug)}")
+        
         self.dataset = dataset
         self.hardware_name = hardware_name
         self.op_name = op_name

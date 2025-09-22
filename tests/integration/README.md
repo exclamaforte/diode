@@ -4,31 +4,90 @@ This directory contains comprehensive unit tests and integration tests for the D
 
 ## Overview
 
-The test suite verifies that the Diode model-based kernel configuration selection integrates correctly with PyTorch Inductor's `_finalize_mm_configs` method and provides intelligent config selection.
+The test suite verifies that the Diode model-based kernel configuration selection integrates correctly with PyTorch Inductor's `_finalize_template_configs` method and provides intelligent config selection.
 
 ## Test Structure
 
-### Unit Tests (`test_inductor_integration.py`)
+### Primary Integration Tests (`test_inductor_integration.py`)
 
 **TestDiodeInductorChoices**: Core functionality tests
-- `test_initialization_with_model_path`: Verify proper initialization with model
-- `test_initialization_without_model_path`: Test fallback behavior without model
-- `test_find_default_model`: Test automatic model discovery
-- `test_extract_features_*`: Feature extraction from different operation types
-- `test_convert_ktc_to_config`: KernelTemplateChoice to TritonGEMMConfig conversion
-- `test_predict_config_performance_*`: Model inference testing
-- `test_finalize_mm_configs_*`: Core config selection logic
-- `test_statistics_tracking`: Statistics collection and monitoring
-- `test_fallback_behavior`: Error handling and fallback scenarios
+- `test_init_with_model_path`: Verify proper initialization with model path
+- `test_init_without_model_path`: Test fallback behavior without model
+- `test_load_model_success`: Test successful model loading
+- `test_load_model_failure`: Test model loading failure handling
+- `test_finalize_template_configs_*`: Core config selection logic using new pipeline
+- `test_create_unified_predictor`: Test unified predictor creation
+- `test_stats_tracking`: Statistics collection and monitoring
+- `test_compatibility_methods`: Compatibility methods for PyTorch Inductor
 
-**TestFactoryFunctions**: Factory function tests
-- `test_create_diode_choices`: Test factory function
-- `test_install_diode_choices`: Test global installation
+**TestCreateDiodeChoices**: Factory function tests
+- `test_create_diode_choices_with_path`: Test factory function with model path
+- `test_create_diode_choices_defaults`: Test factory function with defaults
 
-**TestErrorHandling**: Error scenarios
-- `test_model_loading_error`: Model loading failure handling
-- `test_feature_extraction_error`: Feature extraction error handling
-- `test_config_conversion_error`: Config conversion error handling
+**TestInstallDiodeChoices**: Installation tests
+- `test_install_with_model_path`: Test installation with model path
+- `test_install_with_defaults`: Test installation with default settings
+- `test_install_import_error`: Test handling of missing PyTorch Inductor
+- `test_install_general_error`: Test handling of general installation errors
+
+### Kernel Conversion Tests (`test_kernel_conversions.py`)
+
+**TestMMShapeExtraction**: MMShape extraction from kernel inputs
+- `test_extract_mmshape_basic`: Basic MMShape extraction from kernel inputs
+- `test_extract_mmshape_batch_operation`: Batch operation MMShape extraction
+- `test_extract_mmshape_invalid_input`: Invalid input handling
+
+**TestKTCToTritonConfig**: KernelTemplateChoice to TritonGEMMConfig conversion
+- `test_convert_ktc_basic`: Basic KTC to TritonGEMMConfig conversion
+- `test_convert_ktc_with_all_kwargs_method`: Config with all_kwargs method
+- `test_convert_ktc_with_defaults`: Conversion with missing parameters using defaults
+
+**TestFeatureCreationAndInference**: Feature creation and model inference
+- `test_create_features_and_run_inference`: Feature creation and inference pipeline
+- `test_create_features_with_model_wrapper_interface`: Inference with model wrapper
+
+**TestConfigSelection**: Configuration selection based on predictions
+- `test_select_best_configs_basic`: Basic config selection
+- `test_select_best_configs_with_threshold`: Selection with performance threshold
+- `test_select_best_configs_ensure_one_choice`: Ensuring at least one choice is selected
+- `test_select_best_configs_mismatch_lengths`: Handling mismatched lengths
+
+**TestFullPipeline**: Complete conversion and inference pipeline
+- `test_convert_and_run_inference_pipeline_success`: Successful pipeline execution
+- `test_convert_and_run_inference_pipeline_no_choices`: Pipeline with no choices
+- `test_convert_and_run_inference_pipeline_no_mmshape`: Pipeline when MMShape extraction fails
+- `test_convert_and_run_inference_pipeline_exception_handling`: Pipeline exception handling
+
+### Diode Registration Tests (`test_diode_registration.py`)
+
+**TestDiodeRegistration**: Diode package registration tests
+- `test_diode_package_import`: Test torch_diode package import
+- `test_diode_integration_info`: Test integration info availability
+- `test_pytorch_inductor_availability`: Test PyTorch Inductor accessibility
+- `test_diode_choices_handler_registration`: Test Diode choices handler registration
+- `test_finalize_template_configs_instrumentation`: Test method instrumentation
+- `test_diode_stats_accessibility`: Test Diode statistics access
+- `test_environment_variable_setup`: Test environment variable configuration
+- `test_cuda_availability`: Test CUDA availability for GPU tests
+
+**TestDiodeRegistrationIntegration**: Extended registration integration tests
+- `test_diode_registration_with_model_loading`: Test registration with model loading
+- `test_diode_integration_error_handling`: Test error handling during integration
+
+### Diode Compilation E2E Tests (`test_diode_compilation_e2e.py`)
+
+**TestDiodeCompilationE2E**: End-to-end compilation tests
+- `test_matmul_with_torch_compile`: Test matmul with torch.compile integration
+- `test_multiple_matmul_operations`: Test multiple matmul operations
+- `test_batch_and_addmm_operations`: Test batch matmul and addmm operations
+- `test_diode_stats_during_compilation`: Test statistics during compilation
+- `test_environment_setup_for_compilation`: Test compilation environment setup
+
+### Enhanced Integration Tests (`test_enhanced_inductor_choices.py`)
+
+**TestEnhancedInductorChoices**: Enhanced features (currently placeholder)
+- `test_placeholder`: Placeholder test for future enhanced features
+- `test_enhanced_features_placeholder`: Placeholder for enhanced functionality
 
 ### End-to-End Integration Tests (`test_inductor_integration_end_to_end.py`)
 

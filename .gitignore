@@ -29,7 +29,9 @@ ENV/
 
 # Testing
 .coverage
+.coverage.*
 htmlcov/
+coverage.xml
 .pytest_cache/
 .tox/
 .hypothesis
@@ -47,10 +49,10 @@ Thumbs.db
 
 # Project specific
 .ipynb_checkpoints/
-*.pt
 *.pth
 *.onnx
 logs/
 runs/
 
+torch_diode_test_env
 test_env

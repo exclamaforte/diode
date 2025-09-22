@@ -20,6 +20,7 @@ from torch.utils.data import DataLoader, Dataset, DistributedSampler
 
 from torch_diode.model.matmul_dataset_loader import MatmulTimingDataset
 from torch_diode.types.matmul_dataset import Dataset as MatmulDataset
+from torch_diode.utils.debug_config import type_assert
 from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
@@ -113,6 +114,13 @@ class DirectoryMatmulDataset(Dataset):
             file_extensions: Extensions to include (default: ['json','msgpack']).
             max_io_workers: Max threads for I/O (default: min(32, max(4, os.cpu_count()))).
         """
+        type_assert(isinstance(data_dir, str), f"data_dir must be str, got {type(data_dir)}")
+        type_assert(hardware_name is None or isinstance(hardware_name, str), f"hardware_name must be str or None, got {type(hardware_name)}")
+        type_assert(op_name is None or isinstance(op_name, str), f"op_name must be str or None, got {type(op_name)}")
+        type_assert(isinstance(log_transform, bool), f"log_transform must be bool, got {type(log_transform)}")
+        type_assert(file_extensions is None or isinstance(file_extensions, list), f"file_extensions must be list or None, got {type(file_extensions)}")
+        type_assert(max_io_workers is None or isinstance(max_io_workers, int), f"max_io_workers must be int or None, got {type(max_io_workers)}")
+        
         self.data_dir = data_dir
         self.hardware_name = hardware_name
         self.op_name = op_name

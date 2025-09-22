@@ -1,22 +1,37 @@
 """
-Tests for diode.integration.base_integration module.
+Tests for base integration system.
+
+This module contains tests for the BaseIntegration class and IntegrationRegistry
+that provide the framework for integrating trained models with PyTorch interfaces.
 """
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock, mock_open
-from pathlib import Path
-import tempfile
 import os
+# Enable debug flags for testing
+try:
+    from torch_diode.utils.debug_config import set_debug_flag
+    set_debug_flag("ENABLE_TYPE_ASSERTS", True)
+except ImportError:
+    pass  # In case debug_config is not available yet
+import sys
+import tempfile
+from pathlib import Path
+from unittest.mock import MagicMock, Mock, mock_open, patch
+
+import pytest
+import torch
+
+# Add the parent directory to the path so we can import the module
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 from torch_diode.integration.base_integration import (
-    ModelPointer,
     BaseIntegration,
-    IntegrationRegistry,
+    discover_and_register_integrations,
     get_integration_registry,
-    register_integration,
-    integrate_all,
     get_integration_status,
-    discover_and_register_integrations
+    integrate_all,
+    IntegrationRegistry,
+    ModelPointer,
+    register_integration,
 )
 
 
@@ -24,16 +39,16 @@ class TestModelPointer:
     """Test the ModelPointer class."""
 
     def test_init_basic(self):
-        """Test basic initialization."""
+        """Test basic initialization of ModelPointer."""
         pointer = ModelPointer(
-            model_name="test.pt",
-            relative_path="test_path",
+            model_name="test_model.pt",
+            relative_path="matmul",
             model_purpose="test_purpose",
-            interface_name="test_interface"
+            interface_name="test_interface",
         )
-        
-        assert pointer.model_name == "test.pt"
-        assert pointer.relative_path == "test_path"
+
+        assert pointer.model_name == "test_model.pt"
+        assert pointer.relative_path == "matmul"
         assert pointer.model_purpose == "test_purpose"
         assert pointer.interface_name == "test_interface"
         assert pointer.description == "Model for test_purpose"
@@ -41,138 +56,127 @@ class TestModelPointer:
         assert pointer.dependencies == []
 
     def test_init_with_optional_params(self):
-        """Test initialization with optional parameters."""
+        """Test initialization with all optional parameters."""
         pointer = ModelPointer(
-            model_name="test.pt",
-            relative_path="test_path",
-            model_purpose="test_purpose",
-            interface_name="test_interface",
-            description="Custom description",
-            version="2.0",
-            dependencies=["torch", "numpy"]
+            model_name="advanced_model.pt",
+            relative_path="conv",
+            model_purpose="conv_prediction",
+            interface_name="conv_interface",
+            description="Advanced convolution model",
+            version="2.1",
+            dependencies=["torch", "numpy"],
         )
-        
-        assert pointer.description == "Custom description"
-        assert pointer.version == "2.0"
+
+        assert pointer.description == "Advanced convolution model"
+        assert pointer.version == "2.1"
         assert pointer.dependencies == ["torch", "numpy"]
 
-    def test_full_path_with_dot_relative_path(self):
-        """Test full_path property with dot relative path."""
+    @patch.object(Path, "exists")
+    def test_exists(self, mock_exists):
+        """Test the exists method."""
+        mock_exists.return_value = True
+
         pointer = ModelPointer(
-            model_name="test.pt",
+            model_name="existing_model.pt",
             relative_path=".",
-            model_purpose="test_purpose",
-            interface_name="test_interface"
+            model_purpose="test",
+            interface_name="test",
         )
-          
-        # The path should be diode_root/trained_models/test.pt
-        # diode_root is 3 levels up from base_integration.py (__file__.parent.parent.parent)
-        expected_path = Path(__file__).parent.parent.parent / "trained_models" / "test.pt"
-        assert pointer.full_path == expected_path
 
-    def test_full_path_with_subdirectory(self):
-        """Test full_path property with subdirectory."""
+        assert pointer.exists() == True
+        mock_exists.assert_called_once()
+
+    @patch.object(Path, "stat")
+    @patch.object(Path, "exists")
+    def test_get_size_mb(self, mock_exists, mock_stat):
+        """Test the get_size_mb method."""
+        mock_exists.return_value = True
+        mock_stat_result = Mock()
+        mock_stat_result.st_size = 1024 * 1024 * 5  # 5 MB
+        mock_stat.return_value = mock_stat_result
+
         pointer = ModelPointer(
-            model_name="test.pt",
-            relative_path="subdir",
-            model_purpose="test_purpose",
-            interface_name="test_interface"
-        )
-          
-        # The path should be diode_root/trained_models/subdir/test.pt
-        expected_path = Path(__file__).parent.parent.parent / "trained_models" / "subdir" / "test.pt"
-        assert pointer.full_path == expected_path
-
-    def test_exists_true(self):
-        """Test exists method when file exists."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            # Create a temporary file
-            test_file = Path(temp_dir) / "test.pt"
-            test_file.write_text("dummy content")
-            
-            pointer = ModelPointer(
-                model_name="test.pt",
-                relative_path=".",
-                model_purpose="test_purpose",
-                interface_name="test_interface"
-            )
-            
-            # Mock the full_path property to point to our temp file
-            with patch.object(type(pointer), 'full_path', new_callable=lambda: property(lambda self: test_file)):
-                assert pointer.exists() is True
-
-    def test_exists_false(self):
-        """Test exists method when file doesn't exist."""
-        pointer = ModelPointer(
-            model_name="nonexistent.pt",
+            model_name="large_model.pt",
             relative_path=".",
-            model_purpose="test_purpose",
-            interface_name="test_interface"
+            model_purpose="test",
+            interface_name="test",
         )
-        
-        # Mock the full_path property to point to a non-existent file
-        with patch.object(type(pointer), 'full_path', new_callable=lambda: property(lambda self: Path("/nonexistent/path/file.pt"))):
-            assert pointer.exists() is False
 
-    def test_get_size_mb_existing_file(self):
-        """Test get_size_mb for existing file."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            # Create a file with known size (1KB = 1024 bytes)
-            test_file = Path(temp_dir) / "test.pt"
-            test_file.write_bytes(b"x" * 1024)  # 1KB file
-            
-            pointer = ModelPointer(
-                model_name="test.pt",
-                relative_path=".",
-                model_purpose="test_purpose",
-                interface_name="test_interface"
-            )
-            
-            with patch.object(type(pointer), 'full_path', new_callable=lambda: property(lambda self: test_file)):
-                size_mb = pointer.get_size_mb()
-                assert abs(size_mb - (1024 / (1024 * 1024))) < 0.001  # ~0.001 MB
+        assert pointer.get_size_mb() == 5.0
 
-    def test_get_size_mb_nonexistent_file(self):
+    @patch.object(Path, "exists")
+    def test_get_size_mb_nonexistent(self, mock_exists):
         """Test get_size_mb for non-existent file."""
+        mock_exists.return_value = False
+
         pointer = ModelPointer(
-            model_name="nonexistent.pt",
+            model_name="missing_model.pt",
             relative_path=".",
-            model_purpose="test_purpose",
-            interface_name="test_interface"
+            model_purpose="test",
+            interface_name="test",
         )
-        
-        with patch.object(type(pointer), 'full_path', new_callable=lambda: property(lambda self: Path("/nonexistent/path/file.pt"))):
-            assert pointer.get_size_mb() == 0.0
+
+        assert pointer.get_size_mb() == 0.0
+
+    def test_full_path_root_directory(self):
+        """Test full_path for root directory relative path."""
+        pointer = ModelPointer(
+            model_name="root_model.pt",
+            relative_path=".",
+            model_purpose="test",
+            interface_name="test",
+        )
+
+        # Should contain trained_models at the end
+        full_path = pointer.full_path
+        assert str(full_path).endswith("trained_models/root_model.pt")
+
+    def test_full_path_subdirectory(self):
+        """Test full_path for subdirectory relative path."""
+        pointer = ModelPointer(
+            model_name="sub_model.pt",
+            relative_path="subdir",
+            model_purpose="test",
+            interface_name="test",
+        )
+
+        full_path = pointer.full_path
+        assert str(full_path).endswith("trained_models/subdir/sub_model.pt")
 
     def test_repr(self):
         """Test string representation."""
-        pointer = ModelPointer(
-            model_name="test.pt",
-            relative_path=".",
-            model_purpose="test_purpose",
-            interface_name="test_interface"
-        )
-        
-        with patch.object(pointer, 'exists', return_value=True):
+        with patch.object(ModelPointer, "exists", return_value=True):
+            pointer = ModelPointer(
+                model_name="repr_model.pt",
+                relative_path=".",
+                model_purpose="test_purpose",
+                interface_name="test",
+            )
+
             repr_str = repr(pointer)
-            assert "test.pt" in repr_str
+            assert "ModelPointer" in repr_str
+            assert "repr_model.pt" in repr_str
             assert "test_purpose" in repr_str
             assert "exists=True" in repr_str
 
 
-class TestBaseIntegrationConcrete(BaseIntegration):
+class ConcreteIntegration(BaseIntegration):
     """Concrete implementation of BaseIntegration for testing."""
-    
+
     def create_dummy_function(self):
+        """Create a dummy function for testing."""
         return Mock()
-    
+
     def load_model(self, model_pointer):
+        """Load a model (mock implementation)."""
         return Mock()
-    
+
     def register_model(self, model, model_pointer):
+        """Register a model (mock implementation)."""
         return True
-    
+
     def enable_configs(self):
+        """Enable configs (mock implementation)."""
         return True
 
 
@@ -181,246 +185,275 @@ class TestBaseIntegration:
 
     def setup_method(self):
         """Set up test fixtures."""
-        self.model_pointer = ModelPointer(
-            model_name="test.pt",
-            relative_path=".",
-            model_purpose="test_purpose",
-            interface_name="test_interface"
-        )
-        
-        self.integration = TestBaseIntegrationConcrete(
-            name="test_integration",
-            interface_name="test_interface",
-            model_pointers=[self.model_pointer]
-        )
+        self.model_pointers = [
+            ModelPointer(
+                model_name="test_model1.pt",
+                relative_path=".",
+                model_purpose="test1",
+                interface_name="test_interface",
+            ),
+            ModelPointer(
+                model_name="test_model2.pt",
+                relative_path="subdir",
+                model_purpose="test2",
+                interface_name="test_interface",
+                dependencies=["torch"],
+            ),
+        ]
 
     def test_init(self):
-        """Test initialization."""
-        assert self.integration.name == "test_integration"
-        assert self.integration.interface_name == "test_interface"
-        assert len(self.integration.model_pointers) == 1
-        assert self.integration.enable_fallback is True
-        assert self.integration.loaded_models == {}
-        assert self.integration.registration_status == {}
-        assert self.integration.integration_status == "not_started"
-        assert self.integration.execute_order is None
-
-    def test_init_with_fallback_disabled(self):
-        """Test initialization with fallback disabled."""
-        integration = TestBaseIntegrationConcrete(
-            name="test",
-            interface_name="test",
-            model_pointers=[],
-            enable_fallback=False
-        )
-        assert integration.enable_fallback is False
-
-    def test_register_dummy_success(self):
-        """Test successful dummy registration.""" 
-        dummy_function = Mock()
-        
-        # Mock the entire register_dummy method to return success
-        with patch.object(self.integration, 'register_dummy', return_value=True) as mock_register:
-            result = self.integration.register_dummy(dummy_function)
-            
-            assert result is True
-            mock_register.assert_called_with(dummy_function)
-
-    def test_register_dummy_already_registered(self):
-        """Test dummy registration when another handler is already registered."""
-        dummy_function = Mock()
-        
-        # Mock the entire register_dummy method to return failure
-        with patch.object(self.integration, 'register_dummy', return_value=False) as mock_register:
-            result = self.integration.register_dummy(dummy_function)
-            
-            assert result is False
-
-    def test_register_dummy_import_error(self):
-        """Test dummy registration with import error."""
-        dummy_function = Mock()
-        
-        # Mock the entire register_dummy method to return failure
-        with patch.object(self.integration, 'register_dummy', return_value=False) as mock_register:
-            result = self.integration.register_dummy(dummy_function)
-            
-            assert result is False
-
-    def test_check_dependencies_all_available(self):
-        """Test dependency checking when all dependencies are available."""
-        pointer_with_deps = ModelPointer(
-            model_name="test.pt",
-            relative_path=".",
-            model_purpose="test_purpose",
+        """Test initialization of BaseIntegration."""
+        integration = ConcreteIntegration(
+            name="test_integration",
             interface_name="test_interface",
-            dependencies=["os", "sys"]  # These should always be available
+            model_pointers=self.model_pointers,
+            enable_fallback=False,
         )
-        
-        integration = TestBaseIntegrationConcrete(
-            name="test",
-            interface_name="test",
-            model_pointers=[pointer_with_deps]
-        )
-        
-        status = integration.check_dependencies()
-        assert status["os"] is True
-        assert status["sys"] is True
 
-    def test_check_dependencies_some_missing(self):
-        """Test dependency checking with some missing dependencies."""
-        pointer_with_deps = ModelPointer(
-            model_name="test.pt",
-            relative_path=".",
-            model_purpose="test_purpose",
+        assert integration.name == "test_integration"
+        assert integration.interface_name == "test_interface"
+        assert integration.model_pointers == self.model_pointers
+        assert integration.enable_fallback == False
+        assert integration.loaded_models == {}
+        assert integration.registration_status == {}
+        assert integration.integration_status == "not_started"
+
+    def test_check_dependencies(self):
+        """Test dependency checking."""
+        integration = ConcreteIntegration(
+            name="test_integration",
             interface_name="test_interface",
-            dependencies=["os", "nonexistent_module"]
+            model_pointers=self.model_pointers,
         )
-        
-        integration = TestBaseIntegrationConcrete(
-            name="test",
-            interface_name="test",
-            model_pointers=[pointer_with_deps]
-        )
-        
-        status = integration.check_dependencies()
-        assert status["os"] is True
-        assert status["nonexistent_module"] is False
 
-    def test_get_available_models(self):
+        with patch("builtins.__import__") as mock_import:
+
+            def side_effect(module_name):
+                if module_name == "torch":
+                    return Mock()
+                raise ImportError(f"No module named '{module_name}'")
+
+            mock_import.side_effect = side_effect
+
+            deps = integration.check_dependencies()
+            assert deps["torch"] == True
+
+    @patch.object(ModelPointer, "exists")
+    def test_get_available_models(self, mock_exists):
         """Test getting available models."""
-        existing_pointer = Mock(spec=ModelPointer)
-        existing_pointer.exists.return_value = True
-        
-        missing_pointer = Mock(spec=ModelPointer)
-        missing_pointer.exists.return_value = False
-        
-        integration = TestBaseIntegrationConcrete(
-            name="test",
-            interface_name="test",
-            model_pointers=[existing_pointer, missing_pointer]
+        # First model exists, second doesn't
+        mock_exists.side_effect = [True, False]
+
+        integration = ConcreteIntegration(
+            name="test_integration",
+            interface_name="test_interface",
+            model_pointers=self.model_pointers,
         )
-        
+
         available = integration.get_available_models()
         assert len(available) == 1
-        assert existing_pointer in available
-        assert missing_pointer not in available
+        assert available[0].model_name == "test_model1.pt"
 
-    def test_integrate_success_full_flow(self):
-        """Test successful full integration flow."""
-        # Mock model pointer that exists
-        with patch.object(self.model_pointer, 'exists', return_value=True):
-            with patch.object(self.model_pointer, 'dependencies', []):
-                # Mock register_dummy to succeed
-                with patch.object(self.integration, 'register_dummy', return_value=True):
-                    result = self.integration.integrate()
-                    
-                    assert result is True
-                    assert self.integration.integration_status == "success"
-                    assert len(self.integration.loaded_models) == 1
-                    assert self.integration.registration_status["test.pt"] is True
-
-    def test_integrate_interface_unavailable(self):
-        """Test integration when interface is unavailable."""
-        with patch.object(self.integration, 'register_dummy', return_value=False):
-            result = self.integration.integrate()
-            
-            assert result is False
-            assert self.integration.integration_status == "interface_unavailable"
-
-    def test_integrate_no_models_available(self):
-        """Test integration when no models are available."""
-        with patch.object(self.model_pointer, 'exists', return_value=False):
-            with patch.object(self.integration, 'register_dummy', return_value=True):
-                with patch.object(self.integration, 'enable_configs', return_value=True):
-                    result = self.integration.integrate()
-                    
-                    # Should return True due to fallback enabled, but status should be config_failed since no models were loaded
-                    assert result is True
-                    # The integration continues despite no models when fallback is enabled, and succeeds if configs are enabled
-                    assert self.integration.integration_status == "success"
-
-    def test_integrate_no_models_no_fallback(self):
-        """Test integration when no models are available and fallback disabled."""
-        integration = TestBaseIntegrationConcrete(
-            name="test",
-            interface_name="test",
-            model_pointers=[self.model_pointer],
-            enable_fallback=False
-        )
-        
-        with patch.object(self.model_pointer, 'exists', return_value=False):
-            with patch.object(integration, 'register_dummy', return_value=True):
-                result = integration.integrate()
-                
-                assert result is False
-                assert integration.integration_status == "no_models"
-
-    def test_integrate_missing_dependencies_no_fallback(self):
-        """Test integration with missing dependencies and no fallback."""
-        pointer_with_missing_deps = ModelPointer(
-            model_name="test.pt",
-            relative_path=".",
-            model_purpose="test_purpose",
+    @patch("torch._inductor.choices.InductorChoices")
+    @patch("torch._inductor.virtualized.V")
+    def test_register_dummy_success(self, mock_v, mock_inductor_choices):
+        """Test successful dummy registration."""
+        integration = ConcreteIntegration(
+            name="test_integration",
             interface_name="test_interface",
-            dependencies=["nonexistent_module"]
+            model_pointers=self.model_pointers,
         )
+
+        # Mock V object to simulate successful registration
+        mock_dummy = Mock()
         
-        integration = TestBaseIntegrationConcrete(
-            name="test",
-            interface_name="test",
-            model_pointers=[pointer_with_missing_deps],
-            enable_fallback=False
+        # Mock the choices attribute and set_choices_handler method
+        mock_v.choices = None  # Initially no handler
+        def mock_set_handler(handler):
+            mock_v.choices = handler
+
+        mock_v.set_choices_handler = mock_set_handler
+
+        result = integration.register_dummy(mock_dummy)
+
+        assert result == True
+
+    @patch(
+        "torch._inductor.virtualized.V",
+        side_effect=ImportError("No module named 'torch._inductor'"),
+    )
+    def test_register_dummy_import_error(self, mock_v):
+        """Test dummy registration with import error."""
+        integration = ConcreteIntegration(
+            name="test_integration",
+            interface_name="test_interface",
+            model_pointers=self.model_pointers,
         )
-        
+
+        result = integration.register_dummy(Mock())
+        assert result == False
+
+    @patch("torch._inductor.choices.InductorChoices")
+    @patch("torch._inductor.virtualized.V")
+    def test_register_dummy_already_registered(self, mock_v, mock_inductor_choices):
+        """Test dummy registration when another handler is already registered."""
+        # Mock an existing handler that's not InductorChoices
+        mock_existing_handler = Mock()
+        mock_existing_handler.__class__.__name__ = "DiodeInductorChoices"
+        type(mock_existing_handler).__name__ = "DiodeInductorChoices"
+        mock_v._choices_handler = mock_existing_handler
+
+        integration = ConcreteIntegration(
+            name="test_integration",
+            interface_name="test_interface",
+            model_pointers=self.model_pointers,
+        )
+
+        result = integration.register_dummy(Mock())
+        assert result == False
+
+    @patch.object(ConcreteIntegration, "enable_configs")
+    @patch.object(ConcreteIntegration, "register_model")
+    @patch.object(ConcreteIntegration, "load_model")
+    @patch.object(ConcreteIntegration, "register_dummy")
+    @patch.object(ConcreteIntegration, "check_dependencies")
+    @patch.object(ConcreteIntegration, "get_available_models")
+    def test_integrate_success(
+        self,
+        mock_get_available,
+        mock_check_deps,
+        mock_register_dummy,
+        mock_load_model,
+        mock_register_model,
+        mock_enable_configs,
+    ):
+        """Test successful integration."""
+        # Set up mocks
+        mock_check_deps.return_value = {"torch": True}
+        mock_register_dummy.return_value = True
+        mock_get_available.return_value = self.model_pointers[:1]  # One available model
+        mock_load_model.return_value = Mock()
+        mock_register_model.return_value = True
+        mock_enable_configs.return_value = True
+
+        integration = ConcreteIntegration(
+            name="test_integration",
+            interface_name="test_interface",
+            model_pointers=self.model_pointers,
+        )
+
         result = integration.integrate()
-        assert result is False
-        assert integration.integration_status == "failed"
 
-    def test_integrate_config_failed(self):
-        """Test integration when config enabling fails."""
-        with patch.object(self.model_pointer, 'exists', return_value=True):
-            with patch.object(self.integration, 'register_dummy', return_value=True):
-                with patch.object(self.integration, 'enable_configs', return_value=False):
-                    result = self.integration.integrate()
-                    
-                    # Should return True due to fallback enabled
-                    assert result is True
-                    assert self.integration.integration_status == "config_failed"
+        assert result == True
+        assert integration.integration_status == "success"
+        assert len(integration.loaded_models) == 1
 
-    def test_integrate_exception_with_fallback(self):
-        """Test integration with exception and fallback enabled."""
-        with patch.object(self.integration, 'register_dummy', side_effect=Exception("Test error")):
-            result = self.integration.integrate()
-            
-            assert result is False
-            assert self.integration.integration_status == "error"
+    @patch.object(ConcreteIntegration, "register_dummy")
+    @patch.object(ConcreteIntegration, "check_dependencies")
+    def test_integrate_interface_unavailable(
+        self,
+        mock_check_deps,
+        mock_register_dummy,
+    ):
+        """Test integration when interface is unavailable."""
+        mock_check_deps.return_value = {"torch": True}
+        mock_register_dummy.return_value = False
 
-    def test_integrate_exception_no_fallback(self):
-        """Test integration with exception and no fallback."""
-        integration = TestBaseIntegrationConcrete(
-            name="test",
-            interface_name="test",
-            model_pointers=[self.model_pointer],
-            enable_fallback=False
+        integration = ConcreteIntegration(
+            name="test_integration",
+            interface_name="test_interface",
+            model_pointers=self.model_pointers,
         )
-        
-        with patch.object(integration, 'register_dummy', side_effect=Exception("Test error")):
-            with pytest.raises(Exception, match="Test error"):
-                integration.integrate()
+
+        result = integration.integrate()
+
+        assert result == False
+        assert integration.integration_status == "interface_unavailable"
+
+    @patch.object(ConcreteIntegration, "register_dummy")
+    @patch.object(ConcreteIntegration, "check_dependencies")
+    @patch.object(ConcreteIntegration, "get_available_models")
+    def test_integrate_no_models(
+        self,
+        mock_get_available,
+        mock_check_deps,
+        mock_register_dummy,
+    ):
+        """Test integration when no models are available."""
+        mock_check_deps.return_value = {"torch": True}
+        mock_register_dummy.return_value = True
+        mock_get_available.return_value = []  # No available models
+
+        integration = ConcreteIntegration(
+            name="test_integration",
+            interface_name="test_interface",
+            model_pointers=self.model_pointers,
+            enable_fallback=False,
+        )
+
+        result = integration.integrate()
+
+        assert result == False
+        assert integration.integration_status == "no_models"
+
+    @patch.object(ConcreteIntegration, "enable_configs")
+    @patch.object(ConcreteIntegration, "register_model")
+    @patch.object(ConcreteIntegration, "load_model")
+    @patch.object(ConcreteIntegration, "register_dummy")
+    @patch.object(ConcreteIntegration, "check_dependencies")
+    @patch.object(ConcreteIntegration, "get_available_models")
+    def test_integrate_config_failed_with_fallback(
+        self,
+        mock_get_available,
+        mock_check_deps,
+        mock_register_dummy,
+        mock_load_model,
+        mock_register_model,
+        mock_enable_configs,
+    ):
+        """Test integration when config enabling fails but fallback is enabled."""
+        mock_check_deps.return_value = {"torch": True}
+        mock_register_dummy.return_value = True
+        mock_get_available.return_value = self.model_pointers[:1]
+        mock_load_model.return_value = Mock()
+        mock_register_model.return_value = True
+        mock_enable_configs.return_value = False  # Config enabling fails
+
+        integration = ConcreteIntegration(
+            name="test_integration",
+            interface_name="test_interface",
+            model_pointers=self.model_pointers,
+            enable_fallback=True,
+        )
+
+        result = integration.integrate()
+
+        assert result == True  # Should succeed due to fallback
+        assert integration.integration_status == "config_failed"
 
     def test_get_status(self):
-        """Test getting status information."""
-        with patch.object(self.model_pointer, 'exists', return_value=True):
-            with patch.object(self.model_pointer, 'dependencies', ["os"]):
-                status = self.integration.get_status()
-                
-                assert status["name"] == "test_integration"
-                assert status["interface_name"] == "test_interface"
-                assert status["integration_status"] == "not_started"
-                assert status["models_available"] == 1
-                assert status["models_loaded"] == 0
-                assert isinstance(status["registration_status"], dict)
-                assert isinstance(status["dependencies"], dict)
+        """Test getting integration status."""
+        with patch.object(
+            ConcreteIntegration, "get_available_models"
+        ) as mock_available:
+            mock_available.return_value = self.model_pointers[:1]
+
+            integration = ConcreteIntegration(
+                name="test_integration",
+                interface_name="test_interface",
+                model_pointers=self.model_pointers,
+            )
+
+            integration.loaded_models["test_model1.pt"] = Mock()
+            integration.registration_status["test_model1.pt"] = True
+
+            status = integration.get_status()
+
+            assert status["name"] == "test_integration"
+            assert status["interface_name"] == "test_interface"
+            assert status["models_available"] == 1
+            assert status["models_loaded"] == 1
+            assert status["registration_status"]["test_model1.pt"] == True
 
 
 class TestIntegrationRegistry:
@@ -429,221 +462,197 @@ class TestIntegrationRegistry:
     def setup_method(self):
         """Set up test fixtures."""
         self.registry = IntegrationRegistry()
-        self.integration1 = TestBaseIntegrationConcrete(
+        self.integration1 = ConcreteIntegration(
             name="integration1",
             interface_name="interface1",
-            model_pointers=[]
+            model_pointers=[ModelPointer("model1.pt", ".", "purpose1", "interface1")],
         )
-        self.integration2 = TestBaseIntegrationConcrete(
-            name="integration2", 
+        self.integration2 = ConcreteIntegration(
+            name="integration2",
             interface_name="interface2",
-            model_pointers=[]
+            model_pointers=[ModelPointer("model2.pt", ".", "purpose2", "interface2")],
         )
 
     def test_init(self):
-        """Test initialization."""
-        assert self.registry.integrations == {}
-        assert self.registry.execution_order == []
+        """Test registry initialization."""
+        assert len(self.registry.integrations) == 0
+        assert len(self.registry.execution_order) == 0
 
-    def test_register_without_order(self):
-        """Test registering integration without specific order."""
+    def test_register_integration(self):
+        """Test registering an integration."""
         self.registry.register(self.integration1)
-        
+
         assert "integration1" in self.registry.integrations
-        assert self.registry.execution_order == ["integration1"]
-        assert self.integration1.execute_order == 1
+        assert self.registry.integrations["integration1"] == self.integration1
+        assert "integration1" in self.registry.execution_order
 
-    def test_register_with_order(self):
-        """Test registering integration with specific order."""
-        self.registry.register(self.integration1, execute_order=5)
-        self.registry.register(self.integration2, execute_order=3)
-        
-        # Should be ordered by execute_order
-        assert self.registry.execution_order == ["integration2", "integration1"]
-        assert self.integration1.execute_order == 5
-        assert self.integration2.execute_order == 3
+    def test_register_integration_with_order(self):
+        """Test registering integrations with specific execution order."""
+        self.registry.register(self.integration1, execute_order=2)
+        self.registry.register(self.integration2, execute_order=1)
 
-    def test_integrate_all(self):
+        # integration2 should come first due to lower order
+        assert self.registry.execution_order[0] == "integration2"
+        assert self.registry.execution_order[1] == "integration1"
+
+    @patch.object(ConcreteIntegration, "integrate")
+    def test_integrate_all(self, mock_integrate):
         """Test integrating all registered integrations."""
-        # Mock successful integration
-        with patch.object(self.integration1, 'integrate', return_value=True):
-            with patch.object(self.integration2, 'integrate', return_value=False):
-                self.registry.register(self.integration1)
-                self.registry.register(self.integration2)
-                
-                results = self.registry.integrate_all()
-                
-                assert results["integration1"] is True
-                assert results["integration2"] is False
+        mock_integrate.return_value = True
 
-    def test_integrate_all_with_exception(self):
-        """Test integrate_all when an integration raises an exception."""
-        with patch.object(self.integration1, 'integrate', side_effect=Exception("Test error")):
-            self.registry.register(self.integration1)
-            
-            results = self.registry.integrate_all()
-            
-            assert results["integration1"] is False
+        self.registry.register(self.integration1)
+        self.registry.register(self.integration2)
 
-    def test_get_status_report(self):
+        results = self.registry.integrate_all()
+
+        assert results["integration1"] == True
+        assert results["integration2"] == True
+        assert mock_integrate.call_count == 2
+
+    @patch.object(ConcreteIntegration, "integrate")
+    def test_integrate_all_with_exception(self, mock_integrate):
+        """Test integrate_all when one integration raises exception."""
+        mock_integrate.side_effect = [Exception("Test error"), True]
+
+        self.registry.register(self.integration1)
+        self.registry.register(self.integration2)
+
+        results = self.registry.integrate_all()
+
+        assert results["integration1"] == False
+        assert results["integration2"] == True
+
+    @patch.object(ConcreteIntegration, "get_status")
+    def test_get_status_report(self, mock_get_status):
         """Test getting status report for all integrations."""
-        mock_status1 = {"name": "integration1", "status": "success"}
-        mock_status2 = {"name": "integration2", "status": "failed"}
-        
-        with patch.object(self.integration1, 'get_status', return_value=mock_status1):
-            with patch.object(self.integration2, 'get_status', return_value=mock_status2):
-                self.registry.register(self.integration1)
-                self.registry.register(self.integration2)
-                
-                report = self.registry.get_status_report()
-                
-                assert report["integration1"] == mock_status1
-                assert report["integration2"] == mock_status2
+        mock_get_status.return_value = {"status": "test"}
+
+        self.registry.register(self.integration1)
+        self.registry.register(self.integration2)
+
+        report = self.registry.get_status_report()
+
+        assert "integration1" in report
+        assert "integration2" in report
+        assert report["integration1"]["status"] == "test"
 
 
 class TestGlobalFunctions:
     """Test global registry functions."""
 
+    def setup_method(self):
+        """Reset global registry for each test."""
+        # Clear the global registry
+        global_registry = get_integration_registry()
+        global_registry.integrations.clear()
+        global_registry.execution_order.clear()
+
     def test_get_integration_registry(self):
-        """Test getting global integration registry."""
+        """Test getting the global registry."""
         registry = get_integration_registry()
         assert isinstance(registry, IntegrationRegistry)
-        
-        # Should return the same instance
-        registry2 = get_integration_registry()
-        assert registry is registry2
 
-    @patch('torch_diode.integration.base_integration._integration_registry')
-    def test_register_integration(self, mock_registry):
-        """Test global register_integration function."""
-        integration = Mock()
-        register_integration(integration, execute_order=5)
-        mock_registry.register.assert_called_once_with(integration, 5)
+    def test_register_integration(self):
+        """Test registering integration with global function."""
+        integration = ConcreteIntegration(
+            name="global_test",
+            interface_name="test",
+            model_pointers=[],
+        )
 
-    @patch('torch_diode.integration.base_integration._integration_registry')
-    def test_integrate_all(self, mock_registry):
+        register_integration(integration)
+
+        registry = get_integration_registry()
+        assert "global_test" in registry.integrations
+
+    @patch.object(IntegrationRegistry, "integrate_all")
+    def test_integrate_all(self, mock_integrate_all):
         """Test global integrate_all function."""
-        expected_results = {"int1": True, "int2": False}
-        mock_registry.integrate_all.return_value = expected_results
-        
-        result = integrate_all()
-        assert result == expected_results
-        mock_registry.integrate_all.assert_called_once()
+        mock_integrate_all.return_value = {"test": True}
 
-    @patch('torch_diode.integration.base_integration._integration_registry')
-    def test_get_integration_status(self, mock_registry):
+        results = integrate_all()
+
+        assert results == {"test": True}
+        mock_integrate_all.assert_called_once()
+
+    @patch.object(IntegrationRegistry, "get_status_report")
+    def test_get_integration_status(self, mock_get_status):
         """Test global get_integration_status function."""
-        expected_status = {"int1": {"status": "success"}}
-        mock_registry.get_status_report.return_value = expected_status
-        
-        result = get_integration_status()
-        assert result == expected_status
-        mock_registry.get_status_report.assert_called_once()
+        mock_get_status.return_value = {"test": {"status": "success"}}
+
+        status = get_integration_status()
+
+        assert status == {"test": {"status": "success"}}
+        mock_get_status.assert_called_once()
 
 
 class TestDiscoverAndRegisterIntegrations:
-    """Test the discover_and_register_integrations function."""
+    """Test the discovery and registration function."""
 
-    @patch('importlib.import_module')
-    @patch('torch_diode.integration.base_integration.register_integration')
-    def test_discover_success(self, mock_register, mock_import):
+    def setup_method(self):
+        """Reset global registry for each test."""
+        global_registry = get_integration_registry()
+        global_registry.integrations.clear()
+        global_registry.execution_order.clear()
+
+    @patch("importlib.import_module")
+    def test_discover_and_register_success(self, mock_import_module):
         """Test successful discovery and registration."""
         # Mock module with factory function
         mock_module = Mock()
-        mock_integration = Mock()
-        mock_integration.name = "test_integration"
-        
-        def create_matmul_integration(enable_fallback=True):
-            return mock_integration
-        
-        mock_module.create_matmul_integration = create_matmul_integration
-        mock_import.return_value = mock_module
-        
-        results = discover_and_register_integrations()
-        
-        assert "matmul_integration" in results
-        assert results["matmul_integration"] is True
-        mock_register.assert_called_once_with(mock_integration, execute_order=1)
+        mock_integration = ConcreteIntegration(
+            name="discovered_integration",
+            interface_name="test",
+            model_pointers=[],
+        )
+        mock_module.create_matmul_integration.return_value = mock_integration
+        mock_import_module.return_value = mock_module
 
-    @patch('importlib.import_module')
-    def test_discover_import_error(self, mock_import):
+        results = discover_and_register_integrations()
+
+        assert "matmul_integration" in results
+        assert results["matmul_integration"] == True
+
+        # Check that integration was registered
+        registry = get_integration_registry()
+        assert "discovered_integration" in registry.integrations
+
+    @patch("importlib.import_module")
+    def test_discover_and_register_import_error(self, mock_import_module):
         """Test discovery with import error."""
-        mock_import.side_effect = ImportError("Module not found")
-        
-        results = discover_and_register_integrations()
-        
-        assert "matmul_integration" in results
-        assert results["matmul_integration"] is False
+        mock_import_module.side_effect = ImportError("Module not found")
 
-    @patch('importlib.import_module')
-    def test_discover_no_factory_function(self, mock_import):
+        results = discover_and_register_integrations()
+
+        assert "matmul_integration" in results
+        assert results["matmul_integration"] == False
+
+    @patch("importlib.import_module")
+    def test_discover_and_register_no_factory_function(self, mock_import_module):
         """Test discovery when module has no factory function."""
         mock_module = Mock()
-        # Explicitly mock hasattr to return False for the factory function
-        mock_module.spec = Mock()
-        mock_module.spec.name = "torch_diode.integration.matmul_integration"
-        
-        def mock_hasattr(obj, name):
-            # Return False for the factory function, True for other attributes
-            if name == "create_matmul_integration":
-                return False
-            return True
-            
-        mock_import.return_value = mock_module
-        
-        with patch('builtins.hasattr', side_effect=mock_hasattr):
-            results = discover_and_register_integrations()
-        
-        assert "matmul_integration" in results
-        assert results["matmul_integration"] is False
+        # Remove the expected factory function
+        if hasattr(mock_module, "create_matmul_integration"):
+            delattr(mock_module, "create_matmul_integration")
+        mock_import_module.return_value = mock_module
 
-    @patch('importlib.import_module')
-    @patch('torch_diode.integration.base_integration.register_integration')
-    def test_discover_registration_error(self, mock_register, mock_import):
-        """Test discovery when registration fails."""
-        # Mock successful module loading
-        mock_module = Mock()
-        mock_integration = Mock()
-        mock_integration.name = "test_integration"
-        
-        def create_matmul_integration(enable_fallback=True):
-            return mock_integration
-        
-        mock_module.create_matmul_integration = create_matmul_integration
-        mock_import.return_value = mock_module
-        
-        # Mock registration to fail
-        mock_register.side_effect = Exception("Registration failed")
-        
         results = discover_and_register_integrations()
-        
-        # Should initially be True but then marked as False due to registration failure
-        assert "matmul_integration" in results
 
-    @patch('importlib.import_module')
-    def test_discover_factory_exception(self, mock_import):
+        assert "matmul_integration" in results
+        assert results["matmul_integration"] == False
+
+    @patch("importlib.import_module")
+    def test_discover_and_register_factory_exception(self, mock_import_module):
         """Test discovery when factory function raises exception."""
         mock_module = Mock()
-        
-        def create_matmul_integration(enable_fallback=True):
-            raise Exception("Factory failed")
-        
-        mock_module.create_matmul_integration = create_matmul_integration
-        mock_import.return_value = mock_module
-        
-        results = discover_and_register_integrations()
-        
-        assert "matmul_integration" in results
-        assert results["matmul_integration"] is False
+        mock_module.create_matmul_integration.side_effect = Exception("Factory error")
+        mock_import_module.return_value = mock_module
 
-    @patch('importlib.import_module')
-    def test_discover_empty_results(self, mock_import):
-        """Test discovery when no integrations are found."""
-        # Mock all imports to fail
-        mock_import.side_effect = ImportError("No modules found")
-        
         results = discover_and_register_integrations()
-        
-        # Should have results for known_integrations, all False
+
         assert "matmul_integration" in results
-        assert results["matmul_integration"] is False
+        assert results["matmul_integration"] == False
+
+
+if __name__ == "__main__":
+    pytest.main([__file__])

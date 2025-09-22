@@ -8,6 +8,13 @@ import tempfile
 from unittest.mock import MagicMock, Mock, patch, mock_open
 import pytest
 
+# Enable debug flags for testing
+try:
+    from torch_diode.utils.debug_config import set_debug_flag
+    set_debug_flag("ENABLE_TYPE_ASSERTS", True)
+except ImportError:
+    pass  # In case debug_config is not available yet
+
 # Import the functions we want to test
 from torch_diode.__init___lib import (
     install_diode_integrations,
@@ -41,7 +48,7 @@ class TestInitLibEnhanced:
                 mock_discover.return_value = {"integration1": True, "integration2": True}
                 mock_integrate.return_value = {"integration1": True, "integration2": False}
                 
-                result = install_diode_integrations(enable_fallback=True)
+                result = install_diode_integrations(enable_fallback=False)
                 
                 assert result == {"integration1": True, "integration2": False}
                 mock_discover.assert_called_once()
@@ -50,7 +57,7 @@ class TestInitLibEnhanced:
     def test_install_diode_integrations_pytorch_not_available(self):
         """Test install_diode_integrations when PyTorch is not available."""
         with patch("torch_diode.__init___lib.discover_and_register_integrations", side_effect=ImportError("No module named 'torch'")):
-            result = install_diode_integrations(enable_fallback=True)
+            result = install_diode_integrations(enable_fallback=False)
             
             assert result == {}
 
@@ -107,12 +114,12 @@ class TestInitLibEnhanced:
                 assert "PyTorch not available" in str(mock_log_error.call_args)
 
     def test_install_diode_integrations_general_error_logging(self):
-        """Test install_diode_integrations logs general errors correctly."""
+        """Test install_diode_integrations logs general errors correctly with fallback disabled."""
         with patch("torch_diode.__init___lib.discover_and_register_integrations", side_effect=RuntimeError("Connection failed")):
             with patch("logging.Logger.error") as mock_log_error:
-                result = install_diode_integrations(enable_fallback=True)
+                with pytest.raises(RuntimeError, match="Connection failed"):
+                    install_diode_integrations(enable_fallback=False)
                 
-                assert result == {}
                 mock_log_error.assert_called_once()
                 error_message = str(mock_log_error.call_args)
                 assert "Manual integration installation failed" in error_message

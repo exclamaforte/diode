@@ -30,6 +30,7 @@ from torch_diode.utils.feature_extraction import (
     extract_config_features,
     extract_problem_features,
 )
+from torch_diode.utils.debug_config import type_assert
 from torch_diode.utils.visualization_utils import plot_training_history
 
 logger = logging.getLogger(__name__)

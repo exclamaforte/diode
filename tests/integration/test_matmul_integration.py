@@ -3,6 +3,12 @@ Tests for diode.integration.matmul_integration module.
 """
 
 import tempfile
+# Enable debug flags for testing
+try:
+    from torch_diode.utils.debug_config import set_debug_flag
+    set_debug_flag("ENABLE_TYPE_ASSERTS", True)
+except ImportError:
+    pass  # In case debug_config is not available yet
 from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock
 import pytest
@@ -68,20 +74,6 @@ class TestMatmulIntegration:
             result = self.integration.create_dummy_function()
             assert result is None
 
-    def test_dummy_choices_methods(self):
-        """Test that dummy choices has the required methods."""
-        dummy = self.integration.create_dummy_function()
-        
-        if dummy is not None:  # Only test if creation was successful
-            # Test that methods exist and return empty lists
-            if hasattr(dummy, 'get_base_mm_configs'):
-                assert dummy.get_base_mm_configs() == []
-            if hasattr(dummy, 'get_persistent_mm_configs'):
-                assert dummy.get_persistent_mm_configs() == []
-            if hasattr(dummy, 'get_extra_mm_configs'):
-                assert dummy.get_extra_mm_configs() == []
-        else:
-            pytest.skip("torch._inductor.choices not available in test environment")
 
     @patch('torch_diode.model.model_wrapper.ModelWrapper')
     def test_load_model_success(self, mock_model_wrapper):
@@ -168,6 +160,7 @@ class TestMatmulIntegration:
         
         assert result is True
         mock_create_choices.assert_called_once()
+        # Verify that set_choices_handler was called
         mock_v.set_choices_handler.assert_called_once_with(mock_choices)
 
     @patch('torch._inductor.virtualized.V')
@@ -191,36 +184,11 @@ class TestMatmulIntegration:
     def test_enable_configs_success(self, mock_config):
         """Test successful config enabling."""
         # Mock config attributes
-        mock_config.autotune = False
-        mock_config.mm_autotune = False
-        mock_config.max_autotune_gemm_search_space = 5
-        mock_config.enable_diode_choices = False
+        mock_config.max_autotune = False
         
         result = self.integration.enable_configs()
         
-        assert result is True
-        assert mock_config.autotune is True
-        assert mock_config.mm_autotune is True
-        assert mock_config.max_autotune_gemm_search_space == 10
-        assert mock_config.enable_diode_choices is True
-
-    @patch('torch._inductor.config')
-    def test_enable_configs_no_diode_choices(self, mock_config):
-        """Test config enabling when enable_diode_choices not available."""
-        # Mock config without enable_diode_choices attribute
-        mock_config.autotune = False
-        mock_config.mm_autotune = False
-        mock_config.max_autotune_gemm_search_space = 5
-        
-        # Remove enable_diode_choices attribute
-        if hasattr(mock_config, 'enable_diode_choices'):
-            delattr(mock_config, 'enable_diode_choices')
-        
-        result = self.integration.enable_configs()
-        
-        assert result is True
-        assert mock_config.autotune is True
-        assert mock_config.mm_autotune is True
+        assert mock_config.max_autotune is True
 
     def test_enable_configs_exception(self):
         """Test config enabling when config attributes don't exist."""

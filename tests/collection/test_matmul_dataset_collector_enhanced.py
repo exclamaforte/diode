@@ -3,6 +3,12 @@ Enhanced tests for MatmulDatasetCollector to increase coverage.
 """
 
 import logging
+# Enable debug flags for testing
+try:
+    from torch_diode.utils.debug_config import set_debug_flag
+    set_debug_flag("ENABLE_TYPE_ASSERTS", True)
+except ImportError:
+    pass  # In case debug_config is not available yet
 import os
 import tempfile
 import pytest

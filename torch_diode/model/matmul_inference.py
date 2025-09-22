@@ -16,20 +16,18 @@ import torch
 import torch.nn as nn
 
 from ..types.matmul_types import MMShape, TritonGEMMConfig
-
+from ..utils.debug_config import type_assert
 from .model_utils_common import init_model_weights, load_model_checkpoint
 
 logger = logging.getLogger(__name__)
 
 
 def create_features_from_mmshape_and_configs(
-    mmshape: MMShape, 
-    configs: List[TritonGEMMConfig], 
-    device: str = "cpu"
+    mmshape: MMShape, configs: List[TritonGEMMConfig], device: str = "cuda"
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     """
     Create problem and config features from MMShape and TritonGEMMConfig objects.
-    
+
     This is a standalone function that can be shared across different modules
     to avoid code duplication in feature construction.
 
@@ -41,11 +39,19 @@ def create_features_from_mmshape_and_configs(
     Returns:
         Tuple of (problem_features, config_features) tensors
     """
-    from ..utils.feature_extraction import extract_problem_features, extract_config_features
+    type_assert(isinstance(mmshape, MMShape), f"mmshape must be MMShape, got {type(mmshape)}")
+    type_assert(isinstance(configs, list), f"configs must be list, got {type(configs)}")
+    type_assert(all(isinstance(cfg, TritonGEMMConfig) for cfg in configs), "All configs must be TritonGEMMConfig instances")
+    type_assert(isinstance(device, str), f"device must be str, got {type(device)}")
     
+    from ..utils.feature_extraction import (
+        extract_config_features,
+        extract_problem_features,
+    )
+
     # Extract problem features (same for all configs)
     problem_feat_list = extract_problem_features(mmshape, return_tensors=False)
-    
+
     # Create feature tensors for each config
     problem_feats = []
     config_feats = []
@@ -53,7 +59,7 @@ def create_features_from_mmshape_and_configs(
     for config in configs:
         # Problem features are the same for all configs
         problem_feat = torch.tensor(problem_feat_list, dtype=torch.float32).unsqueeze(0)
-        
+
         # Extract config features
         config_feat_list = extract_config_features(config, return_tensors=False)
         config_feat = torch.tensor(config_feat_list, dtype=torch.float32).unsqueeze(0)

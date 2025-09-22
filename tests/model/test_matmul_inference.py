@@ -7,6 +7,12 @@ different model implementations.
 """
 
 import unittest
+# Enable debug flags for testing
+try:
+    from torch_diode.utils.debug_config import set_debug_flag
+    set_debug_flag("ENABLE_TYPE_ASSERTS", True)
+except ImportError:
+    pass  # In case debug_config is not available yet
 import os
 import sys
 import torch
@@ -431,8 +437,8 @@ class TestUnifiedMatmulPredictor(unittest.TestCase):
         """Set up test environment."""
         torch.manual_seed(42)
         
-        self.problem_feature_dim = 17  # Based on _create_features_from_mmshape implementation
-        self.config_feature_dim = 19   # Based on _create_features_from_mmshape implementation
+        self.problem_feature_dim = 4   # Based on extract_problem_features: M, N, K, B
+        self.config_feature_dim = 6    # Based on extract_config_features: block_m, block_n, block_k, group_m, num_stages, num_warps
         
         # Create a mock model
         self.mock_model = MockMatmulModel(
@@ -596,27 +602,27 @@ class TestUnifiedMatmulPredictor(unittest.TestCase):
         )
         
         # Check shapes
-        self.assertEqual(problem_features.shape, (1, 17))  # 1 config, 17 problem features
-        self.assertEqual(config_features.shape, (1, 19))   # 1 config, 19 config features
+        self.assertEqual(problem_features.shape, (1, 4))  # 1 config, 4 problem features
+        self.assertEqual(config_features.shape, (1, 6))   # 1 config, 6 config features
         
         # Check that features are finite
         self.assertTrue(torch.isfinite(problem_features).all())
         self.assertTrue(torch.isfinite(config_features).all())
         
         # Check that features match input parameters
-        # Problem features should include B, M, N, K at the beginning
-        self.assertEqual(problem_features[0, 0].item(), 2)    # B
-        self.assertEqual(problem_features[0, 1].item(), 128)  # M
-        self.assertEqual(problem_features[0, 2].item(), 256)  # N
-        self.assertEqual(problem_features[0, 3].item(), 512)  # K
+        # Problem features should include M, N, K, B in that order
+        self.assertEqual(problem_features[0, 0].item(), 128)  # M
+        self.assertEqual(problem_features[0, 1].item(), 256)  # N
+        self.assertEqual(problem_features[0, 2].item(), 512)  # K
+        self.assertEqual(problem_features[0, 3].item(), 2)    # B
         
         # Config features should include block sizes
-        self.assertEqual(config_features[0, 1].item(), 32)   # block_m
-        self.assertEqual(config_features[0, 2].item(), 64)   # block_n
-        self.assertEqual(config_features[0, 3].item(), 16)   # block_k
-        self.assertEqual(config_features[0, 5].item(), 3)    # num_stages
-        self.assertEqual(config_features[0, 6].item(), 8)    # num_warps
-        self.assertEqual(config_features[0, 8].item(), 1)    # ALLOW_TF32
+        self.assertEqual(config_features[0, 0].item(), 32)   # block_m
+        self.assertEqual(config_features[0, 1].item(), 64)   # block_n
+        self.assertEqual(config_features[0, 2].item(), 16)   # block_k
+        self.assertEqual(config_features[0, 3].item(), 8)    # group_m
+        self.assertEqual(config_features[0, 4].item(), 3)    # num_stages
+        self.assertEqual(config_features[0, 5].item(), 8)    # num_warps
     
     def test_create_features_from_mmshape_multiple_configs(self):
         """Test feature creation with multiple configs."""
@@ -654,8 +660,8 @@ class TestUnifiedMatmulPredictor(unittest.TestCase):
         )
         
         # Check shapes for multiple configs
-        self.assertEqual(problem_features.shape, (3, 17))
-        self.assertEqual(config_features.shape, (3, 19))
+        self.assertEqual(problem_features.shape, (3, 4))
+        self.assertEqual(config_features.shape, (3, 6))
         
         # Check that all configs have the same problem features
         for i in range(1, 3):
@@ -687,8 +693,8 @@ class TestIntegrationWithRealModels(unittest.TestCase):
         torch.manual_seed(42)
         
         # Feature dimensions used by the unified predictor
-        self.problem_feature_dim = 17
-        self.config_feature_dim = 19
+        self.problem_feature_dim = 4   # Based on extract_problem_features: M, N, K, B
+        self.config_feature_dim = 6    # Based on extract_config_features: block_m, block_n, block_k, group_m, num_stages, num_warps
     
     def test_integration_with_matmul_model_v1(self):
         """Test integration with MatmulModelV1."""

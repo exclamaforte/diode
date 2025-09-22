@@ -3,6 +3,12 @@ Unit tests for the matrix multiplication timing prediction model.
 """
 
 import unittest
+# Enable debug flags for testing
+try:
+    from torch_diode.utils.debug_config import set_debug_flag
+    set_debug_flag("ENABLE_TYPE_ASSERTS", True)
+except ImportError:
+    pass  # In case debug_config is not available yet
 import os
 import sys
 import torch
@@ -34,8 +40,8 @@ class TestMatmulTimingModel(unittest.TestCase):
         self.dataset = self._create_test_dataset()
         
         # Create feature dimensions
-        self.problem_feature_dim = 17  # Based on _extract_problem_features in MatmulTimingDataset
-        self.config_feature_dim = 19   # Based on _extract_config_features in MatmulTimingDataset
+        self.problem_feature_dim = 4   # Based on extract_problem_features: M, N, K, B
+        self.config_feature_dim = 6    # Based on extract_config_features: block_m, block_n, block_k, group_m, num_stages, num_warps
         
         # Create a model
         self.model = MatmulTimingModel(

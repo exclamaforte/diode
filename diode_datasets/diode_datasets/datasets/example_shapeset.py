@@ -7,7 +7,7 @@ This module provides a function to generate a small example ShapeSet.
 import csv
 import torch
 
-from diode.types.matmul_types import MMShape, ShapeSet, OperationShapeSet
+from torch_diode.types.matmul_types import MMShape, ShapeSet, OperationShapeSet
 
 
 def generate_example_shapeset():
