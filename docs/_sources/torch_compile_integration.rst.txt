@@ -211,6 +211,6 @@ Diode currently accelerates the following matrix multiplication operations:
 
 **Hardware Support**
 * NVIDIA GPUs: H100
-* AMD GPUs: MI210
+* AMD GPUs: MI300x
 
 For more information on training custom models, see the :doc:`getting_started` guide.
