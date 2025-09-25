@@ -1,5 +1,4 @@
 import logging
-import os
 import time
 from collections import OrderedDict
 from enum import Enum
@@ -10,11 +9,16 @@ import torch
 
 # Import the size_hints function from PyTorch inductor
 import torch._inductor.config as inductor_config
-from torch_diode.types.matmul_dataset import Dataset
-
-from torch_diode.types.matmul_types import MMShape, OperationShapeSet, Table, TritonGEMMConfig
-from torch_diode.utils.dataset_utils import generate_matrix_sizes
 from torch._inductor.select_algorithm import add_feedback_saver, clear_feedback_savers
+
+from torch_diode.types.matmul_dataset import Dataset
+from torch_diode.types.matmul_types import (
+    MMShape,
+    OperationShapeSet,
+    Table,
+    TritonGEMMConfig,
+)
+from torch_diode.utils.dataset_utils import generate_matrix_sizes
 
 logger = logging.getLogger(__name__)
 
@@ -317,7 +321,7 @@ class MatmulDatasetCollector:
         Args:
             file_path: Path to load the data from.
         """
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             content = f.read()
 
         dataset = Dataset.deserialize(content)
@@ -747,7 +751,7 @@ class MatmulDatasetCollector:
             for i, (size, dtype, op_name) in enumerate(shapes_and_dtypes):
                 M, K, N = size
                 logger.info(
-                    f"[{i+1}/{total_operations}] Running {op_name} with size "
+                    f"[{i + 1}/{total_operations}] Running {op_name} with size "
                     f"({M}, {K}) x ({K}, {N}) and dtype {dtype}"
                 )
 

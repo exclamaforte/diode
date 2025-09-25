@@ -4,8 +4,9 @@ Dataset utility functions for matrix multiplication data collection and analysis
 
 import logging
 import random
-import torch
 from typing import Any, List, Optional, Tuple
+
+import torch
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +25,7 @@ def print_dataset_statistics(
         op_name: Optional operation name to filter by
     """
     from torch_diode.collection.matmul_dataset_collector import MatmulDatasetCollector
-    
+
     # Get the dataset from the collector if needed
     if isinstance(dataset_or_collector, MatmulDatasetCollector):
         dataset = dataset_or_collector.get_dataset()
@@ -69,7 +70,7 @@ def print_dataset_statistics(
                     break
 
                 print(
-                    f"    Problem {i+1}: M={problem.M}, N={problem.N}, K={problem.K}, "
+                    f"    Problem {i + 1}: M={problem.M}, N={problem.N}, K={problem.K}, "
                     f"dtype={problem.M_dtype}, {len(solution.timed_configs)} configs"
                 )
 
@@ -80,7 +81,7 @@ def print_dataset_statistics(
                         f"      Fastest config: block_m={fastest_config.config.block_m}, "
                         f"block_n={fastest_config.config.block_n}, "
                         f"block_k={fastest_config.config.block_k}, "
-                        f"time={fastest_config.time*1000:.3f} ms"
+                        f"time={fastest_config.time * 1000:.3f} ms"
                     )
 
 

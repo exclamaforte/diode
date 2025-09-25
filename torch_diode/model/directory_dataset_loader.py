@@ -10,18 +10,18 @@ from __future__ import annotations
 
 import logging
 import os
-from concurrent.futures import as_completed, ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import torch
 from torch.utils.data import DataLoader, Dataset, DistributedSampler
+from tqdm import tqdm
 
 from torch_diode.model.matmul_dataset_loader import MatmulTimingDataset
 from torch_diode.types.matmul_dataset import Dataset as MatmulDataset
 from torch_diode.utils.debug_config import type_assert
-from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 
@@ -114,13 +114,30 @@ class DirectoryMatmulDataset(Dataset):
             file_extensions: Extensions to include (default: ['json','msgpack']).
             max_io_workers: Max threads for I/O (default: min(32, max(4, os.cpu_count()))).
         """
-        type_assert(isinstance(data_dir, str), f"data_dir must be str, got {type(data_dir)}")
-        type_assert(hardware_name is None or isinstance(hardware_name, str), f"hardware_name must be str or None, got {type(hardware_name)}")
-        type_assert(op_name is None or isinstance(op_name, str), f"op_name must be str or None, got {type(op_name)}")
-        type_assert(isinstance(log_transform, bool), f"log_transform must be bool, got {type(log_transform)}")
-        type_assert(file_extensions is None or isinstance(file_extensions, list), f"file_extensions must be list or None, got {type(file_extensions)}")
-        type_assert(max_io_workers is None or isinstance(max_io_workers, int), f"max_io_workers must be int or None, got {type(max_io_workers)}")
-        
+        type_assert(
+            isinstance(data_dir, str), f"data_dir must be str, got {type(data_dir)}"
+        )
+        type_assert(
+            hardware_name is None or isinstance(hardware_name, str),
+            f"hardware_name must be str or None, got {type(hardware_name)}",
+        )
+        type_assert(
+            op_name is None or isinstance(op_name, str),
+            f"op_name must be str or None, got {type(op_name)}",
+        )
+        type_assert(
+            isinstance(log_transform, bool),
+            f"log_transform must be bool, got {type(log_transform)}",
+        )
+        type_assert(
+            file_extensions is None or isinstance(file_extensions, list),
+            f"file_extensions must be list or None, got {type(file_extensions)}",
+        )
+        type_assert(
+            max_io_workers is None or isinstance(max_io_workers, int),
+            f"max_io_workers must be int or None, got {type(max_io_workers)}",
+        )
+
         self.data_dir = data_dir
         self.hardware_name = hardware_name
         self.op_name = op_name
@@ -248,7 +265,7 @@ class DirectoryMatmulDataset(Dataset):
                     data = f.read()
                 return MatmulDataset.from_msgpack(data)
             elif file_path.lower().endswith(".json"):
-                with open(file_path, "r") as f:
+                with open(file_path) as f:
                     data = f.read()
                 return MatmulDataset.deserialize(data)
             else:
@@ -379,7 +396,7 @@ class LazyDirectoryMatmulDataset(Dataset):
         # LRU cache: file path -> MatmulTimingDataset
         from collections import OrderedDict
 
-        self._cache: "OrderedDict[str, MatmulTimingDataset]" = OrderedDict()
+        self._cache: OrderedDict[str, MatmulTimingDataset] = OrderedDict()
 
         total = self._cumulative[-1] if self._cumulative else 0
         logger.info(
@@ -413,7 +430,7 @@ class LazyDirectoryMatmulDataset(Dataset):
                     data = f.read()
                 return MatmulDataset.from_msgpack(data)
             elif file_path.lower().endswith(".json"):
-                with open(file_path, "r") as f:
+                with open(file_path) as f:
                     data = f.read()
                 return MatmulDataset.deserialize(data)
             else:
@@ -676,7 +693,7 @@ def create_directory_dataloaders(
     # Brief stats
     if hasattr(full_dataset, "get_file_info"):
         try:
-            files_info = getattr(full_dataset, "get_file_info")()
+            files_info = full_dataset.get_file_info()
             # Handle both real file info list and Mock objects
             if hasattr(files_info, "__iter__") and not isinstance(files_info, str):
                 try:

@@ -5,47 +5,37 @@ Model utility functions for training and evaluation.
 import json
 import logging
 import os
-from concurrent.futures import as_completed, ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import torch
 import tqdm
+
 from torch_diode.model.directory_dataset_loader import create_directory_dataloaders
 from torch_diode.model.matmul_dataset_loader import create_dataloaders
 from torch_diode.model.matmul_model_trainer import (
-    analyze_worst_predictions,
     MatmulModelTrainer,
+    analyze_worst_predictions,
     train_model_from_dataset,
 )
 from torch_diode.model.matmul_timing_model import (
     DeepMatmulTimingModel,
     MatmulTimingModel,
 )
-
 from torch_diode.types.matmul_dataset import Dataset as MatmulDataset
 from torch_diode.utils.dataset_utils import print_dataset_statistics
 from torch_diode.utils.feature_extraction import (
     extract_config_features,
     extract_problem_features,
 )
-from torch_diode.utils.debug_config import type_assert
 from torch_diode.utils.visualization_utils import plot_training_history
 
 logger = logging.getLogger(__name__)
-import json, numpy as np, os, tqdm
-from concurrent.futures import as_completed, ThreadPoolExecutor
-from datetime import datetime
-from typing import Dict, List, Optional, Tuple
 
-import torch
-from torch_diode.model.matmul_dataset_loader import (  # if needed by loaders
-    MatmulTimingDataset,
-)
-from torch_diode.types.matmul_dataset import Dataset as MatmulDataset
 
-from torch_diode.types.matmul_types import MMShape, Solution, TritonGEMMConfig
+from torch_diode.types.matmul_types import MMShape, TritonGEMMConfig
 
 
 def validate_max_autotune(
@@ -79,7 +69,7 @@ def validate_max_autotune(
     # 1) {"config":[...]}                         (single Solution, all ops)
     # 2) {"mm":{"config":[...]}, "addmm":{...}}   (per-op Solutions)
     try:
-        with open(max_autotune_solution_path, "r", encoding="utf-8") as f:
+        with open(max_autotune_solution_path, encoding="utf-8") as f:
             ma_obj = json.load(f)
     except Exception as e:
         logger.error(f"Failed to load max-autotune solution JSON: {e}")
@@ -135,7 +125,7 @@ def validate_max_autotune(
                 dataset_data = f.read()
             dataset = MatmulDataset.from_msgpack(dataset_data)
         else:
-            with open(validation_dataset_path, "r") as f:
+            with open(validation_dataset_path) as f:
                 dataset_json = f.read()
             dataset = MatmulDataset.deserialize(dataset_json)
 
@@ -705,7 +695,7 @@ def train_model(
                 dataset_data = f.read()
             dataset = MatmulDataset.from_msgpack(dataset_data)
         else:
-            with open(dataset_path, "r") as f:
+            with open(dataset_path) as f:
                 dataset_json = f.read()
             dataset = MatmulDataset.deserialize(dataset_json)
         if dataset is None:
@@ -853,7 +843,7 @@ def validate_model(
                 dataset_data = f.read()
             dataset = MatmulDataset.from_msgpack(dataset_data)
         else:
-            with open(validation_dataset_path, "r") as f:
+            with open(validation_dataset_path) as f:
                 dataset_json = f.read()
             dataset = MatmulDataset.deserialize(dataset_json)
 
@@ -990,7 +980,7 @@ def run_model_example(
             dataset_data = f.read()
         dataset = MatmulDataset.from_msgpack(dataset_data)
     else:
-        with open(dataset_path, "r") as f:
+        with open(dataset_path) as f:
             dataset_json = f.read()
         dataset = MatmulDataset.deserialize(dataset_json)
     if dataset is None:

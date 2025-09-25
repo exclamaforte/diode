@@ -3,8 +3,7 @@ Neural network model for predicting matrix multiplication timing (V1).
 """
 
 import logging
-import os
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import Any, List, Optional
 
 import numpy as np
 import pandas as pd

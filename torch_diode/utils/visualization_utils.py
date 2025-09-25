@@ -2,14 +2,15 @@
 Visualization utility functions for matrix multiplication data analysis.
 """
 
-import logging  
-from typing import Dict, List, Optional
+import logging
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
 # Import matplotlib at module level, but handle ImportError gracefully
 try:
     import matplotlib.pyplot as plt
+
     MATPLOTLIB_AVAILABLE = True
 except ImportError:
     plt = None

@@ -68,7 +68,9 @@ def _setup_integrations() -> Dict[str, bool]:
 
         # First discover and register all available integrations
         discovery_results = discover_and_register_integrations()
-        logger.info(f"Integration discovery completed: {len(discovery_results)} integrations discovered")
+        logger.info(
+            f"Integration discovery completed: {len(discovery_results)} integrations discovered"
+        )
 
         # Execute all discovered integrations
         results = integrate_all()

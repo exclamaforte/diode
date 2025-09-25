@@ -2,7 +2,7 @@ import json
 import logging
 from collections import OrderedDict as CollectionsOrderedDict
 from dataclasses import dataclass, fields
-from typing import Any, get_args, get_origin, OrderedDict, TypeVar, Union
+from typing import Any, OrderedDict, TypeVar, Union, get_args, get_origin
 
 import msgpack
 import torch

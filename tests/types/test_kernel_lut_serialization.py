@@ -4,21 +4,37 @@ Tests for kernel lookup table serialization and LeafType functionality.
 """
 
 import json
+
 # Enable debug flags for testing
 try:
     from torch_diode.utils.debug_config import set_debug_flag
+
     set_debug_flag("ENABLE_TYPE_ASSERTS", True)
 except ImportError:
     pass  # In case debug_config is not available yet
 import sys
 import unittest
 from collections import OrderedDict
-from typing import Any
 from unittest import TestCase
 
 import msgpack
 import torch
+from hypothesis import given
+from hypothesis import strategies as st
 
+from tests.types.test_kernel_lut_strategies import (
+    ComplexLeafTypeTestClass,
+    LeafTypeTestClass,
+    NestedLeafTypeTestClass,
+    hardware_strategy,
+    leaf_type_test_class_strategy,
+    mm_problem_strategy,
+    nested_leaf_type_test_class_strategy,
+    operation_strategy,
+    table_strategy,
+    torch_dtype_strategy,
+    triton_gemm_config_strategy,
+)
 from torch_diode.types.matmul_types import (
     Hardware,
     MMShape,
@@ -26,21 +42,6 @@ from torch_diode.types.matmul_types import (
     Solution,
     Table,
     TritonGEMMConfig,
-)
-
-from hypothesis import given, strategies as st
-from tests.types.test_kernel_lut_strategies import (
-    ComplexLeafTypeTestClass,
-    hardware_strategy,
-    leaf_type_test_class_strategy,
-    LeafTypeTestClass,
-    mm_problem_strategy,
-    nested_leaf_type_test_class_strategy,
-    NestedLeafTypeTestClass,
-    operation_strategy,
-    table_strategy,
-    torch_dtype_strategy,
-    triton_gemm_config_strategy,
 )
 
 
@@ -373,7 +374,6 @@ class TestKernelLUTPropertyBased(TestCase):
         problem_dict = problem.to_dict()
 
 
-
 class TestLeafTypeClasses(TestCase):
     """Tests for classes that use all LeafType values."""
 
@@ -583,10 +583,7 @@ class TestLeafTypeClasses(TestCase):
         ]
 
         # Create solutions
-        solutions = [
-            Solution(config=[configs[i]])
-            for i in range(len(test_objects))
-        ]
+        solutions = [Solution(config=[configs[i]]) for i in range(len(test_objects))]
 
         # Create operation
         operation = Operation(solution=OrderedDict(zip(problems, solutions)))
@@ -930,13 +927,9 @@ class TestMessagePackSerialization(TestCase):
             for i in range(10)
         ]
 
-        solutions = [
-            Solution(config=[configs[i]]) for i in range(10)
-        ]
+        solutions = [Solution(config=[configs[i]]) for i in range(10)]
 
-        operation = Operation(
-            solution=OrderedDict(zip(problems, solutions))
-        )
+        operation = Operation(solution=OrderedDict(zip(problems, solutions)))
         hardware = Hardware(operation=OrderedDict([("size_test_mm", operation)]))
         table = Table(hardware=OrderedDict([("size_test_gpu", hardware)]))
 
@@ -1156,8 +1149,16 @@ class TestMessagePackSerialization(TestCase):
         msgpack_reconstructed = Table.from_msgpack(msgpack_data)
 
         # Extract configs from both reconstructed tables
-        json_config = list(json_reconstructed.hardware["interop_hw"].operation["interop_op"].solution.values())[0].config[0]
-        msgpack_config = list(msgpack_reconstructed.hardware["interop_hw"].operation["interop_op"].solution.values())[0].config[0]
+        json_config = list(
+            json_reconstructed.hardware["interop_hw"]
+            .operation["interop_op"]
+            .solution.values()
+        )[0].config[0]
+        msgpack_config = list(
+            msgpack_reconstructed.hardware["interop_hw"]
+            .operation["interop_op"]
+            .solution.values()
+        )[0].config[0]
 
         # Both should produce equivalent objects
         self.assertEqual(json_config.name, msgpack_config.name)

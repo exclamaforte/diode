@@ -3,24 +3,21 @@
 Tests for graceful handling of malformed JSON in kernel LUT.
 """
 
-import json
+
 # Enable debug flags for testing
 try:
     from torch_diode.utils.debug_config import set_debug_flag
+
     set_debug_flag("ENABLE_TYPE_ASSERTS", True)
 except ImportError:
     pass  # In case debug_config is not available yet
-import logging
-import os
-import tempfile
-import threading
-from collections import OrderedDict
-from io import StringIO
-
-import torch
 import unittest
+from collections import OrderedDict
 from unittest import TestCase
 
+import torch
+
+from torch_diode.types.kernel_lut import convert_triton_configs_to_gemm_configs
 from torch_diode.types.matmul_types import (
     Hardware,
     MMShape,
@@ -29,13 +26,10 @@ from torch_diode.types.matmul_types import (
     Table,
     TritonGEMMConfig,
 )
-from torch_diode.types.kernel_lut import convert_triton_configs_to_gemm_configs
 
 
 def run_tests():
     unittest.main()
-
-
 
 
 class TestTritonConfigConversion(TestCase):
@@ -361,6 +355,7 @@ class TestTritonConfigConversion(TestCase):
         """Test that converted configs maintain uniqueness for hashing."""
         # Create real triton configs for this test
         import triton
+
         triton_config1 = triton.runtime.autotuner.Config(
             kwargs={"BLOCK_M": 16, "BLOCK_N": 32, "BLOCK_K": 16, "GROUP_M": 8},
             num_stages=3,
@@ -511,5 +506,3 @@ class TestTritonConfigConversion(TestCase):
 
 if __name__ == "__main__":
     run_tests()
-
-        

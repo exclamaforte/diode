@@ -15,7 +15,8 @@ set -x
 # Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TOOLKIT_PATH="${SCRIPT_DIR}/matmul_toolkit.py"
-PYTHON_CMD="${HOME}/.conda/envs/foo2/bin/python"
+PYTHON_CMD="$(which python)"
+
 
 # Set random seed for reproducibility
 SEED=52

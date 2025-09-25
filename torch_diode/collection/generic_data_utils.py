@@ -50,7 +50,7 @@ def convert_json_to_msgpack(
 
             # Load JSON data
             logger.info(f"Converting {input_file} to {output_file}")
-            with open(input_file, "r", encoding="utf-8") as f:
+            with open(input_file, encoding="utf-8") as f:
                 data = json.load(f)
 
             # Save as MessagePack
@@ -68,6 +68,6 @@ def convert_json_to_msgpack(
             error_count += 1
 
     # Print summary
-    logger.info(f"Conversion completed:")
+    logger.info("Conversion completed:")
     logger.info(f"  Converted: {converted_count} files")
     logger.info(f"  Errors: {error_count} files")

@@ -23,7 +23,7 @@ class ModelRegistry:
 
     def _initialize_default_models(self) -> None:
         """Initialize the registry with default model configurations."""
-        
+
         # Matmul kernel prediction models
         matmul_models = [
             ModelPointer(
@@ -52,7 +52,7 @@ class ModelRegistry:
     def register_model(self, model_pointer: ModelPointer) -> None:
         """
         Register a model in the registry.
-        
+
         Args:
             model_pointer: The model pointer to register
         """
@@ -63,11 +63,11 @@ class ModelRegistry:
     def get_model(self, model_purpose: str, model_name: str) -> Optional[ModelPointer]:
         """
         Get a specific model pointer.
-        
+
         Args:
             model_purpose: Purpose category of the model
             model_name: Name of the model file
-            
+
         Returns:
             Model pointer if found, None otherwise
         """
@@ -77,37 +77,39 @@ class ModelRegistry:
     def get_models_by_purpose(self, model_purpose: str) -> List[ModelPointer]:
         """
         Get all models for a specific purpose.
-        
+
         Args:
             model_purpose: Purpose category to filter by
-            
+
         Returns:
             List of model pointers for the given purpose
         """
         return [
-            model for model in self._models.values()
+            model
+            for model in self._models.values()
             if model.model_purpose == model_purpose
         ]
 
     def get_models_by_interface(self, interface_name: str) -> List[ModelPointer]:
         """
         Get all models that target a specific interface.
-        
+
         Args:
             interface_name: Interface name to filter by
-            
+
         Returns:
             List of model pointers for the given interface
         """
         return [
-            model for model in self._models.values()
+            model
+            for model in self._models.values()
             if model.interface_name == interface_name
         ]
 
     def get_all_models(self) -> List[ModelPointer]:
         """
         Get all registered models.
-        
+
         Returns:
             List of all model pointers
         """
@@ -116,7 +118,7 @@ class ModelRegistry:
     def get_existing_models(self) -> List[ModelPointer]:
         """
         Get all models that actually exist on disk.
-        
+
         Returns:
             List of model pointers for existing models
         """
@@ -125,10 +127,10 @@ class ModelRegistry:
     def get_model_paths_for_build(self) -> List[Path]:
         """
         Get all model paths that should be included in builds.
-        
+
         This method is used by the build system to determine which model files
         to include in the distribution packages.
-        
+
         Returns:
             List of paths to model files that exist
         """
@@ -140,12 +142,12 @@ class ModelRegistry:
     def get_model_info_for_build(self) -> Dict[str, Dict]:
         """
         Get model information formatted for build system consumption.
-        
+
         Returns:
             Dictionary mapping model purposes to model information
         """
         info = {}
-        
+
         for model in self.get_existing_models():
             purpose = model.model_purpose
             if purpose not in info:
@@ -154,33 +156,35 @@ class ModelRegistry:
                     "interface": model.interface_name,
                     "dependencies": set(),
                 }
-            
-            info[purpose]["models"].append({
-                "name": model.model_name,
-                "path": str(model.full_path),
-                "relative_path": model.relative_path,
-                "size_mb": model.get_size_mb(),
-                "version": model.version,
-                "description": model.description,
-            })
-            
+
+            info[purpose]["models"].append(
+                {
+                    "name": model.model_name,
+                    "path": str(model.full_path),
+                    "relative_path": model.relative_path,
+                    "size_mb": model.get_size_mb(),
+                    "version": model.version,
+                    "description": model.description,
+                }
+            )
+
             info[purpose]["dependencies"].update(model.dependencies)
-        
+
         # Convert sets to lists for JSON serialization
         for purpose_info in info.values():
             purpose_info["dependencies"] = list(purpose_info["dependencies"])
-        
+
         return info
 
     def generate_manifest(self) -> Dict[str, Any]:
         """
         Generate a manifest of all models for build tools.
-        
+
         Returns:
             Dictionary containing model manifest information
         """
         existing_models = self.get_existing_models()
-        
+
         manifest = {
             "version": "1.0",
             "total_models": len(existing_models),
@@ -189,36 +193,40 @@ class ModelRegistry:
             "models_by_interface": {},
             "all_dependencies": set(),
         }
-        
+
         # Group by purpose
         for model in existing_models:
             purpose = model.model_purpose
             if purpose not in manifest["models_by_purpose"]:
                 manifest["models_by_purpose"][purpose] = []
-            
-            manifest["models_by_purpose"][purpose].append({
-                "name": model.model_name,
-                "relative_path": model.relative_path,
-                "size_mb": model.get_size_mb(),
-                "version": model.version,
-            })
+
+            manifest["models_by_purpose"][purpose].append(
+                {
+                    "name": model.model_name,
+                    "relative_path": model.relative_path,
+                    "size_mb": model.get_size_mb(),
+                    "version": model.version,
+                }
+            )
 
         # Group by interface
         for model in existing_models:
             interface = model.interface_name
             if interface not in manifest["models_by_interface"]:
                 manifest["models_by_interface"][interface] = []
-            
-            manifest["models_by_interface"][interface].append({
-                "name": model.model_name,
-                "purpose": model.model_purpose,
-            })
-            
+
+            manifest["models_by_interface"][interface].append(
+                {
+                    "name": model.model_name,
+                    "purpose": model.model_purpose,
+                }
+            )
+
             manifest["all_dependencies"].update(model.dependencies)
-        
+
         # Convert set to list for JSON serialization
         manifest["all_dependencies"] = list(manifest["all_dependencies"])
-        
+
         return manifest
 
 
@@ -242,7 +250,7 @@ def get_model_paths_for_build() -> List[Path]:
 
 
 def get_model_info_for_build() -> Dict[str, Dict]:
-    """Get model information for the build system.""" 
+    """Get model information for the build system."""
     return _model_registry.get_model_info_for_build()
 
 

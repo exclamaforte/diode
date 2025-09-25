@@ -2,24 +2,26 @@
 Trainer for matrix multiplication timing prediction models.
 """
 
-import json
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch_diode.model.matmul_dataset_loader import create_dataloaders
-from torch_diode.model.matmul_model_config import MatmulModelConfig
-from torch_diode.model.matmul_timing_model import DeepMatmulTimingModel, MatmulTimingModel
-
-from torch_diode.types.matmul_dataset import Dataset as MatmulDataset
 from torch.utils.data import DataLoader
 
 # Import matplotlib only when needed to avoid dependency issues
 from tqdm import tqdm
+
+from torch_diode.model.matmul_dataset_loader import create_dataloaders
+from torch_diode.model.matmul_model_config import MatmulModelConfig
+from torch_diode.model.matmul_timing_model import (
+    DeepMatmulTimingModel,
+    MatmulTimingModel,
+)
+from torch_diode.types.matmul_dataset import Dataset as MatmulDataset
 
 logger = logging.getLogger(__name__)
 
@@ -153,7 +155,7 @@ class MatmulModelTrainer:
             # Print the progress
             if verbose:
                 print(
-                    f"Epoch {epoch+1}/{num_epochs} - "
+                    f"Epoch {epoch + 1}/{num_epochs} - "
                     f"Train Loss: {train_loss:.6f}, "
                     f"Val Loss: {val_loss:.6f}, "
                     f"Test Loss: {test_loss:.6f}, "
@@ -179,7 +181,7 @@ class MatmulModelTrainer:
                 # Early stopping
                 if epochs_without_improvement >= patience:
                     if verbose:
-                        print(f"Early stopping after {epoch+1} epochs")
+                        print(f"Early stopping after {epoch + 1} epochs")
                     break
 
         # Restore the best model
@@ -567,7 +569,7 @@ def analyze_worst_predictions(model, dataloader, device, top_n=10):
     print("----------------------------")
 
     for i, error_data in enumerate(all_errors[:top_n]):
-        print(f"Error {i+1}:")
+        print(f"Error {i + 1}:")
         print(f"  Predicted: {torch.exp(torch.tensor(error_data['predicted'])):.6f} ms")
         print(f"  Actual: {torch.exp(torch.tensor(error_data['actual'])):.6f} ms")
         print(f"  Error (log space): {error_data['error']:.6f}")
@@ -586,12 +588,12 @@ def analyze_worst_predictions(model, dataloader, device, top_n=10):
 
             # Check for unreasonable values that might indicate symbolic dimensions
             if M > 1e9 or N > 1e9 or K > 1e9:
-                print(f"  Matrix size: (symbolic dimensions)")
+                print("  Matrix size: (symbolic dimensions)")
             else:
                 print(f"  Matrix size: ({M}, {K}) x ({K}, {N})")
         except (ValueError, OverflowError, IndexError):
             # Handle symbolic or invalid dimensions
-            print(f"  Matrix size: (symbolic dimensions)")
+            print("  Matrix size: (symbolic dimensions)")
 
         # Extract configuration features
         try:
@@ -616,7 +618,7 @@ def analyze_worst_predictions(model, dataloader, device, top_n=10):
                 f"          EVEN_K={even_k}, ALLOW_TF32={allow_tf32}, USE_FAST_ACCUM={use_fast_accum}"
             )
         except (ValueError, IndexError):
-            print(f"  Config: (unable to extract configuration)")
+            print("  Config: (unable to extract configuration)")
 
         print()
 

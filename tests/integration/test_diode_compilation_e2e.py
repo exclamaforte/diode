@@ -6,19 +6,16 @@ called during actual PyTorch compilation and matrix multiplication operations.
 """
 
 import logging
+
 # Enable debug flags for testing
 try:
     from torch_diode.utils.debug_config import set_debug_flag
+
     set_debug_flag("ENABLE_TYPE_ASSERTS", True)
 except ImportError:
     pass  # In case debug_config is not available yet
 import os
 import sys
-from typing import Optional
-from unittest.mock import Mock, patch
-
-import pytest
-import torch
 
 # Add the parent directory to the path so we can import the module
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
@@ -808,8 +805,8 @@ _FINALIZE_TEMPLATE_CONFIGS_CALL_COUNT = 0
 #                 # More aggressive forcing to use Triton templates
 #                 from torch._inductor import config as inductor_config_module
 #                 inductor_config_module.cpp.threads = 1
-                
-#                 # Additional settings to ensure templates are used  
+
+#                 # Additional settings to ensure templates are used
 #                 if hasattr(inductor_config_module, 'max_autotune_allow_flexible_layouts'):
 #                     inductor_config_module.max_autotune_allow_flexible_layouts = True
 

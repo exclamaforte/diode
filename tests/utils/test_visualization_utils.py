@@ -2,17 +2,15 @@
 Tests for diode.utils.visualization_utils module.
 """
 
-import os
+
 # Enable debug flags for testing
 try:
     from torch_diode.utils.debug_config import set_debug_flag
+
     set_debug_flag("ENABLE_TYPE_ASSERTS", True)
 except ImportError:
     pass  # In case debug_config is not available yet
-import tempfile
-from unittest.mock import MagicMock, Mock, patch
-
-import pytest
+from unittest.mock import Mock, patch
 
 from torch_diode.utils.visualization_utils import plot_training_history
 
@@ -99,7 +97,9 @@ class TestPlotTrainingHistory:
 
         # Should not raise an exception, just log a warning
         plot_training_history(history)
-        mock_logger.warning.assert_called_with("Matplotlib not available, skipping plot")
+        mock_logger.warning.assert_called_with(
+            "Matplotlib not available, skipping plot"
+        )
 
     @patch("torch_diode.utils.visualization_utils.plt")
     def test_plot_training_history_minimal_data(self, mock_plt):

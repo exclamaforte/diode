@@ -71,6 +71,7 @@ test = [
     "pytest>=6.0.0",
     "pytest-cov>=4.0.0",
     "coverage[toml]>=6.0.0",
+    "hypothesis>=6.140.2",
 ]
 
 [tool.setuptools]
@@ -83,7 +84,7 @@ torch_diode = ["trained_models/**/*.pt", "trained_models/**/*.json"]
 [tool.ruff]
 target-version = "py38"
 line-length = 88
-select = [
+lint.select = [
     "E",  # pycodestyle errors
     "W",  # pycodestyle warnings
     "F",  # pyflakes
@@ -92,17 +93,17 @@ select = [
     "C4", # flake8-comprehensions
     "UP", # pyupgrade
 ]
-ignore = [
+lint.ignore = [
     "E501",  # line too long, handled by black
     "B008",  # do not perform function calls in argument defaults
     "C901",  # too complex
 ]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]  # unused imports in __init__.py
 "tests/**/*.py" = ["B011"]  # assert False
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["torch_diode"]
 
 [tool.black]

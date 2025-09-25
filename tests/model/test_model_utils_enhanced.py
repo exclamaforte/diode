@@ -3,15 +3,17 @@ Enhanced tests for model utils to increase coverage.
 """
 
 import json
+
 # Enable debug flags for testing
 try:
     from torch_diode.utils.debug_config import set_debug_flag
+
     set_debug_flag("ENABLE_TYPE_ASSERTS", True)
 except ImportError:
     pass  # In case debug_config is not available yet
 import os
 import tempfile
-from unittest.mock import MagicMock, mock_open, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 import torch
@@ -23,7 +25,6 @@ from torch_diode.model.model_utils import (
     validate_max_autotune,
     validate_model,
 )
-from torch_diode.types.matmul_types import Solution, TritonGEMMConfig
 
 
 class TestValidateMaxAutotune:
@@ -778,14 +779,17 @@ class TestTrainModelFromDirectory:
                         param2 = torch.nn.Parameter(torch.randn(5))
                         mock_model.parameters.return_value = [param1, param2]
                         mock_model.to.return_value = mock_model
-                        
+
                         # Mock the model to return actual tensors
                         def mock_forward(*args, **kwargs):
                             batch_size = args[0].shape[0] if len(args) > 0 else 8
                             device = args[0].device if len(args) > 0 else "cpu"
-                            return torch.randn(batch_size, 1, device=device, requires_grad=True)
+                            return torch.randn(
+                                batch_size, 1, device=device, requires_grad=True
+                            )
+
                         mock_model.side_effect = mock_forward
-                        
+
                         mock_model_class.return_value = mock_model
 
                         with patch(
@@ -861,14 +865,17 @@ class TestTrainModelFromDirectory:
                         param2 = torch.nn.Parameter(torch.randn(5))
                         mock_model.parameters.return_value = [param1, param2]
                         mock_model.to.return_value = mock_model
-                        
+
                         # Mock the model to return actual tensors
                         def mock_forward(*args, **kwargs):
                             batch_size = args[0].shape[0] if len(args) > 0 else 8
                             device = args[0].device if len(args) > 0 else "cpu"
-                            return torch.randn(batch_size, 1, device=device, requires_grad=True)
+                            return torch.randn(
+                                batch_size, 1, device=device, requires_grad=True
+                            )
+
                         mock_model.side_effect = mock_forward
-                        
+
                         mock_model_class.return_value = mock_model
 
                         with patch(

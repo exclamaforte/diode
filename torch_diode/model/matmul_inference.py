@@ -6,7 +6,6 @@ matmul model architectures and versions.
 """
 
 import logging
-import os
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -17,7 +16,6 @@ import torch.nn as nn
 
 from ..types.matmul_types import MMShape, TritonGEMMConfig
 from ..utils.debug_config import type_assert
-from .model_utils_common import init_model_weights, load_model_checkpoint
 
 logger = logging.getLogger(__name__)
 
@@ -39,11 +37,16 @@ def create_features_from_mmshape_and_configs(
     Returns:
         Tuple of (problem_features, config_features) tensors
     """
-    type_assert(isinstance(mmshape, MMShape), f"mmshape must be MMShape, got {type(mmshape)}")
+    type_assert(
+        isinstance(mmshape, MMShape), f"mmshape must be MMShape, got {type(mmshape)}"
+    )
     type_assert(isinstance(configs, list), f"configs must be list, got {type(configs)}")
-    type_assert(all(isinstance(cfg, TritonGEMMConfig) for cfg in configs), "All configs must be TritonGEMMConfig instances")
+    type_assert(
+        all(isinstance(cfg, TritonGEMMConfig) for cfg in configs),
+        "All configs must be TritonGEMMConfig instances",
+    )
     type_assert(isinstance(device, str), f"device must be str, got {type(device)}")
-    
+
     from ..utils.feature_extraction import (
         extract_config_features,
         extract_problem_features,

@@ -1,11 +1,13 @@
-from dataclasses import dataclass, field, asdict
-from typing import Any, OrderedDict, Optional, Tuple, Union
-from .json_serializable import JSONSerializable
 import json
-import torch
 import logging
+from dataclasses import asdict, dataclass, field
+from typing import Optional, OrderedDict
+
+import torch
 from torch.utils._ordered_set import OrderedSet
 from typing_extensions import Self
+
+from .json_serializable import JSONSerializable
 
 logger = logging.getLogger(__name__)
 
@@ -238,10 +240,11 @@ class MMShape(JSONSerializable):
 class Solution(JSONSerializable):
     # mapping
     config: list[TritonGEMMConfig]
+
     @classmethod
     def parse(cls, string: str):
         d = json.loads(string, object_pairs_hook=OrderedDict)
-        
+
         # Parse the config list into TritonGEMMConfig objects
         if "config" in d and isinstance(d["config"], list):
             parsed_configs = []
@@ -254,9 +257,8 @@ class Solution(JSONSerializable):
                     # Already a TritonGEMMConfig object (shouldn't happen but just in case)
                     parsed_configs.append(config_dict)
             d["config"] = parsed_configs
-        
+
         return cls(**d)
-        
 
 
 @dataclass(kw_only=True)

@@ -14,8 +14,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 import torch
-from torch_diode.model.matmul_model_config import MatmulModelConfig
 
+from torch_diode.model.matmul_model_config import MatmulModelConfig
 from torch_diode.model.matmul_timing_model import (
     DeepMatmulTimingModel,
     MatmulTimingModel,
@@ -92,7 +92,7 @@ def load_model_config(
     # Try to load the configuration
     if config_path_json.exists():
         # Load from JSON
-        with open(config_path_json, "r") as f:
+        with open(config_path_json) as f:
             config_dict = json.load(f)
 
         if model_config_class is not None:

@@ -6,31 +6,31 @@ that provide the framework for integrating trained models with PyTorch interface
 """
 
 import os
+
 # Enable debug flags for testing
 try:
     from torch_diode.utils.debug_config import set_debug_flag
+
     set_debug_flag("ENABLE_TYPE_ASSERTS", True)
 except ImportError:
     pass  # In case debug_config is not available yet
 import sys
-import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, mock_open, patch
+from unittest.mock import Mock, patch
 
 import pytest
-import torch
 
 # Add the parent directory to the path so we can import the module
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 from torch_diode.integration.base_integration import (
     BaseIntegration,
+    IntegrationRegistry,
+    ModelPointer,
     discover_and_register_integrations,
     get_integration_registry,
     get_integration_status,
     integrate_all,
-    IntegrationRegistry,
-    ModelPointer,
     register_integration,
 )
 
@@ -266,9 +266,10 @@ class TestBaseIntegration:
 
         # Mock V object to simulate successful registration
         mock_dummy = Mock()
-        
+
         # Mock the choices attribute and set_choices_handler method
         mock_v.choices = None  # Initially no handler
+
         def mock_set_handler(handler):
             mock_v.choices = handler
 

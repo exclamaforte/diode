@@ -3,21 +3,20 @@ Tests for diode.model.model_utils module.
 """
 
 import json
+
 # Enable debug flags for testing
 try:
     from torch_diode.utils.debug_config import set_debug_flag
+
     set_debug_flag("ENABLE_TYPE_ASSERTS", True)
 except ImportError:
     pass  # In case debug_config is not available yet
 import os
 import tempfile
-from pathlib import Path
-from unittest.mock import MagicMock, Mock, mock_open, patch
+from unittest.mock import Mock, mock_open, patch
 
-import numpy as np
 import pytest
 import torch
-from torch_diode.model.matmul_model_trainer import train_model_from_dataset
 
 from torch_diode.model.model_utils import (
     run_model_example,
@@ -77,7 +76,10 @@ class TestModelUtils:
         from torch.utils.data import DataLoader
 
         mock_dataloader = DataLoader(
-            mock_subset, batch_size=4, num_workers=0, shuffle=False  # Larger batch size
+            mock_subset,
+            batch_size=4,
+            num_workers=0,
+            shuffle=False,  # Larger batch size
         )
 
         return mock_dataloader
@@ -371,7 +373,9 @@ class TestModelUtils:
         )
 
         # Mock trainer completely to avoid actual training
-        with patch("torch_diode.model.model_utils.MatmulTimingModel") as mock_model_class:
+        with patch(
+            "torch_diode.model.model_utils.MatmulTimingModel"
+        ) as mock_model_class:
             with patch("torch_diode.utils.visualization_utils.plot_training_history"):
                 # Return the actual model and history without going through trainer
                 mock_model = self._create_mock_model()
@@ -446,7 +450,9 @@ class TestModelUtils:
         )
 
         # Mock trainer completely to avoid actual training
-        with patch("torch_diode.model.model_utils.DeepMatmulTimingModel") as mock_model_class:
+        with patch(
+            "torch_diode.model.model_utils.DeepMatmulTimingModel"
+        ) as mock_model_class:
             with patch("torch_diode.utils.visualization_utils.plot_training_history"):
                 mock_model = self._create_mock_model()
                 mock_model.parameters.return_value = [
@@ -642,7 +648,9 @@ class TestModelUtils:
             mock_dataloader,
         )
 
-        with patch("torch_diode.model.model_utils.MatmulTimingModel") as mock_model_class:
+        with patch(
+            "torch_diode.model.model_utils.MatmulTimingModel"
+        ) as mock_model_class:
             with patch(
                 "torch_diode.model.matmul_model_trainer.MatmulModelTrainer"
             ) as mock_trainer_class:
@@ -713,7 +721,9 @@ class TestModelUtils:
             mock_dataloader,
         )
 
-        with patch("torch_diode.model.model_utils.DeepMatmulTimingModel") as mock_model_class:
+        with patch(
+            "torch_diode.model.model_utils.DeepMatmulTimingModel"
+        ) as mock_model_class:
             with patch(
                 "torch_diode.model.matmul_model_trainer.MatmulModelTrainer"
             ) as mock_trainer_class:
@@ -782,7 +792,9 @@ class TestModelUtils:
             mock_dataloader,
         )
 
-        with patch("torch_diode.model.model_utils.DeepMatmulTimingModel") as mock_model_class:
+        with patch(
+            "torch_diode.model.model_utils.DeepMatmulTimingModel"
+        ) as mock_model_class:
             with patch(
                 "torch_diode.model.matmul_model_trainer.MatmulModelTrainer"
             ) as mock_trainer_class:
@@ -886,7 +898,9 @@ class TestModelUtils:
             with patch(
                 "torch_diode.model.model_utils.create_dataloaders"
             ) as mock_create_dataloaders:
-                with patch("torch_diode.utils.visualization_utils.plot_training_history"):
+                with patch(
+                    "torch_diode.utils.visualization_utils.plot_training_history"
+                ):
                     with patch("torch.nn.MSELoss") as mock_mse:
                         # Create valid mock test dataloader
                         mock_dataloader = self._create_mock_dataloader()
@@ -1033,11 +1047,15 @@ class TestModelUtils:
             json.dump(dummy_data, f)
 
         # Mock the model classes and trainer to avoid actual training
-        with patch("torch_diode.model.model_utils.DeepMatmulTimingModel") as mock_model_class:
+        with patch(
+            "torch_diode.model.model_utils.DeepMatmulTimingModel"
+        ) as mock_model_class:
             with patch(
                 "torch_diode.model.model_utils.MatmulModelTrainer"
             ) as mock_trainer_class:
-                with patch("torch_diode.utils.visualization_utils.plot_training_history"):
+                with patch(
+                    "torch_diode.utils.visualization_utils.plot_training_history"
+                ):
                     # Create mock model
                     mock_model = self._create_mock_model()
                     mock_model.parameters.return_value = [torch.randn(10, 10)]
@@ -1118,11 +1136,15 @@ class TestModelUtils:
             json.dump(dummy_data, f)
 
         # Mock the model classes and trainer to avoid actual training
-        with patch("torch_diode.model.model_utils.MatmulTimingModel") as mock_model_class:
+        with patch(
+            "torch_diode.model.model_utils.MatmulTimingModel"
+        ) as mock_model_class:
             with patch(
                 "torch_diode.model.model_utils.MatmulModelTrainer"
             ) as mock_trainer_class:
-                with patch("torch_diode.utils.visualization_utils.plot_training_history"):
+                with patch(
+                    "torch_diode.utils.visualization_utils.plot_training_history"
+                ):
                     # Create mock model
                     mock_model = self._create_mock_model()
                     mock_model.parameters.return_value = [torch.randn(5, 5)]

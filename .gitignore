@@ -54,5 +54,11 @@ Thumbs.db
 logs/
 runs/
 
+# Files produced by running workflows
+*matmul_dataset*.json
+*model_performance_analysis_by_op.json
+*matmul_test_hardware_deep.json
+*seed_*_train_dataset_*.msgpack
+
 torch_diode_test_env
 test_env

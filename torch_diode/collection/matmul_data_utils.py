@@ -8,7 +8,6 @@ import os
 from typing import List, Optional, Tuple
 
 import msgpack
-
 import torch
 
 from torch_diode.collection.matmul_dataset_collector import (
@@ -53,14 +52,14 @@ def run_matrix_multiplications(
 
             # Compile and run mm
             logger.info(
-                f"[{i+1}/{len(sizes)}] Running mm with size ({M}, {K}) x ({K}, {N}) and dtype {dtype}"
+                f"[{i + 1}/{len(sizes)}] Running mm with size ({M}, {K}) x ({K}, {N}) and dtype {dtype}"
             )
             compiled_mm = torch.compile(mm_fn, mode=search_mode)
             result_mm = compiled_mm(a, b)
 
             # Compile and run addmm
             logger.info(
-                f"[{i+1}/{len(sizes)}] Running addmm with size ({M}, {K}) x ({K}, {N}) and dtype {dtype}"
+                f"[{i + 1}/{len(sizes)}] Running addmm with size ({M}, {K}) x ({K}, {N}) and dtype {dtype}"
             )
             compiled_addmm = torch.compile(addmm_fn, mode=search_mode)
             result_addmm = compiled_addmm(c, a, b)
@@ -420,7 +419,7 @@ def _collect_data_chunked(
                     # Create dataset from msgpack data
                     dataset = MatmulDataset.from_dict(data)
                 else:
-                    with open(existing_file, "r") as f:
+                    with open(existing_file) as f:
                         data = json.load(f)
                     dataset = MatmulDataset.from_dict(data)
 
@@ -566,7 +565,7 @@ def _collect_data_chunked(
         if collector._is_collecting:
             collector.stop_collection()
 
-    logger.info(f"Chunked collection completed. Created chunk files.")
+    logger.info("Chunked collection completed. Created chunk files.")
 
     # Return the first chunk file (either existing or newly created)
     if existing_files:
@@ -657,7 +656,7 @@ def _create_validation_dataset_chunked(
                     # Create dataset from msgpack data
                     dataset = MatmulDataset.from_dict(data)
                 else:
-                    with open(existing_file, "r") as f:
+                    with open(existing_file) as f:
                         data = json.load(f)
                     dataset = MatmulDataset.from_dict(data)
 

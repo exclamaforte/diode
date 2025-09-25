@@ -22,13 +22,19 @@ import torch
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # Import utility functions from the refactored modules
+from torch_diode.collection.generic_data_utils import convert_json_to_msgpack
 from torch_diode.collection.matmul_data_utils import (
     collect_data,
     create_validation_dataset,
     run_collector_example,
 )
-from torch_diode.collection.generic_data_utils import convert_json_to_msgpack
-from torch_diode.model.model_utils import run_model_example, train_model, train_model_from_directory, validate_model, validate_max_autotune
+from torch_diode.model.model_utils import (
+    run_model_example,
+    train_model,
+    train_model_from_directory,
+    validate_max_autotune,
+    validate_model,
+)
 from torch_diode.types.matmul_types import OperationShapeSet
 
 # Configure logging
@@ -314,16 +320,18 @@ def main():
     train_parser = subparsers.add_parser(
         "train", help="Train a model on collected data"
     )
-    
+
     # Create mutually exclusive group for dataset input
     dataset_group = train_parser.add_mutually_exclusive_group(required=True)
     dataset_group.add_argument(
         "--dataset", type=str, help="Path to a single dataset file"
     )
     dataset_group.add_argument(
-        "--data-dir", type=str, help="Directory containing multiple data files (JSON/MessagePack)"
+        "--data-dir",
+        type=str,
+        help="Directory containing multiple data files (JSON/MessagePack)",
     )
-    
+
     train_parser.add_argument(
         "--model",
         type=str,
@@ -391,7 +399,10 @@ def main():
         "--model", type=str, required=True, help="Path to the trained model"
     )
     validate_model_parser.add_argument(
-        "--dataset", type=str, required=True, help="Path to the validation dataset file or directory"
+        "--dataset",
+        type=str,
+        required=True,
+        help="Path to the validation dataset file or directory",
     )
     validate_model_parser.add_argument(
         "--batch-size", type=int, default=64, help="Batch size for validation"
@@ -418,13 +429,16 @@ def main():
         "--model", type=str, required=True, help="Path to the trained model"
     )
     validate_max_autotune_parser.add_argument(
-        "--dataset", type=str, required=True, help="Path to the validation dataset file or directory"
+        "--dataset",
+        type=str,
+        required=True,
+        help="Path to the validation dataset file or directory",
     )
     validate_max_autotune_parser.add_argument(
         "--max-autotune-solution",
         type=str,
         required=True,
-        help="Path to JSON file containing Solution with max-autotune TritonGEMMConfig objects"
+        help="Path to JSON file containing Solution with max-autotune TritonGEMMConfig objects",
     )
     validate_max_autotune_parser.add_argument(
         "--batch-size", type=int, default=64, help="Batch size for validation"
@@ -719,7 +733,7 @@ def main():
     elif args.mode == "collect-shapeset":
         # Load the OperationShapeSet from the JSON file
         logger.info(f"Loading operation shapeset from: {args.shapeset}")
-        with open(args.shapeset, "r") as f:
+        with open(args.shapeset) as f:
             shapeset_content = f.read()
 
         operation_shape_set = OperationShapeSet.deserialize(shapeset_content)
@@ -750,7 +764,7 @@ def main():
         if args.shapeset:
             # Load the OperationShapeSet from the JSON file
             logger.info(f"Loading operation shapeset from: {args.shapeset}")
-            with open(args.shapeset, "r") as f:
+            with open(args.shapeset) as f:
                 shapeset_content = f.read()
 
             operation_shape_set = OperationShapeSet.deserialize(shapeset_content)
@@ -852,7 +866,7 @@ def main():
         if args.op_name:
             logger.info(f"Operation filter: {args.op_name}")
         logger.info(f"Will analyze top {args.top_n_worst} worst predictions")
-          
+
         validate_model(
             model_path=args.model,
             validation_dataset_path=args.dataset,
@@ -862,7 +876,7 @@ def main():
             op_name=args.op_name,
             top_n_worst=args.top_n_worst,
         )
-          
+
         logger.info("Model validation completed successfully")
 
     elif args.mode == "validate-max-autotune":
@@ -876,7 +890,7 @@ def main():
             logger.info(f"Hardware filter: {args.hardware_name}")
         if args.op_name:
             logger.info(f"Operation filter: {args.op_name}")
-            
+
         validate_max_autotune(
             model_path=args.model,
             validation_dataset_path=args.dataset,
@@ -886,7 +900,7 @@ def main():
             hardware_name=args.hardware_name,
             op_name=args.op_name,
         )
-        
+
         logger.info("Max-autotune validation completed successfully")
 
     elif args.mode == "collector-example":

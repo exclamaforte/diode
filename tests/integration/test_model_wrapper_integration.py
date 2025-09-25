@@ -3,23 +3,24 @@ Integration tests for the model wrapper.
 """
 
 import json
+
 # Enable debug flags for testing
 try:
     from torch_diode.utils.debug_config import set_debug_flag
+
     set_debug_flag("ENABLE_TYPE_ASSERTS", True)
 except ImportError:
     pass  # In case debug_config is not available yet
-import os
 import tempfile
 import unittest
 from pathlib import Path
 
 import torch
+
 from torch_diode.model.matmul_timing_model import (
     DeepMatmulTimingModel,
     MatmulTimingModel,
 )
-
 from torch_diode.model.model_wrapper import ModelWrapper
 
 
@@ -178,7 +179,7 @@ class TestModelWrapperIntegration(unittest.TestCase):
         torch.testing.assert_close(predictions, predictions2, rtol=1e-5, atol=1e-5)
 
         # Verify that we're actually using the compiled model when compile_model=True
-        self.assertTrue(hasattr(wrapper, 'compiled_model'))
+        self.assertTrue(hasattr(wrapper, "compiled_model"))
         self.assertIsNotNone(wrapper.compiled_model)
 
     def test_list_available_models(self):
