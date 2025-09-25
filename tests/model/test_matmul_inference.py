@@ -640,9 +640,10 @@ class TestUnifiedMatmulPredictor(unittest.TestCase):
             )
         ]
 
-        problem_features, config_features = (
-            self.predictor._create_features_from_mmshape(mmshape, configs)
-        )
+        (
+            problem_features,
+            config_features,
+        ) = self.predictor._create_features_from_mmshape(mmshape, configs)
 
         # Check shapes
         self.assertEqual(problem_features.shape, (1, 4))  # 1 config, 4 problem features
@@ -698,9 +699,10 @@ class TestUnifiedMatmulPredictor(unittest.TestCase):
             )
             configs.append(config)
 
-        problem_features, config_features = (
-            self.predictor._create_features_from_mmshape(mmshape, configs)
-        )
+        (
+            problem_features,
+            config_features,
+        ) = self.predictor._create_features_from_mmshape(mmshape, configs)
 
         # Check shapes for multiple configs
         self.assertEqual(problem_features.shape, (3, 4))

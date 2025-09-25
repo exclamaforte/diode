@@ -67,17 +67,17 @@ class TestDiodeRegistration:
         logger.info(f"Integration info: {integration_info}")
 
         assert integration_info is not None, "Integration info should not be None"
-        assert isinstance(integration_info, dict), (
-            "Integration info should be a dictionary"
-        )
+        assert isinstance(
+            integration_info, dict
+        ), "Integration info should be a dictionary"
 
         # Check if we have any integrations (successful or not)
         if integration_info:
             for name, info in integration_info.items():
                 logger.info(f"Integration '{name}': {info}")
-                assert "integration_status" in info, (
-                    f"Integration {name} should have status"
-                )
+                assert (
+                    "integration_status" in info
+                ), f"Integration {name} should have status"
 
     def test_pytorch_inductor_availability(self):
         """Test that PyTorch Inductor is available and accessible."""
@@ -133,9 +133,9 @@ class TestDiodeRegistration:
                 if target_choices_obj and hasattr(
                     target_choices_obj, "_finalize_template_configs"
                 ):
-                    assert callable(target_choices_obj._finalize_template_configs), (
-                        "_finalize_template_configs should be callable"
-                    )
+                    assert callable(
+                        target_choices_obj._finalize_template_configs
+                    ), "_finalize_template_configs should be callable"
                     logger.info(
                         "✅ _finalize_template_configs method found and is callable"
                     )
@@ -191,9 +191,7 @@ class TestDiodeRegistration:
                 )
             )
 
-            logger.info(
-                "✅ Successfully instrumented _finalize_template_configs method"
-            )
+            logger.info("✅ Successfully instrumented _finalize_template_configs method")
 
             # Verify instrumentation works by calling the method directly (if safe)
             try:
@@ -260,9 +258,9 @@ class TestDiodeRegistration:
     def test_environment_variable_setup(self):
         """Test that necessary environment variables are properly set."""
         # Check that cache disabling environment variable is set
-        assert os.environ.get("TORCHINDUCTOR_FORCE_DISABLE_CACHES") == "1", (
-            "TORCHINDUCTOR_FORCE_DISABLE_CACHES should be set to '1'"
-        )
+        assert (
+            os.environ.get("TORCHINDUCTOR_FORCE_DISABLE_CACHES") == "1"
+        ), "TORCHINDUCTOR_FORCE_DISABLE_CACHES should be set to '1'"
 
         logger.info("✅ Environment variables properly configured")
 

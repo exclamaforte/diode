@@ -394,9 +394,7 @@ class TestExhaustiveConfigGeneration:
             with patch(
                 "torch._inductor.kernel_template_choice.make_ktc_generator"
             ) as mock_make_ktc:
-                with patch(
-                    "torch._inductor.kernel_inputs.MMKernelInputs"
-                ):
+                with patch("torch._inductor.kernel_inputs.MMKernelInputs"):
                     # Setup mock template and kernel inputs
                     mock_template = Mock()
                     mock_template.uid = "mm"
@@ -452,12 +450,12 @@ class TestExhaustiveConfigGeneration:
                     )
 
                     # Verify we got a substantial number of configs (around 1000)
-                    assert len(result) >= 900, (
-                        f"Expected ~1000 configs, got {len(result)}"
-                    )
-                    assert len(result) <= 1100, (
-                        f"Expected ~1000 configs, got {len(result)}"
-                    )
+                    assert (
+                        len(result) >= 900
+                    ), f"Expected ~1000 configs, got {len(result)}"
+                    assert (
+                        len(result) <= 1100
+                    ), f"Expected ~1000 configs, got {len(result)}"
 
                     # Verify the heuristic was called correctly
                     mock_get_heuristic.assert_called_once_with("mm", "cuda", "mm")

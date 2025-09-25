@@ -168,7 +168,6 @@ class MatmulIntegration(BaseIntegration):
         )
 
         try:
-
             from .inductor_integration import install_diode_choices
 
             # Install the diode choices handler with the loaded model

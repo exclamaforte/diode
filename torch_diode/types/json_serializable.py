@@ -2,7 +2,8 @@ import json
 import logging
 from collections import OrderedDict as CollectionsOrderedDict
 from dataclasses import dataclass, fields
-from typing import Any, OrderedDict, TypeVar, Union, get_args, get_origin
+from functools import partial
+from typing import Any, get_args, get_origin, OrderedDict, TypeVar, Union
 
 import msgpack
 import torch
@@ -218,7 +219,7 @@ class JSONSerializable:
                 try:
                     return getattr(torch, dtype_name)
                 except AttributeError:
-                    raise ValueError(f"Invalid torch dtype: {dtype_name}")
+                    raise ValueError(f"Invalid torch dtype: {dtype_name}") from e
             else:
                 return {k: cls._restore_from_msgpack(v) for k, v in obj.items()}
         elif isinstance(obj, (list, tuple)):

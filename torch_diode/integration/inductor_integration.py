@@ -16,7 +16,6 @@ import torch
 try:
     from torch._inductor.choices import InductorChoices
     from torch._inductor.codegen.common import KernelTemplate
-    from torch._inductor.ir import Layout
     from torch._inductor.kernel_inputs import KernelInputs
     from torch._inductor.kernel_template_choice import KernelTemplateChoice
     from torch._inductor.select_algorithm import ExternKernelChoice
@@ -26,7 +25,6 @@ except ImportError:
     KernelTemplateChoice = Any
     KernelTemplate = Any
     ExternKernelChoice = Any
-    Layout = Any
     InductorChoices = Any
 
 # Import Diode components
@@ -49,8 +47,9 @@ class DiodeInductorChoices(InductorChoices):
     """
     Extended InductorChoices class that uses Diode models for config selection.
 
-    This class overrides the _finalize_template_configs method to run model inference
-    on available configurations and select the best ones based on predicted timing.
+    This class overrides the _finalize_template_configs method to run model
+    inference on available configurations and select the best ones based on
+    predicted timing.
     """
 
     def __init__(
@@ -66,11 +65,15 @@ class DiodeInductorChoices(InductorChoices):
         Initialize the DiodeInductorChoices.
 
         Args:
-            model_path: Path to the trained Diode model. If None, will try to find a default model.
+            model_path: Path to the trained Diode model. If None, will try to
+                find a default model.
             device: Device to run the model on
-            top_k_configs: Maximum number of configurations to return after model filtering
-            enable_fallback: Whether to fall back to default behavior if model fails
-            performance_threshold: Ratio threshold for including configs (1.0 = only best, 1.1 = within 10% of best)
+            top_k_configs: Maximum number of configurations to return after
+                model filtering
+            enable_fallback: Whether to fall back to default behavior if model
+                fails
+            performance_threshold: Ratio threshold for including configs (1.0 =
+                only best, 1.1 = within 10% of best)
             **kwargs: Additional arguments passed to parent class
         """
         type_assert(
@@ -483,7 +486,6 @@ class DiodeInductorChoices(InductorChoices):
         This method is deprecated - the current implementation uses kernel_conversions module.
         """
         try:
-
             if not kernel_inputs:
                 return None
 

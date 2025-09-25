@@ -532,9 +532,7 @@ class TestModelWrapper(unittest.TestCase):
 
         # Test with supported dtypes
         for dtype in [torch.float16, torch.bfloat16, torch.float32]:
-            with patch("torch.from_numpy"), patch(
-                "pandas.DataFrame"
-            ) as mock_df_class:
+            with patch("torch.from_numpy"), patch("pandas.DataFrame") as mock_df_class:
                 # Mock DataFrame and its methods
                 mock_df = MagicMock()
                 mock_df_class.return_value = mock_df

@@ -21,7 +21,7 @@ from typing import List
 
 # Add parent directory to path to import torch_diode modules
 sys.path.insert(0, str(Path(__file__).parent.parent))
-
+# noqa: E402
 from torch_diode.types.matmul_types import Solution, TritonGEMMConfig
 
 logging.basicConfig(
@@ -135,7 +135,7 @@ def parse_csv_to_configs(csv_path: str) -> List[tuple[str, TritonGEMMConfig]]:
             except (ValueError, TypeError) as e:
                 logger.error(f"Error parsing row {row_num}: {e}")
                 logger.error(f"Row data: {row}")
-                raise ValueError(f"Failed to parse row {row_num}: {e}")
+                raise ValueError(f"Failed to parse row {row_num}: {e}") from e
 
     logger.info(f"Successfully parsed {len(configs)} configurations")
     return configs

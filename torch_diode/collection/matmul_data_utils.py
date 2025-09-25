@@ -423,10 +423,11 @@ def _collect_data_chunked(
                         data = json.load(f)
                     dataset = MatmulDataset.from_dict(data)
 
-                # Count timing data entries by iterating through hardware -> operations -> solutions
+                # Count timing data entries by iterating through hardware ->
+                # operations -> solutions
                 operations_count = 0
                 for _hw_name, hardware in dataset.hardware.items():
-                    for op_name, operation in hardware.operation.items():
+                    for _op_name, operation in hardware.operation.items():
                         operations_count += len(operation.solution)
 
                 total_completed_operations += operations_count
@@ -663,7 +664,7 @@ def _create_validation_dataset_chunked(
                 # Count timing data entries by iterating through hardware -> operations -> solutions
                 operations_count = 0
                 for _hw_name, hardware in dataset.hardware.items():
-                    for op_name, operation in hardware.operation.items():
+                    for _op_name, operation in hardware.operation.items():
                         operations_count += len(operation.solution)
 
                 total_completed_operations += operations_count

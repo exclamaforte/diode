@@ -369,9 +369,7 @@ class TestMatmulDataUtilsEnhanced:
     def test_collect_data_chunked_mock_exists_files(self):
         """Test _collect_data_chunked with existing files."""
         with patch("os.path.exists") as mock_exists:
-            with patch(
-                "builtins.open", mock_open(read_data='{"test": "data"}')
-            ):
+            with patch("builtins.open", mock_open(read_data='{"test": "data"}')):
                 with patch("json.load") as mock_json_load:
                     with patch(
                         "torch_diode.types.matmul_dataset.Dataset.from_dict"
@@ -394,7 +392,9 @@ class TestMatmulDataUtilsEnhanced:
                         mock_collector = (
                             self._create_mock_collector_with_proper_dataset()
                         )
-                        mock_collector._generate_shapes_and_dtypes.return_value = []  # No remaining work
+                        mock_collector._generate_shapes_and_dtypes.return_value = (
+                            []
+                        )  # No remaining work
 
                         result = _collect_data_chunked(
                             collector=mock_collector,
@@ -436,7 +436,9 @@ class TestMatmulDataUtilsEnhanced:
                         mock_collector = (
                             self._create_mock_collector_with_proper_dataset()
                         )
-                        mock_collector._generate_shapes_and_dtypes.return_value = []  # No remaining work
+                        mock_collector._generate_shapes_and_dtypes.return_value = (
+                            []
+                        )  # No remaining work
 
                         base_file = os.path.join(self.temp_dir, "test.json")
                         result = _collect_data_chunked(
@@ -483,7 +485,9 @@ class TestMatmulDataUtilsEnhanced:
                                     mock_json_load.return_value = {"test": "data"}
 
                                     # Mock collector with remaining work
-                                    mock_collector = self._create_mock_collector_with_proper_dataset()
+                                    mock_collector = (
+                                        self._create_mock_collector_with_proper_dataset()
+                                    )
                                     remaining_work = [
                                         ((64, 128, 256), torch.float16, "mm"),
                                         ((128, 256, 512), torch.float32, "addmm"),

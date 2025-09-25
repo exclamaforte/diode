@@ -1,9 +1,8 @@
-#!/usr/bin/env python3
 """
 Script to generate model manifest for the build system.
 
-This script helps the build system understand which model files should be included
-in the distribution packages by querying the model registry.
+This script helps the build system understand which model files should be
+included in the distribution packages by querying the model registry.
 """
 
 import json

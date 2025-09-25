@@ -426,9 +426,9 @@ class OperationShapeSet(JSONSerializable):
 @dataclass(kw_only=True)
 class Table(JSONSerializable):
     hardware: OrderedDict[str, Hardware]
-    _set_cache: OrderedDict[tuple[str, str, MMShape], OrderedSet[TritonGEMMConfig]] = (
-        field(default_factory=OrderedDict)
-    )
+    _set_cache: OrderedDict[
+        tuple[str, str, MMShape], OrderedSet[TritonGEMMConfig]
+    ] = field(default_factory=OrderedDict)
 
     def serialize(self) -> str:
         foo = self.to_dict()

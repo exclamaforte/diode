@@ -198,9 +198,9 @@ class TestInitLibEnhanced:
         for name in init_lib.__all__:
             obj = getattr(init_lib, name)
             # Should be either callable (function) or a class
-            assert callable(obj) or isinstance(obj, type), (
-                f"Export {name} is neither callable nor a class"
-            )
+            assert callable(obj) or isinstance(
+                obj, type
+            ), f"Export {name} is neither callable nor a class"
 
     def test_logger_setup(self):
         """Test that logger is properly set up."""

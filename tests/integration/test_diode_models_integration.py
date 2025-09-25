@@ -30,7 +30,7 @@ from torch_diode.model.matmul_timing_model import (
     DeepMatmulTimingModel,
     MatmulTimingModel,
 )
-from torch_diode.model.model_wrapper import ModelWrapper, list_available_models
+from torch_diode.model.model_wrapper import list_available_models, ModelWrapper
 
 
 class TestDiodeModelsIntegration(unittest.TestCase):
@@ -99,7 +99,8 @@ class TestDiodeModelsIntegration(unittest.TestCase):
         self.config_features = torch.randn(5, self.config_feature_dim)
 
         # Create a mock directory structure in the diode package
-        self.trained_models_dir = Path("/home/gabeferns/diode/trained_models")
+        diode_dir = Path(__file__).parent.parent.parent
+        self.trained_models_dir = diode_dir / "trained_models"
 
         # Create the directory structure for the new format
         self.matmul_cpu_dir = self.trained_models_dir / "matmul" / "test_cpu"
@@ -139,7 +140,7 @@ class TestDiodeModelsIntegration(unittest.TestCase):
     def test_import_diode_models(self):
         """Test importing the diode model functionality."""
         # Test that we can import the merged functionality from torch_diode
-        from torch_diode.model.model_wrapper import ModelWrapper, list_available_models
+        from torch_diode.model.model_wrapper import list_available_models, ModelWrapper
 
         self.assertTrue(callable(ModelWrapper))
         self.assertTrue(callable(list_available_models))
