@@ -4,17 +4,19 @@ Integration tests that serialize/deserialize tables and test lookup methods.
 """
 
 import unittest
+
 # Enable debug flags for testing
 try:
     from torch_diode.utils.debug_config import set_debug_flag
+
     set_debug_flag("ENABLE_TYPE_ASSERTS", True)
 except ImportError:
     pass  # In case debug_config is not available yet
 from collections import OrderedDict
 from unittest import TestCase
 
-import torch
 import hypothesis
+import torch
 from hypothesis import given
 
 from torch_diode.types.matmul_types import (
@@ -32,8 +34,8 @@ def run_tests():
 
 
 # Import strategies from test_kernel_lut_2.py for property-based testing
-from hypothesis.strategies import composite
 from hypothesis import strategies as st
+from hypothesis.strategies import composite
 
 
 @composite
@@ -120,7 +122,9 @@ def hardware_strategy(draw):
     operations = [draw(operation_strategy()) for _ in range(num_operations)]
 
     # Use index-based names since Operation no longer has a name attribute
-    return Hardware(operation=OrderedDict((f"op_{i}", op) for i, op in enumerate(operations)))
+    return Hardware(
+        operation=OrderedDict((f"op_{i}", op) for i, op in enumerate(operations))
+    )
 
 
 @composite
@@ -423,7 +427,9 @@ class TestKernelLUTIntegration(TestCase):
         # Create solutions with multiple configs
         solutions = []
         for i in range(5):
-            solution = Solution(config=configs[i * 2 : (i + 1) * 2])  # 2 configs per solution
+            solution = Solution(
+                config=configs[i * 2 : (i + 1) * 2]
+            )  # 2 configs per solution
             solutions.append(solution)
 
         # Create operations
@@ -535,7 +541,7 @@ class TestKernelLUTIntegration(TestCase):
         table = Table(hardware=OrderedDict([("nested_gpu", hardware)]))
 
         # Multiple rounds of serialization/deserialization to test consistency
-        for round_num in range(3):
+        for _round_num in range(3):
             serialized = table.serialize()
             table = Table.deserialize(serialized)
 

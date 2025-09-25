@@ -6,14 +6,11 @@ choices and Diode's data structures for model inference.
 """
 
 import logging
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Union
 
 import torch
+import torch._inductor.config as inductor_config
 import triton
-
-from ..utils.debug_config import type_assert
-from ..utils.feature_extraction import extract_problem_features
-
 from torch._inductor.codegen.common import KernelTemplate
 from torch._inductor.kernel_inputs import KernelInputs, MMKernelInputs
 from torch._inductor.kernel_template_choice import (
@@ -23,12 +20,10 @@ from torch._inductor.kernel_template_choice import (
 from torch._inductor.select_algorithm import ExternKernelChoice
 from torch._inductor.template_heuristics import get_template_heuristic
 from torch._inductor.template_heuristics.params import DictKernelTemplateParams
-
-import torch._inductor.config as inductor_config
 from torch._inductor.virtualized import V
 
 from ..types.matmul_types import MMShape, TritonGEMMConfig
-from ..model.matmul_inference import create_features_from_mmshape_and_configs
+from ..utils.debug_config import type_assert
 
 logger = logging.getLogger(__name__)
 
@@ -132,7 +127,6 @@ def create_legacy_config_features(
     return torch.tensor(features_list, dtype=torch.float32, device=device)
 
 
-
 def extract_mmshape_from_kernel_inputs(
     kernel_inputs: MMKernelInputs, op_name: str
 ) -> Optional[MMShape]:
@@ -203,7 +197,6 @@ def extract_mmshape_from_kernel_inputs(
     return mm_shape
 
 
-
 def convert_triton_config_to_triton_gemm_config(
     config: triton.runtime.autotuner.Config, template_name: str
 ) -> Optional[TritonGEMMConfig]:
@@ -240,7 +233,6 @@ def convert_triton_config_to_triton_gemm_config(
     group_m = kwargs.get("GROUP_M", 8)
     num_stages = kwargs.get("num_stages", 4)
     num_warps = kwargs.get("num_warps", 4)
-
 
     # Generate a name for this config
 
@@ -317,9 +309,7 @@ def convert_ktc_to_triton_config(
     # Fallback: try to extract from any attribute that looks like a config
     else:
         for attr_name in dir(ktc):
-            if not attr_name.startswith("_") and not callable(
-                getattr(ktc, attr_name)
-            ):
+            if not attr_name.startswith("_") and not callable(getattr(ktc, attr_name)):
                 attr = getattr(ktc, attr_name)
                 if hasattr(attr, "kwargs"):
                     kwargs = attr.kwargs
@@ -338,9 +328,7 @@ def convert_ktc_to_triton_config(
     num_warps = kwargs.get("num_warps", 4)
 
     # Ensure EVEN_K is properly handled
-    even_k = kwargs.get(
-        "EVEN_K", True
-    )  # Default to True to avoid compilation errors
+    even_k = kwargs.get("EVEN_K", True)  # Default to True to avoid compilation errors
 
     # Create TritonGEMMConfig
     triton_config = TritonGEMMConfig(
@@ -510,6 +498,7 @@ def convert_triton_configs_to_ktc(
         overrides=overrides,
         layout=kernel_inputs.output_layout(),
         inputs=inputs_val,
+        extra_kwargs={},
     )
     ret.append(ktc_generator)
 
@@ -567,9 +556,7 @@ def create_features_and_run_inference(
     elif hasattr(model, "forward"):
         # Use raw model interface
         with torch.no_grad():
-            predictions = model.forward(
-                legacy_problem_features, legacy_config_features
-            )
+            predictions = model.forward(legacy_problem_features, legacy_config_features)
     elif hasattr(model, "inference"):
         # Use model wrapper inference interface - expects single tensor with 12 features
         combined_features = torch.cat(

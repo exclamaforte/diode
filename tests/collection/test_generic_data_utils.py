@@ -3,17 +3,17 @@ Tests for diode.collection.generic_data_utils module.
 """
 
 import json
+
 # Enable debug flags for testing
 try:
     from torch_diode.utils.debug_config import set_debug_flag
+
     set_debug_flag("ENABLE_TYPE_ASSERTS", True)
 except ImportError:
     pass  # In case debug_config is not available yet
 import os
 import tempfile
-from unittest.mock import MagicMock, Mock, mock_open, patch
-
-import pytest
+from unittest.mock import patch
 
 from torch_diode.collection.generic_data_utils import convert_json_to_msgpack
 
@@ -122,7 +122,9 @@ class TestConvertJsonToMsgpack:
             with open(input_file, "w") as f:
                 f.write("{ invalid json content")
 
-            with patch("torch_diode.collection.generic_data_utils.logger") as mock_logger:
+            with patch(
+                "torch_diode.collection.generic_data_utils.logger"
+            ) as mock_logger:
                 convert_json_to_msgpack([input_file])
 
                 # Verify JSON decode error was logged
@@ -143,7 +145,9 @@ class TestConvertJsonToMsgpack:
                 "torch_diode.collection.generic_data_utils.msgpack.pack",
                 side_effect=Exception("Mock error"),
             ):
-                with patch("torch_diode.collection.generic_data_utils.logger") as mock_logger:
+                with patch(
+                    "torch_diode.collection.generic_data_utils.logger"
+                ) as mock_logger:
                     convert_json_to_msgpack([input_file])
 
                     # Verify error was logged
@@ -192,7 +196,9 @@ class TestConvertJsonToMsgpack:
                     json.dump({"data": i}, f)
                 input_files.append(input_file)
 
-            with patch("torch_diode.collection.generic_data_utils.logger") as mock_logger:
+            with patch(
+                "torch_diode.collection.generic_data_utils.logger"
+            ) as mock_logger:
                 convert_json_to_msgpack(input_files)
 
                 # Check summary logs
@@ -217,7 +223,9 @@ class TestConvertJsonToMsgpack:
             # Include one nonexistent file
             nonexistent_file = os.path.join(temp_dir, "nonexistent.json")
 
-            with patch("torch_diode.collection.generic_data_utils.logger") as mock_logger:
+            with patch(
+                "torch_diode.collection.generic_data_utils.logger"
+            ) as mock_logger:
                 convert_json_to_msgpack([valid_file, invalid_file, nonexistent_file])
 
                 # Check summary

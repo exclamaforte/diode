@@ -2,18 +2,18 @@
 Simple tests for diode.collection.matmul_data_utils module to improve coverage.
 """
 
-import json
+
 # Enable debug flags for testing
 try:
     from torch_diode.utils.debug_config import set_debug_flag
+
     set_debug_flag("ENABLE_TYPE_ASSERTS", True)
 except ImportError:
     pass  # In case debug_config is not available yet
 import os
 import tempfile
-from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch, mock_open
-import pytest
+from unittest.mock import Mock, patch
+
 import torch
 
 from torch_diode.collection.matmul_data_utils import (
@@ -35,6 +35,7 @@ class TestMatmulDataUtilsSimple:
     def teardown_method(self):
         """Clean up test fixtures."""
         import shutil
+
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def _create_mock_collector(self):
@@ -49,12 +50,16 @@ class TestMatmulDataUtilsSimple:
     @patch("torch.cuda.is_available")
     @patch("torch.cuda.get_device_name")
     @patch("torch_diode.collection.matmul_data_utils.print_dataset_statistics")
-    def test_collect_data_basic_success(self, mock_print_stats, mock_device_name, mock_cuda_available):
+    def test_collect_data_basic_success(
+        self, mock_print_stats, mock_device_name, mock_cuda_available
+    ):
         """Test basic collect_data success."""
         mock_cuda_available.return_value = True
         mock_device_name.return_value = "NVIDIA A100"
-        
-        with patch("torch_diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
+
+        with patch(
+            "torch_diode.collection.matmul_data_utils.MatmulDatasetCollector"
+        ) as mock_collector_class:
             mock_collector = self._create_mock_collector()
             mock_collector_class.return_value = mock_collector
 
@@ -73,7 +78,9 @@ class TestMatmulDataUtilsSimple:
         """Test collect_data with CPU fallback."""
         mock_cuda_available.return_value = False
 
-        with patch("torch_diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
+        with patch(
+            "torch_diode.collection.matmul_data_utils.MatmulDatasetCollector"
+        ) as mock_collector_class:
             mock_collector = self._create_mock_collector()
             mock_collector_class.return_value = mock_collector
 
@@ -87,11 +94,15 @@ class TestMatmulDataUtilsSimple:
 
     @patch("torch.cuda.is_available")
     @patch("torch_diode.collection.matmul_data_utils.print_dataset_statistics")
-    def test_collect_data_with_custom_parameters(self, mock_print_stats, mock_cuda_available):
+    def test_collect_data_with_custom_parameters(
+        self, mock_print_stats, mock_cuda_available
+    ):
         """Test collect_data with custom parameters."""
         mock_cuda_available.return_value = False
 
-        with patch("torch_diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
+        with patch(
+            "torch_diode.collection.matmul_data_utils.MatmulDatasetCollector"
+        ) as mock_collector_class:
             mock_collector = self._create_mock_collector()
             mock_collector_class.return_value = mock_collector
 
@@ -106,7 +117,7 @@ class TestMatmulDataUtilsSimple:
                 min_size=64,
                 max_size=2048,
                 power_of_two=True,
-                operations=["mm", "addmm"]
+                operations=["mm", "addmm"],
             )
 
             # Verify parameters were passed
@@ -122,7 +133,9 @@ class TestMatmulDataUtilsSimple:
     @patch("torch_diode.collection.matmul_data_utils.print_dataset_statistics")
     def test_create_validation_dataset_basic(self, mock_print_stats):
         """Test basic create_validation_dataset."""
-        with patch("torch_diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
+        with patch(
+            "torch_diode.collection.matmul_data_utils.MatmulDatasetCollector"
+        ) as mock_collector_class:
             mock_collector = self._create_mock_collector()
             mock_collector_class.return_value = mock_collector
 
@@ -136,7 +149,9 @@ class TestMatmulDataUtilsSimple:
     @patch("torch_diode.collection.matmul_data_utils.print_dataset_statistics")
     def test_create_validation_dataset_with_parameters(self, mock_print_stats):
         """Test create_validation_dataset with custom parameters."""
-        with patch("torch_diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
+        with patch(
+            "torch_diode.collection.matmul_data_utils.MatmulDatasetCollector"
+        ) as mock_collector_class:
             mock_collector = self._create_mock_collector()
             mock_collector_class.return_value = mock_collector
 
@@ -150,7 +165,7 @@ class TestMatmulDataUtilsSimple:
                 seed=456,
                 min_size=32,
                 max_size=1024,
-                power_of_two=False
+                power_of_two=False,
             )
 
             # Verify parameters were passed
@@ -167,9 +182,13 @@ class TestMatmulDataUtilsSimple:
 
         with patch("torch.cuda.get_device_name") as mock_device_name:
             mock_device_name.return_value = "NVIDIA RTX 3080"
-            
-            with patch("torch_diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
-                with patch("torch_diode.collection.matmul_data_utils.run_matrix_multiplications") as mock_run_mm:
+
+            with patch(
+                "torch_diode.collection.matmul_data_utils.MatmulDatasetCollector"
+            ) as mock_collector_class:
+                with patch(
+                    "torch_diode.collection.matmul_data_utils.run_matrix_multiplications"
+                ) as mock_run_mm:
                     mock_collector = self._create_mock_collector()
                     mock_collector_class.return_value = mock_collector
 
@@ -177,7 +196,7 @@ class TestMatmulDataUtilsSimple:
                         output_dir=self.temp_dir,
                         use_context_manager=False,
                         num_shapes=5,
-                        dtypes=[torch.float32]
+                        dtypes=[torch.float32],
                     )
 
                     # Verify functions were called
@@ -193,8 +212,12 @@ class TestMatmulDataUtilsSimple:
         mock_tensor_b = Mock()
         mock_tensor_c = Mock()
         # Return different tensors for different calls
-        mock_randn.side_effect = [mock_tensor_a, mock_tensor_b, mock_tensor_c] * 2  # 2 iterations for 2 dtypes
-        
+        mock_randn.side_effect = [
+            mock_tensor_a,
+            mock_tensor_b,
+            mock_tensor_c,
+        ] * 2  # 2 iterations for 2 dtypes
+
         # Mock compiled function that returns a mock result
         mock_result = Mock()
         mock_compiled_fn = Mock(return_value=mock_result)
@@ -215,7 +238,9 @@ class TestMatmulDataUtilsSimple:
     def test_collect_data_with_none_operations(self, mock_print_stats):
         """Test collect_data when operations is None."""
         with patch("torch.cuda.is_available", return_value=False):
-            with patch("torch_diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
+            with patch(
+                "torch_diode.collection.matmul_data_utils.MatmulDatasetCollector"
+            ) as mock_collector_class:
                 mock_collector = self._create_mock_collector()
                 mock_collector_class.return_value = mock_collector
 
@@ -232,7 +257,9 @@ class TestMatmulDataUtilsSimple:
         """Test collect_data when dtypes is None with CUDA."""
         with patch("torch.cuda.is_available", return_value=True):
             with patch("torch.cuda.get_device_name", return_value="NVIDIA A100"):
-                with patch("torch_diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
+                with patch(
+                    "torch_diode.collection.matmul_data_utils.MatmulDatasetCollector"
+                ) as mock_collector_class:
                     mock_collector = self._create_mock_collector()
                     mock_collector_class.return_value = mock_collector
 
@@ -248,7 +275,9 @@ class TestMatmulDataUtilsSimple:
     def test_collect_data_with_none_dtypes_cpu(self, mock_print_stats):
         """Test collect_data when dtypes is None with CPU."""
         with patch("torch.cuda.is_available", return_value=False):
-            with patch("torch_diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
+            with patch(
+                "torch_diode.collection.matmul_data_utils.MatmulDatasetCollector"
+            ) as mock_collector_class:
                 mock_collector = self._create_mock_collector()
                 mock_collector_class.return_value = mock_collector
 
@@ -264,7 +293,9 @@ class TestMatmulDataUtilsSimple:
     def test_collect_data_operation_shape_set_mode(self, mock_print_stats):
         """Test collect_data with operation_shape_set mode."""
         with patch("torch.cuda.is_available", return_value=False):
-            with patch("torch_diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
+            with patch(
+                "torch_diode.collection.matmul_data_utils.MatmulDatasetCollector"
+            ) as mock_collector_class:
                 mock_collector = self._create_mock_collector()
                 mock_collector_class.return_value = mock_collector
 
@@ -288,7 +319,9 @@ class TestMatmulDataUtilsSimple:
     def test_collect_data_log_normal_parameters(self, mock_print_stats):
         """Test collect_data with log normal parameters."""
         with patch("torch.cuda.is_available", return_value=False):
-            with patch("torch_diode.collection.matmul_data_utils.MatmulDatasetCollector") as mock_collector_class:
+            with patch(
+                "torch_diode.collection.matmul_data_utils.MatmulDatasetCollector"
+            ) as mock_collector_class:
                 mock_collector = self._create_mock_collector()
                 mock_collector_class.return_value = mock_collector
 

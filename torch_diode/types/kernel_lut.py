@@ -1,29 +1,14 @@
-import json
 import logging
-import typing
-from collections import OrderedDict
-from dataclasses import asdict, dataclass, field, fields
 from functools import lru_cache
-from typing import Any, get_origin, Optional, TYPE_CHECKING, TypeVar, Union
-
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from triton import Config as TritonConfig
 
-
-try:
-    from typing_extensions import Self
-except ImportError:
-    from typing import Self
-
-import torch
-from torch.utils._ordered_set import OrderedSet
-from torch_diode.types.matmul_types import TritonGEMMConfig, Table
-
+from torch_diode.types.matmul_types import Table, TritonGEMMConfig
 
 # Set up logging for kernel LUT
 logger = logging.getLogger(__name__)
-
 
 
 def convert_triton_configs_to_gemm_configs(

@@ -1,17 +1,18 @@
 """
 Tests for the matmul_toolkit.py module.
 
-This test file covers all functionalities provided by the matmul_toolkit.py module:
+This test file covers all functionalities provided by the matmul_toolkit.py
+module:
 1. Utility functions
 2. Data collection functions
 3. Model training and evaluation functions
 4. Command-line interface
 """
 
-import json
 # Enable debug flags for testing
 try:
     from torch_diode.utils.debug_config import set_debug_flag
+
     set_debug_flag("ENABLE_TYPE_ASSERTS", True)
 except ImportError:
     pass  # In case debug_config is not available yet
@@ -20,7 +21,6 @@ import sys
 from collections import OrderedDict
 from unittest.mock import MagicMock, mock_open, patch
 
-import numpy as np
 import pytest
 import torch
 
@@ -35,15 +35,18 @@ from torch_diode.collection.matmul_data_utils import (
 )
 from torch_diode.collection.matmul_dataset_collector import MatmulDatasetCollector
 from torch_diode.model.matmul_model_trainer import analyze_worst_predictions
-from torch_diode.model.matmul_timing_model import DeepMatmulTimingModel, MatmulTimingModel
+from torch_diode.model.matmul_timing_model import (
+    DeepMatmulTimingModel,
+)
 from torch_diode.model.model_utils import run_model_example, train_model, validate_model
-
 from torch_diode.types.matmul_dataset import Dataset
 from torch_diode.types.matmul_types import MMShape, TritonGEMMConfig
 
 # Import the functions from their actual locations
-from torch_diode.utils.dataset_utils import generate_matrix_sizes, print_dataset_statistics
-from torch_diode.utils.visualization_utils import plot_training_history
+from torch_diode.utils.dataset_utils import (
+    generate_matrix_sizes,
+    print_dataset_statistics,
+)
 from workflows.matmul_toolkit import main
 
 ###########################################
@@ -493,7 +496,9 @@ def test_train_model(
     mock_trainer._evaluate.return_value = 0.1
 
     # Patch MatmulDataset.deserialize
-    with patch("torch_diode.types.matmul_dataset.Dataset.deserialize") as mock_deserialize:
+    with patch(
+        "torch_diode.types.matmul_dataset.Dataset.deserialize"
+    ) as mock_deserialize:
         mock_deserialize.return_value = MagicMock()
 
         # Patch create_dataloaders to return our mock dataloaders
@@ -557,24 +562,26 @@ def test_validate_model(
     mock_dataset.__len__.return_value = 10
     mock_dataset.problem_feature_dim = 15
     mock_dataset.config_feature_dim = 10
-    
+
     # Mock the dataset to return actual tensor data when accessed
     problem_features = torch.randn(15)
-    config_features = torch.randn(10)  
+    config_features = torch.randn(10)
     timing = torch.tensor([0.1])
     mock_dataset.__getitem__.return_value = (problem_features, config_features, timing)
-    
+
     mock_dataset_class.return_value = mock_dataset
 
     # Create mock dataloaders with non-empty datasets
     mock_val_dataloader = MagicMock()
-    
+
     # Mock the dataloader iterator to return actual tensors
-    batch_data = [(
-        torch.randn(2, 15),  # problem features
-        torch.randn(2, 10),  # config features  
-        torch.randn(2, 1)    # timings
-    )]
+    batch_data = [
+        (
+            torch.randn(2, 15),  # problem features
+            torch.randn(2, 10),  # config features
+            torch.randn(2, 1),  # timings
+        )
+    ]
     mock_val_dataloader.__iter__.return_value = iter(batch_data)
 
     # Set up validation dataloader to use the mock dataset
@@ -595,15 +602,19 @@ def test_validate_model(
     mock_exists.return_value = True
 
     # Patch MatmulDataset.deserialize
-    with patch("torch_diode.types.matmul_dataset.Dataset.deserialize") as mock_deserialize:
+    with patch(
+        "torch_diode.types.matmul_dataset.Dataset.deserialize"
+    ) as mock_deserialize:
         # Create a mock dataset with at least one timing entry
         mock_dataset_from_file = MagicMock()
         mock_deserialize.return_value = mock_dataset_from_file
 
         # Patch create_dataloaders to return our mock dataloader directly
-        with patch("torch_diode.model.matmul_dataset_loader.create_dataloaders") as mock_create_dataloaders:
+        with patch(
+            "torch_diode.model.matmul_dataset_loader.create_dataloaders"
+        ) as mock_create_dataloaders:
             mock_create_dataloaders.return_value = (None, mock_val_dataloader, None)
-            
+
             # Mock the torch.nn.Module.load_state_dict method to skip loading
             with patch("torch.nn.Module.load_state_dict"):
                 # Call the function with minimal parameters
@@ -650,7 +661,7 @@ def test_run_model_example(
     mock_model.to.return_value = mock_model
     # Make the model return proper tensors when called
     mock_model.return_value = torch.randn(2, 1)  # Return proper tensor outputs
-    
+
     mock_history = {
         "train_loss": [0.1],
         "val_loss": [0.1],
@@ -663,7 +674,9 @@ def test_run_model_example(
     mock_exists.return_value = True
 
     # Patch MatmulDataset.deserialize
-    with patch("torch_diode.types.matmul_dataset.Dataset.deserialize") as mock_deserialize:
+    with patch(
+        "torch_diode.types.matmul_dataset.Dataset.deserialize"
+    ) as mock_deserialize:
         mock_deserialize.return_value = MagicMock()
 
         # Create a temporary dataset file for the test
@@ -674,21 +687,31 @@ def test_run_model_example(
         # Patch print_dataset_statistics to avoid issues
         with patch("torch_diode.utils.dataset_utils.print_dataset_statistics"):
             # Patch the plot_training_history function directly to avoid matplotlib issues
-            with patch("torch_diode.model.model_utils.plot_training_history") as mock_plot:
+            with patch(
+                "torch_diode.model.model_utils.plot_training_history"
+            ) as mock_plot:
                 # Patch the second create_dataloaders call in run_model_example
-                with patch("torch_diode.model.model_utils.create_dataloaders") as mock_create_dataloaders2:
+                with patch(
+                    "torch_diode.model.model_utils.create_dataloaders"
+                ) as mock_create_dataloaders2:
                     # Create a mock test dataloader that returns actual tensors
                     mock_test_dataloader = MagicMock()
-                    batch_data = [(
-                        torch.randn(2, 15),  # problem features
-                        torch.randn(2, 10),  # config features  
-                        torch.randn(2, 1)    # timings
-                    )]
+                    batch_data = [
+                        (
+                            torch.randn(2, 15),  # problem features
+                            torch.randn(2, 10),  # config features
+                            torch.randn(2, 1),  # timings
+                        )
+                    ]
                     mock_test_dataloader.__iter__.return_value = iter(batch_data)
                     mock_test_dataloader.__len__.return_value = 1
-                    
-                    mock_create_dataloaders2.return_value = (None, None, mock_test_dataloader)
-                    
+
+                    mock_create_dataloaders2.return_value = (
+                        None,
+                        None,
+                        mock_test_dataloader,
+                    )
+
                     # Patch torch.no_grad to avoid issues
                     with patch("torch.no_grad"):
                         # Call the function with minimal parameters

@@ -2,19 +2,18 @@
 Tests for diode.collection.matmul_data_utils module.
 """
 
-import json
+
 # Enable debug flags for testing
 try:
     from torch_diode.utils.debug_config import set_debug_flag
+
     set_debug_flag("ENABLE_TYPE_ASSERTS", True)
 except ImportError:
     pass  # In case debug_config is not available yet
 import os
 import tempfile
-from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
-import pytest
 import torch
 
 from torch_diode.collection.matmul_data_utils import (
@@ -62,7 +61,9 @@ class TestMatmulDataUtils:
 
         # Create mock solution dict that behaves like an object
         mock_solution_dict = Mock()
-        mock_solution_dict_data = {mock_problem: mock_solution}  # Use mock_problem as key
+        mock_solution_dict_data = {
+            mock_problem: mock_solution
+        }  # Use mock_problem as key
         mock_solution_dict.items = Mock(return_value=mock_solution_dict_data.items())
         mock_solution_dict.values = Mock(return_value=mock_solution_dict_data.values())
         mock_solution_dict.__len__ = Mock(return_value=len(mock_solution_dict_data))
@@ -92,7 +93,9 @@ class TestMatmulDataUtils:
 
     def _create_mock_collector_with_proper_dataset(self):
         """Create a mock collector that passes isinstance check and has proper dataset."""
-        from torch_diode.collection.matmul_dataset_collector import MatmulDatasetCollector
+        from torch_diode.collection.matmul_dataset_collector import (
+            MatmulDatasetCollector,
+        )
 
         # Create a mock collector that will pass isinstance check
         mock_collector = Mock(spec=MatmulDatasetCollector)
@@ -170,7 +173,7 @@ class TestMatmulDataUtils:
 
         output_file = os.path.join(self.temp_dir, "test_data.json")
 
-        with patch("builtins.open", mock_open()) as mock_file:
+        with patch("builtins.open", mock_open()):
             result = collect_data(output_file=output_file, file_format="msgpack")
 
             # Should change extension to .msgpack
@@ -228,7 +231,9 @@ class TestMatmulDataUtils:
 
         assert result == output_file
 
-    @patch("torch_diode.collection.matmul_data_utils._create_validation_dataset_chunked")
+    @patch(
+        "torch_diode.collection.matmul_data_utils._create_validation_dataset_chunked"
+    )
     def test_create_validation_dataset_chunked(self, mock_chunked):
         """Test chunked validation dataset creation."""
         mock_chunked.return_value = "chunked_validation.json"

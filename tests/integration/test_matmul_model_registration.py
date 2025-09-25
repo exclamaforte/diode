@@ -6,9 +6,11 @@ by the diode integration system.
 """
 
 import json
+
 # Enable debug flags for testing
 try:
     from torch_diode.utils.debug_config import set_debug_flag
+
     set_debug_flag("ENABLE_TYPE_ASSERTS", True)
 except ImportError:
     pass  # In case debug_config is not available yet
@@ -25,8 +27,8 @@ import torch
 
 from torch_diode.integration.base_integration import ModelPointer
 from torch_diode.integration.matmul_integration import (
-    create_matmul_integration,
     MatmulIntegration,
+    create_matmul_integration,
 )
 from torch_diode.model_registry import get_model_registry, register_model
 
@@ -201,7 +203,7 @@ class TestMatmulModelRegistration(unittest.TestCase):
 
         # Look for the v1 model in the manifest
         found_v1_model = False
-        for purpose, models in manifest["models_by_purpose"].items():
+        for _purpose, models in manifest["models_by_purpose"].items():
             for model in models:
                 if model["name"] == "v1_model.pt":
                     found_v1_model = True
@@ -237,7 +239,7 @@ class TestMatmulModelRegistration(unittest.TestCase):
 
         # This should not raise an exception
         try:
-            result = integration.integrate()
+            integration.integrate()
             # We expect it might fail due to mocking, but it shouldn't crash
         except Exception as e:
             # Log the exception but don't fail the test - integration failures
@@ -273,137 +275,162 @@ class TestMatmulModelRegistration(unittest.TestCase):
     def test_diode_integration_functionality(self):
         """Test that the diode integration functionality works without relying on max-autotune."""
         # Import torch inductor components (test will fail if not available, which is fine)
+        import tempfile
+
         import torch._inductor
         import torch._inductor.config
         import torch._inductor.virtualized
         from torch._inductor.virtualized import V
-          
+
         # Set up the integration
-        from torch_diode.integration import integrate_all, discover_and_register_integrations
-        from torch_diode.integration.inductor_integration import DiodeInductorChoices, install_diode_choices
-          
+        from torch_diode.integration import (
+            discover_and_register_integrations,
+            integrate_all,
+        )
+        from torch_diode.integration.inductor_integration import (
+            DiodeInductorChoices,
+            install_diode_choices,
+        )
+
         # Create a test model for integration
         from torch_diode.model.matmul_timing_model import MatmulTimingModel
-        import tempfile
-        
+
         # Create a simple model
         model = MatmulTimingModel(
             problem_feature_dim=4,  # Simple features: M, N, K, B
-            config_feature_dim=6,   # Simple config features  
+            config_feature_dim=6,  # Simple config features
             hidden_dims=[32, 16],
-            dropout_rate=0.1
+            dropout_rate=0.1,
         )
-        
-        fd, temp_model_path = tempfile.mkstemp(suffix='.pt')
+
+        fd, temp_model_path = tempfile.mkstemp(suffix=".pt")
         os.close(fd)
         model.save(temp_model_path)
-        
+
         try:
             # Test direct DiodeInductorChoices installation
-            original_handler = getattr(V, '_choices_handler', None)
-            
+            original_handler = getattr(V, "_choices_handler", None)
+
             # Install our choices handler
             choices_handler = install_diode_choices(
                 model_path=temp_model_path,
                 device="cpu",
                 top_k_configs=2,
-                performance_threshold=1.2
+                performance_threshold=1.2,
             )
-            
+
             # Verify the handler was installed
             self.assertIsNotNone(choices_handler)
             self.assertIsInstance(choices_handler, DiodeInductorChoices)
             self.assertTrue(choices_handler._model_loaded)
-            
-            # Verify that the handler was installed (can't directly check _choices_handler 
+
+            # Verify that the handler was installed (can't directly check _choices_handler
             # as it may not be a public attribute)
             # The fact that install_diode_choices completed successfully is sufficient
             self.assertIsInstance(choices_handler, DiodeInductorChoices)
-            
+
             # Test the handler's core functionality
             from tests.integration.test_inductor_integration_old import (
-                MockKernelInputs, MockTensor, MockKernelTemplateChoice, MockTemplate, MockConfig
+                MockConfig,
+                MockKernelInputs,
+                MockKernelTemplateChoice,
+                MockTemplate,
+                MockTensor,
             )
-            
+
             # Create test inputs
             tensor_a = MockTensor((128, 64), torch.float16)
             tensor_b = MockTensor((64, 128), torch.float16)
             kernel_inputs = MockKernelInputs([tensor_a, tensor_b])
-            
+
             # Test feature extraction
-            features = choices_handler._extract_features_from_kernel_inputs(kernel_inputs, "mm")
+            features = choices_handler._extract_features_from_kernel_inputs(
+                kernel_inputs, "mm"
+            )
             self.assertIsNotNone(features)
-            self.assertEqual(features['mm_shape'].M, 128)
-            self.assertEqual(features['mm_shape'].N, 128)
-            self.assertEqual(features['mm_shape'].K, 64)
-            
+            self.assertEqual(features["mm_shape"].M, 128)
+            self.assertEqual(features["mm_shape"].N, 128)
+            self.assertEqual(features["mm_shape"].K, 64)
+
             # Test config conversion
-            mock_config = MockConfig(BLOCK_M=64, BLOCK_N=64, BLOCK_K=32, GROUP_M=8, num_stages=2, num_warps=4)
-            mock_ktc = MockKernelTemplateChoice(MockTemplate("test_template"), mock_config)
-            
+            mock_config = MockConfig(
+                BLOCK_M=64, BLOCK_N=64, BLOCK_K=32, GROUP_M=8, num_stages=2, num_warps=4
+            )
+            mock_ktc = MockKernelTemplateChoice(
+                MockTemplate("test_template"), mock_config
+            )
+
             triton_config = choices_handler._convert_ktc_to_config(mock_ktc)
             self.assertIsNotNone(triton_config)
             self.assertEqual(triton_config.block_m, 64)
             self.assertEqual(triton_config.block_n, 64)
-            
+
             # Test prediction
-            problem_features = features['problem_features']
-            predictions = choices_handler._predict_config_performance(problem_features, [triton_config])
+            problem_features = features["problem_features"]
+            predictions = choices_handler._predict_config_performance(
+                problem_features, [triton_config]
+            )
             self.assertEqual(len(predictions), 1)
             self.assertIsInstance(predictions[0], float)
-            
+
             # Test full pipeline with multiple configs
             template = MockTemplate("test_template")
             ktcs = []
             for i in range(3):
                 config = MockConfig(
                     BLOCK_M=32 * (i + 1),
-                    BLOCK_N=32 * (i + 1), 
+                    BLOCK_N=32 * (i + 1),
                     BLOCK_K=16,
                     GROUP_M=8,
                     num_stages=2,
-                    num_warps=4
+                    num_warps=4,
                 )
                 ktcs.append(MockKernelTemplateChoice(template, config))
-            
+
             template_choices = {"test_template": iter(ktcs)}
-              
+
             # Mock the conversion pipeline since it can't work with mock objects
-            with mock.patch('torch_diode.integration.inductor_integration.convert_and_run_inference_pipeline') as mock_pipeline:
+            with mock.patch(
+                "torch_diode.integration.inductor_integration.convert_and_run_inference_pipeline"
+            ) as mock_pipeline:
                 # Return top 2 configs to simulate successful selection
                 mock_pipeline.return_value = ktcs[:2]
-                  
+
                 # Test the full selection process
                 selected = choices_handler._finalize_template_configs(
                     template_choices, kernel_inputs, None, [], "mm"
                 )
-                  
+
                 # Should return some configs (model prediction or fallback)
                 self.assertGreater(len(selected), 0)
                 self.assertLessEqual(len(selected), 3)
-            
+
             # Check statistics were updated
             stats = choices_handler.get_stats()
-            self.assertGreater(stats['total_calls'], 0)
-            
+            self.assertGreater(stats["total_calls"], 0)
+
             # Test with PyTorch compilation (simple mode to avoid max-autotune issues)
             device = "cuda" if torch.cuda.is_available() else "cpu"
             a = torch.randn(64, 32, device=device, dtype=torch.float32)
             b = torch.randn(32, 64, device=device, dtype=torch.float32)
-            
+
             def simple_matmul(x, y):
                 return torch.mm(x, y)
-            
+
             # Test that basic compilation works with our handler installed
             try:
-                compiled_fn = torch.compile(simple_matmul, mode="default")  # Use default mode instead of max-autotune
+                compiled_fn = torch.compile(
+                    simple_matmul, mode="default"
+                )  # Use default mode instead of max-autotune
                 result = compiled_fn(a, b)
                 self.assertEqual(result.shape, (64, 64))
                 logging.info("Compilation with Diode integration succeeded")
             except Exception as e:
                 # If compilation fails, log it but don't fail the test - the important part is that our handler works
-                logging.warning(f"Compilation failed (this may be expected in test environment): {e}")
-            
+                logging.warning(
+                    f"Compilation failed (this may be expected in test environment): {e}"
+                )
+
             # Test integration discovery
             try:
                 discover_and_register_integrations()
@@ -412,14 +439,14 @@ class TestMatmulModelRegistration(unittest.TestCase):
                 logging.info(f"Integration discovery successful: {integration_results}")
             except Exception as e:
                 logging.warning(f"Integration discovery failed (may be expected): {e}")
-                
+
         finally:
             # Clean up
             if os.path.exists(temp_model_path):
                 os.unlink(temp_model_path)
-            
+
             # Restore original handler
-            if hasattr(V, 'set_choices_handler'):
+            if hasattr(V, "set_choices_handler"):
                 try:
                     V.set_choices_handler(original_handler)
                 except Exception:
@@ -492,7 +519,7 @@ class TestMatmulModelRegistration(unittest.TestCase):
 
                     # Try to integrate (may fail but shouldn't crash)
                     try:
-                        result = integration.integrate()
+                        integration.integrate()
                         # If integration succeeds, that's also a valid test outcome
                         logging.info("Integration succeeded in test environment")
 
@@ -568,7 +595,7 @@ class TestGetModelManifestScript(unittest.TestCase):
 
             # Check that v1_model.pt is in the manifest
             found_v1_model = False
-            for purpose, models in manifest["models_by_purpose"].items():
+            for _purpose, models in manifest["models_by_purpose"].items():
                 for model in models:
                     if model["name"] == "v1_model.pt":
                         found_v1_model = True
@@ -587,6 +614,7 @@ class TestGetModelManifestScript(unittest.TestCase):
         """Test running the script with JSON output format."""
         try:
             import sys
+
             result = subprocess.run(
                 [sys.executable, str(self.script_path), "--format", "json"],
                 capture_output=True,
@@ -625,6 +653,7 @@ class TestGetModelManifestScript(unittest.TestCase):
         """Test running the script with paths output format."""
         try:
             import sys
+
             result = subprocess.run(
                 [sys.executable, str(self.script_path), "--format", "paths"],
                 capture_output=True,
@@ -667,6 +696,7 @@ class TestGetModelManifestScript(unittest.TestCase):
 
         try:
             import sys
+
             result = subprocess.run(
                 [
                     sys.executable,
@@ -694,7 +724,7 @@ class TestGetModelManifestScript(unittest.TestCase):
 
             # Check that file contains valid JSON
             try:
-                with open(temp_path, "r") as f:
+                with open(temp_path) as f:
                     manifest = json.load(f)
             except json.JSONDecodeError as e:
                 self.fail(f"Output file does not contain valid JSON: {e}")
@@ -718,6 +748,7 @@ class TestGetModelManifestScript(unittest.TestCase):
         """Test that the script shows help information."""
         try:
             import sys
+
             result = subprocess.run(
                 [sys.executable, str(self.script_path), "--help"],
                 capture_output=True,
@@ -748,8 +779,9 @@ class TestGetModelManifestScript(unittest.TestCase):
         sys.path.insert(0, str(self.script_path.parent))
 
         try:
-            from torch_diode.model_registry import generate_model_manifest
             from get_model_manifest import get_model_manifest
+
+            from torch_diode.model_registry import generate_model_manifest
 
             # Get manifest from script
             script_manifest = get_model_manifest()
@@ -788,6 +820,7 @@ class TestGetModelManifestScript(unittest.TestCase):
         """Test script behavior with invalid arguments."""
         # Test with invalid format
         import sys
+
         result = subprocess.run(
             [sys.executable, str(self.script_path), "--format", "invalid"],
             capture_output=True,

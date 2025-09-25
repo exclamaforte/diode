@@ -3,21 +3,24 @@ Tests for diode.model.directory_dataset_loader module.
 """
 
 import json
+
 # Enable debug flags for testing
 try:
     from torch_diode.utils.debug_config import set_debug_flag
+
     set_debug_flag("ENABLE_TYPE_ASSERTS", True)
 except ImportError:
     pass  # In case debug_config is not available yet
-import os
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
-import torch
+from torch.utils.data import DataLoader
 
 from torch_diode.model.directory_dataset_loader import (
+    DirectoryMatmulDataset,
+    LazyDirectoryMatmulDataset,
     _get_operations,
     _get_solutions,
     _is_cuda_available,
@@ -28,11 +31,8 @@ from torch_diode.model.directory_dataset_loader import (
     _set_operations,
     _set_solutions,
     create_directory_dataloaders,
-    DirectoryMatmulDataset,
-    LazyDirectoryMatmulDataset,
 )
 from torch_diode.types.matmul_dataset import Dataset as MatmulDataset
-from torch.utils.data import DataLoader
 
 
 class TestUtilityFunctions:
@@ -56,7 +56,8 @@ class TestUtilityFunctions:
     def test_pin_memory_default_true(self):
         """Test _pin_memory_default when CUDA is available."""
         with patch(
-            "torch_diode.model.directory_dataset_loader._is_cuda_available", return_value=True
+            "torch_diode.model.directory_dataset_loader._is_cuda_available",
+            return_value=True,
         ):
             assert _pin_memory_default() is True
 
@@ -272,7 +273,7 @@ class TestDirectoryMatmulDataset:
             mock_timing_dataset.return_value.__len__ = Mock(return_value=1)
 
             dataset = DirectoryMatmulDataset(self.temp_dir)
-            result = dataset._load_single_file(file_path)
+            dataset._load_single_file(file_path)
 
             # deserialize is called during init and during _load_single_file
             assert mock_deserialize.call_count >= 1
@@ -292,7 +293,7 @@ class TestDirectoryMatmulDataset:
             mock_timing_dataset.return_value.__len__ = Mock(return_value=1)
 
             dataset = DirectoryMatmulDataset(self.temp_dir)
-            result = dataset._load_single_file(file_path)
+            dataset._load_single_file(file_path)
 
             # from_msgpack is called during init and during _load_single_file
             assert mock_from_msgpack.call_count >= 1
@@ -663,10 +664,12 @@ class TestCreateDirectoryDataloaders:
             return_value=(mock_train_ds, mock_val_ds, mock_test_ds),
         ):
             # Patch DataLoader in the specific module where it's imported
-            with patch("torch_diode.model.directory_dataset_loader.DataLoader") as mock_dataloader:
+            with patch(
+                "torch_diode.model.directory_dataset_loader.DataLoader"
+            ) as mock_dataloader:
                 # Mock DataLoader to return our test instance
                 mock_dataloader.return_value = Mock(spec=DataLoader)
-                
+
                 train_dl, val_dl, test_dl = create_directory_dataloaders(
                     self.temp_dir,
                     batch_size=32,
@@ -682,7 +685,7 @@ class TestCreateDirectoryDataloaders:
                 # Verify that sampler was passed to DataLoader calls
                 for call in mock_dataloader.call_args_list:
                     args, kwargs = call
-                    assert 'sampler' in kwargs
+                    assert "sampler" in kwargs
 
     @patch("torch_diode.model.directory_dataset_loader.DirectoryMatmulDataset")
     def test_invalid_split_sizes(self, mock_dataset_class):

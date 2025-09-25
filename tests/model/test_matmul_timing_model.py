@@ -3,46 +3,61 @@ Unit tests for the matrix multiplication timing prediction model.
 """
 
 import unittest
+
 # Enable debug flags for testing
 try:
     from torch_diode.utils.debug_config import set_debug_flag
+
     set_debug_flag("ENABLE_TYPE_ASSERTS", True)
 except ImportError:
     pass  # In case debug_config is not available yet
 import os
 import sys
-import torch
-from collections import OrderedDict
 import tempfile
+from collections import OrderedDict
+
+import torch
 
 # Add the parent directory to the path so we can import the module
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from torch_diode.model.matmul_timing_model import MatmulTimingModel, DeepMatmulTimingModel
-from torch_diode.types.matmul_dataset import Dataset, TimedConfig, DatasetSolution, DatasetOperation, DatasetHardware
+from torch_diode.model.matmul_dataset_loader import (
+    MatmulTimingDataset,
+    create_dataloaders,
+)
+from torch_diode.model.matmul_timing_model import (
+    DeepMatmulTimingModel,
+    MatmulTimingModel,
+)
+from torch_diode.types.matmul_dataset import (
+    Dataset,
+    DatasetHardware,
+    DatasetOperation,
+    DatasetSolution,
+    TimedConfig,
+)
 from torch_diode.types.matmul_types import MMShape, TritonGEMMConfig
-from torch_diode.model.matmul_dataset_loader import MatmulTimingDataset, create_dataloaders
 
 
 class TestMatmulTimingModel(unittest.TestCase):
     """
     Tests for the MatmulTimingModel class.
     """
-    
+
     def setUp(self):
         """
         Set up the test environment.
         """
         # Set random seed for reproducibility
         torch.manual_seed(42)
-        
+
         # Create a small dataset for testing
         self.dataset = self._create_test_dataset()
-        
+
         # Create feature dimensions
-        self.problem_feature_dim = 4   # Based on extract_problem_features: M, N, K, B
-        self.config_feature_dim = 6    # Based on extract_config_features: block_m, block_n, block_k, group_m, num_stages, num_warps
-        
+        self.problem_feature_dim = 4  # Based on extract_problem_features: M, N, K, B
+        self.config_feature_dim = 6  # Based on extract_config_features: block_m, block_n, block_k, group_m, num_stages, num_warps
+
         # Create a model
         self.model = MatmulTimingModel(
             problem_feature_dim=self.problem_feature_dim,
@@ -50,7 +65,7 @@ class TestMatmulTimingModel(unittest.TestCase):
             hidden_dims=[32, 64, 32],
             dropout_rate=0.1,
         )
-        
+
         # Create a deep model
         self.deep_model = DeepMatmulTimingModel(
             problem_feature_dim=self.problem_feature_dim,
@@ -59,22 +74,22 @@ class TestMatmulTimingModel(unittest.TestCase):
             num_layers=5,
             dropout_rate=0.1,
         )
-    
+
     def _create_test_dataset(self):
         """
         Create a small dataset for testing.
         """
         # Create a dataset
         dataset = Dataset(hardware=OrderedDict())
-        
+
         # Create a hardware entry
         hardware = DatasetHardware(operation=OrderedDict())
         dataset.hardware["test_gpu"] = hardware
-        
+
         # Create an operation entry
         operation = DatasetOperation(solution=OrderedDict())
         hardware.operation["mm"] = operation
-        
+
         # Create problems and solutions
         for i in range(10):
             # Create a problem
@@ -89,11 +104,11 @@ class TestMatmulTimingModel(unittest.TestCase):
                 out_size=(1, 64 * (i + 1), 32 * (i + 1)),
                 out_stride=(64 * 32 * (i + 1) ** 2, 32 * (i + 1), 1),
             )
-            
+
             # Create a solution
             solution = DatasetSolution(timed_configs=[])
             operation.solution[problem] = solution
-            
+
             # Create configs with different timings
             for j in range(5):
                 # Create a config
@@ -107,14 +122,14 @@ class TestMatmulTimingModel(unittest.TestCase):
                     num_stages=2,
                     num_warps=4,
                 )
-                
+
                 # Create a timed config
                 time = 0.001 * (j + 1) * (i + 1)  # Increase time with i and j
                 timed_config = TimedConfig(config=config, time=time)
                 solution.timed_configs.append(timed_config)
-        
+
         return dataset
-    
+
     def test_model_initialization(self):
         """
         Test that the model initializes correctly.
@@ -122,13 +137,15 @@ class TestMatmulTimingModel(unittest.TestCase):
         # Check that the model has the correct attributes
         self.assertEqual(self.model.problem_feature_dim, self.problem_feature_dim)
         self.assertEqual(self.model.config_feature_dim, self.config_feature_dim)
-        self.assertEqual(self.model.input_dim, self.problem_feature_dim + self.config_feature_dim)
+        self.assertEqual(
+            self.model.input_dim, self.problem_feature_dim + self.config_feature_dim
+        )
         self.assertEqual(len(self.model.hidden_dims), 3)
         self.assertEqual(self.model.hidden_dims[0], 32)
         self.assertEqual(self.model.hidden_dims[1], 64)
         self.assertEqual(self.model.hidden_dims[2], 32)
         self.assertEqual(self.model.dropout_rate, 0.1)
-    
+
     def test_deep_model_initialization(self):
         """
         Test that the deep model initializes correctly.
@@ -136,12 +153,15 @@ class TestMatmulTimingModel(unittest.TestCase):
         # Check that the model has the correct attributes
         self.assertEqual(self.deep_model.problem_feature_dim, self.problem_feature_dim)
         self.assertEqual(self.deep_model.config_feature_dim, self.config_feature_dim)
-        self.assertEqual(self.deep_model.input_dim, self.problem_feature_dim + self.config_feature_dim)
+        self.assertEqual(
+            self.deep_model.input_dim,
+            self.problem_feature_dim + self.config_feature_dim,
+        )
         self.assertEqual(self.deep_model.hidden_dim, 32)
         self.assertEqual(self.deep_model.num_layers, 5)
         self.assertEqual(self.deep_model.dropout_rate, 0.1)
         self.assertEqual(len(self.deep_model.hidden_layers), 5)
-    
+
     def test_model_forward(self):
         """
         Test the forward pass of the model.
@@ -150,13 +170,13 @@ class TestMatmulTimingModel(unittest.TestCase):
         batch_size = 16
         problem_features = torch.randn(batch_size, self.problem_feature_dim)
         config_features = torch.randn(batch_size, self.config_feature_dim)
-        
+
         # Forward pass
         outputs = self.model(problem_features, config_features)
-        
+
         # Check the output shape
         self.assertEqual(outputs.shape, (batch_size, 1))
-    
+
     def test_deep_model_forward(self):
         """
         Test the forward pass of the deep model.
@@ -165,60 +185,68 @@ class TestMatmulTimingModel(unittest.TestCase):
         batch_size = 16
         problem_features = torch.randn(batch_size, self.problem_feature_dim)
         config_features = torch.randn(batch_size, self.config_feature_dim)
-        
+
         # Forward pass
         outputs = self.deep_model(problem_features, config_features)
-        
+
         # Check the output shape
         self.assertEqual(outputs.shape, (batch_size, 1))
-    
+
     def test_model_save_load(self):
         """
         Test saving and loading the model.
         """
         # Create a temporary file
-        with tempfile.NamedTemporaryFile(suffix='.pt') as tmp:
+        with tempfile.NamedTemporaryFile(suffix=".pt") as tmp:
             # Save the model
             self.model.save(tmp.name)
-            
+
             # Load the model
             loaded_model = MatmulTimingModel.load(tmp.name)
-            
+
             # Check that the loaded model has the same attributes
-            self.assertEqual(loaded_model.problem_feature_dim, self.model.problem_feature_dim)
-            self.assertEqual(loaded_model.config_feature_dim, self.model.config_feature_dim)
+            self.assertEqual(
+                loaded_model.problem_feature_dim, self.model.problem_feature_dim
+            )
+            self.assertEqual(
+                loaded_model.config_feature_dim, self.model.config_feature_dim
+            )
             self.assertEqual(loaded_model.input_dim, self.model.input_dim)
             self.assertEqual(loaded_model.hidden_dims, self.model.hidden_dims)
             self.assertEqual(loaded_model.dropout_rate, self.model.dropout_rate)
-            
+
             # Check that the loaded model has the same parameters
             for p1, p2 in zip(self.model.parameters(), loaded_model.parameters()):
                 self.assertTrue(torch.allclose(p1, p2))
-    
+
     def test_deep_model_save_load(self):
         """
         Test saving and loading the deep model.
         """
         # Create a temporary file
-        with tempfile.NamedTemporaryFile(suffix='.pt') as tmp:
+        with tempfile.NamedTemporaryFile(suffix=".pt") as tmp:
             # Save the model
             self.deep_model.save(tmp.name)
-            
+
             # Load the model
             loaded_model = DeepMatmulTimingModel.load(tmp.name)
-            
+
             # Check that the loaded model has the same attributes
-            self.assertEqual(loaded_model.problem_feature_dim, self.deep_model.problem_feature_dim)
-            self.assertEqual(loaded_model.config_feature_dim, self.deep_model.config_feature_dim)
+            self.assertEqual(
+                loaded_model.problem_feature_dim, self.deep_model.problem_feature_dim
+            )
+            self.assertEqual(
+                loaded_model.config_feature_dim, self.deep_model.config_feature_dim
+            )
             self.assertEqual(loaded_model.input_dim, self.deep_model.input_dim)
             self.assertEqual(loaded_model.hidden_dim, self.deep_model.hidden_dim)
             self.assertEqual(loaded_model.num_layers, self.deep_model.num_layers)
             self.assertEqual(loaded_model.dropout_rate, self.deep_model.dropout_rate)
-            
+
             # Check that the loaded model has the same parameters
             for p1, p2 in zip(self.deep_model.parameters(), loaded_model.parameters()):
                 self.assertTrue(torch.allclose(p1, p2))
-    
+
     def test_dataset_loader(self):
         """
         Test the dataset loader.
@@ -230,18 +258,18 @@ class TestMatmulTimingModel(unittest.TestCase):
             op_name="mm",
             log_transform=True,
         )
-        
+
         # Check that the dataset has the correct attributes
         self.assertEqual(timing_dataset.problem_feature_dim, self.problem_feature_dim)
         self.assertEqual(timing_dataset.config_feature_dim, self.config_feature_dim)
         self.assertEqual(len(timing_dataset), 50)  # 10 problems * 5 configs
-        
+
         # Check that the dataset returns the correct items
         problem_features, config_features, timing = timing_dataset[0]
         self.assertEqual(problem_features.shape, (self.problem_feature_dim,))
         self.assertEqual(config_features.shape, (self.config_feature_dim,))
         self.assertEqual(timing.shape, (1,))
-    
+
     def test_create_dataloaders(self):
         """
         Test creating dataloaders.
@@ -258,12 +286,12 @@ class TestMatmulTimingModel(unittest.TestCase):
             num_workers=0,  # Use 0 workers for testing
             seed=42,
         )
-        
+
         # Check that the dataloaders have the correct sizes
         self.assertEqual(len(train_dataloader.dataset), 35)  # 70% of 50
-        self.assertEqual(len(val_dataloader.dataset), 7)    # 15% of 50
-        self.assertEqual(len(test_dataloader.dataset), 8)   # 15% of 50
-        
+        self.assertEqual(len(val_dataloader.dataset), 7)  # 15% of 50
+        self.assertEqual(len(test_dataloader.dataset), 8)  # 15% of 50
+
         # Check that the dataloaders return the correct items
         for problem_features, config_features, timing in train_dataloader:
             self.assertEqual(problem_features.shape[1], self.problem_feature_dim)

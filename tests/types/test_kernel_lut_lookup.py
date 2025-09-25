@@ -4,9 +4,11 @@ Tests for the lookup functionality in kernel LUT.
 """
 
 import unittest
+
 # Enable debug flags for testing
 try:
     from torch_diode.utils.debug_config import set_debug_flag
+
     set_debug_flag("ENABLE_TYPE_ASSERTS", True)
 except ImportError:
     pass  # In case debug_config is not available yet
@@ -14,7 +16,9 @@ from collections import OrderedDict
 from unittest import TestCase
 
 import torch
-from hypothesis import assume, given, strategies as st
+from hypothesis import assume, given
+from hypothesis import strategies as st
+from torch.utils._ordered_set import OrderedSet
 
 from torch_diode.types.matmul_types import (
     Hardware,
@@ -24,7 +28,6 @@ from torch_diode.types.matmul_types import (
     Table,
     TritonGEMMConfig,
 )
-from torch.utils._ordered_set import OrderedSet
 
 
 def run_tests():
@@ -233,12 +236,8 @@ class TestKernelLUTLookup(TestCase):
         solution_b = Solution(config=[self.config2])
 
         # Create two operations with different solutions
-        operation_a = Operation(
-            solution=OrderedDict([(self.problem1, solution_a)])
-        )
-        operation_b = Operation(
-            solution=OrderedDict([(self.problem1, solution_b)])
-        )
+        operation_a = Operation(solution=OrderedDict([(self.problem1, solution_a)]))
+        operation_b = Operation(solution=OrderedDict([(self.problem1, solution_b)]))
 
         hardware_with_duplicates = Hardware(
             operation=OrderedDict(

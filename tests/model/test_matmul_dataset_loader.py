@@ -3,9 +3,11 @@ Tests for the _debug_data_quality method in MatmulTimingDataset.
 """
 
 from collections import OrderedDict
+
 # Enable debug flags for testing
 try:
     from torch_diode.utils.debug_config import set_debug_flag
+
     set_debug_flag("ENABLE_TYPE_ASSERTS", True)
 except ImportError:
     pass  # In case debug_config is not available yet
@@ -75,13 +77,12 @@ class TestDebugDataQuality:
         timing_values = [0.1, 0.2, 0.3, 0.4, 0.5]
         dataset = self.create_mock_dataset(timing_values)
 
-        matmul_dataset = MatmulTimingDataset(dataset=dataset, hardware_name="test_gpu", debug=True)
+        matmul_dataset = MatmulTimingDataset(
+            dataset=dataset, hardware_name="test_gpu", debug=True
+        )
 
         # With log transform enabled, the timing values will be negative (log of < 1)
         # So we expect warnings about negative/zero timing locations
-        warnings = [
-            record for record in caplog.records if record.levelname == "WARNING"
-        ]
 
         # Check that info logs were created
         info_logs = [record for record in caplog.records if record.levelname == "INFO"]
@@ -98,7 +99,9 @@ class TestDebugDataQuality:
         timing_values = [0.1, float("nan"), 0.3, float("nan"), 0.5]
         dataset = self.create_mock_dataset(timing_values)
 
-        matmul_dataset = MatmulTimingDataset(dataset=dataset, hardware_name="test_gpu", debug=True)
+        matmul_dataset = MatmulTimingDataset(
+            dataset=dataset, hardware_name="test_gpu", debug=True
+        )
 
         # Check that warnings were logged for NaN values
         warnings = [
@@ -115,7 +118,9 @@ class TestDebugDataQuality:
         timing_values = [0.1, float("inf"), 0.3, float("-inf"), 0.5]
         dataset = self.create_mock_dataset(timing_values)
 
-        matmul_dataset = MatmulTimingDataset(dataset=dataset, hardware_name="test_gpu", debug=True)
+        matmul_dataset = MatmulTimingDataset(
+            dataset=dataset, hardware_name="test_gpu", debug=True
+        )
 
         # Check that warnings were logged for Inf values
         warnings = [
@@ -137,7 +142,9 @@ class TestDebugDataQuality:
         timing_values = [0.1, -0.1, 0.0, -5.0, 0.5]
         dataset = self.create_mock_dataset(timing_values)
 
-        matmul_dataset = MatmulTimingDataset(dataset=dataset, hardware_name="test_gpu", debug=True)
+        matmul_dataset = MatmulTimingDataset(
+            dataset=dataset, hardware_name="test_gpu", debug=True
+        )
 
         # Check that warnings were logged for invalid timing values
         warnings = [
@@ -154,7 +161,9 @@ class TestDebugDataQuality:
         timing_values = [0.1, float("nan"), -0.1, float("inf"), 0.0, 0.5, float("-inf")]
         dataset = self.create_mock_dataset(timing_values)
 
-        matmul_dataset = MatmulTimingDataset(dataset=dataset, hardware_name="test_gpu", debug=True)
+        matmul_dataset = MatmulTimingDataset(
+            dataset=dataset, hardware_name="test_gpu", debug=True
+        )
 
         # Check that appropriate warnings were logged
         warnings = [
@@ -180,7 +189,7 @@ class TestDebugDataQuality:
         hardware = DatasetHardware(operation=OrderedDict())
         dataset = Dataset(hardware=OrderedDict({"empty_gpu": hardware}))
 
-        matmul_dataset = MatmulTimingDataset(dataset=dataset, hardware_name="empty_gpu", debug=True)
+        MatmulTimingDataset(dataset=dataset, hardware_name="empty_gpu", debug=True)
 
         # Check that warnings were logged for empty tensors
         warnings = [
@@ -196,7 +205,10 @@ class TestDebugDataQuality:
         dataset = self.create_mock_dataset(timing_values)
 
         matmul_dataset = MatmulTimingDataset(
-            dataset=dataset, hardware_name="test_gpu", log_transform=True, debug=True  # Enable log transform
+            dataset=dataset,
+            hardware_name="test_gpu",
+            log_transform=True,
+            debug=True,  # Enable log transform
         )
 
         # Check that the dataset was created (log transform should handle small values)
@@ -210,7 +222,9 @@ class TestDebugDataQuality:
 
         # Create dataset and manually inject NaN values
         matmul_dataset = MatmulTimingDataset(
-            dataset=dataset, hardware_name="test_gpu", debug=False  # Don't trigger debug in constructor
+            dataset=dataset,
+            hardware_name="test_gpu",
+            debug=False,  # Don't trigger debug in constructor
         )
 
         # Manually inject NaN values into features for testing
@@ -237,7 +251,9 @@ class TestDebugDataQuality:
 
         # Create dataset
         matmul_dataset = MatmulTimingDataset(
-            dataset=dataset, hardware_name="test_gpu", debug=False  # Don't trigger debug in constructor
+            dataset=dataset,
+            hardware_name="test_gpu",
+            debug=False,  # Don't trigger debug in constructor
         )
 
         # Manually inject extreme values for testing
@@ -265,7 +281,7 @@ class TestDebugDataQuality:
         timing_values = [0.1, 0.2, 0.3, 0.4, 0.5]
         dataset = self.create_mock_dataset(timing_values)
 
-        matmul_dataset = MatmulTimingDataset(dataset=dataset, hardware_name="test_gpu", debug=True)
+        MatmulTimingDataset(dataset=dataset, hardware_name="test_gpu", debug=True)
 
         # Check that statistics were logged
         info_logs = [record for record in caplog.records if record.levelname == "INFO"]
@@ -287,7 +303,9 @@ class TestDebugDataQuality:
         dataset = self.create_mock_dataset(timing_values)
 
         matmul_dataset = MatmulTimingDataset(
-            dataset=dataset, hardware_name="test_gpu", debug=False  # Debug disabled
+            dataset=dataset,
+            hardware_name="test_gpu",
+            debug=False,  # Debug disabled
         )
 
         # Check that no debug logs were created
@@ -311,7 +329,10 @@ class TestDebugDataQuality:
         dataset = self.create_mock_dataset(timing_values)
 
         matmul_dataset = MatmulTimingDataset(
-            dataset=dataset, hardware_name="test_gpu", log_transform=False, debug=True  # Disable log transform
+            dataset=dataset,
+            hardware_name="test_gpu",
+            log_transform=False,
+            debug=True,  # Disable log transform
         )
 
         # Check that debug ran successfully

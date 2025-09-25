@@ -68,7 +68,9 @@ def _setup_integrations() -> Dict[str, bool]:
 
         # First discover and register all available integrations
         discovery_results = discover_and_register_integrations()
-        logger.info(f"Integration discovery completed: {len(discovery_results)} integrations discovered")
+        logger.info(
+            f"Integration discovery completed: {len(discovery_results)} integrations discovered"
+        )
 
         # Execute all discovered integrations
         results = integrate_all()
@@ -191,7 +193,7 @@ def _display_init_summary():
         warnings.warn(
             "PyTorch is not available. torch-diode will work in library-only mode. "
             "Install PyTorch 2.9+ or nightly to enable automatic model integration.",
-            UserWarning,
+            UserWarning, stacklevel=2,
         )
         return
 

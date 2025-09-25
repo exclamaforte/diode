@@ -4,11 +4,10 @@ Dataset loader for matrix multiplication timing data.
 
 import json
 import logging
-from collections import OrderedDict
-from typing import Dict, List, Optional, Tuple, Union
+from typing import List, Optional, Tuple
 
 import torch
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader
 
 from torch_diode.types.matmul_dataset import Dataset as MatmulDataset
 from torch_diode.types.matmul_types import MMShape, TritonGEMMConfig
@@ -48,12 +47,24 @@ class MatmulTimingDataset:
             debug: Whether to enable debug logging and checks
         """
         type_assert(dataset is not None, "dataset cannot be None")
-        type_assert(isinstance(dataset, MatmulDataset), f"dataset must be MatmulDataset, got {type(dataset)}")
-        type_assert(hardware_name is None or isinstance(hardware_name, str), f"hardware_name must be str or None, got {type(hardware_name)}")
-        type_assert(op_name is None or isinstance(op_name, str), f"op_name must be str or None, got {type(op_name)}")
-        type_assert(isinstance(log_transform, bool), f"log_transform must be bool, got {type(log_transform)}")
+        type_assert(
+            isinstance(dataset, MatmulDataset),
+            f"dataset must be MatmulDataset, got {type(dataset)}",
+        )
+        type_assert(
+            hardware_name is None or isinstance(hardware_name, str),
+            f"hardware_name must be str or None, got {type(hardware_name)}",
+        )
+        type_assert(
+            op_name is None or isinstance(op_name, str),
+            f"op_name must be str or None, got {type(op_name)}",
+        )
+        type_assert(
+            isinstance(log_transform, bool),
+            f"log_transform must be bool, got {type(log_transform)}",
+        )
         type_assert(isinstance(debug, bool), f"debug must be bool, got {type(debug)}")
-        
+
         self.dataset = dataset
         self.hardware_name = hardware_name
         self.op_name = op_name
@@ -93,9 +104,9 @@ class MatmulTimingDataset:
         else:
             # Process all hardware when no specific hardware is requested
             hardware_items = self.dataset.hardware
-          
+
         # Process each hardware
-        for hw_key, hardware in hardware_items.items():
+        for _hw_key, hardware in hardware_items.items():
             # Check if hardware is a DatasetHardware object or a dict
             if isinstance(hardware, dict) and "operation" in hardware:
                 operations = hardware["operation"]
@@ -170,7 +181,9 @@ class MatmulTimingDataset:
                                         USE_FAST_ACCUM=config_dict.get(
                                             "USE_FAST_ACCUM", False
                                         ),
-                                        ACC_TYPE=config_dict.get("ACC_TYPE", "tl.float32"),
+                                        ACC_TYPE=config_dict.get(
+                                            "ACC_TYPE", "tl.float32"
+                                        ),
                                     )
                                 except (json.JSONDecodeError, KeyError) as e:
                                     logger.error(f"Failed to parse config: {e}")
@@ -195,7 +208,9 @@ class MatmulTimingDataset:
                                 )
                             continue  # Skip this sample
 
-                        if not torch.isfinite(torch.tensor(timing, dtype=torch.float32)):
+                        if not torch.isfinite(
+                            torch.tensor(timing, dtype=torch.float32)
+                        ):
                             if self.debug:
                                 logger.warning(
                                     f"Non-finite timing value: {timing} - skipping this sample"
@@ -204,7 +219,9 @@ class MatmulTimingDataset:
 
                         # Apply log transform if specified
                         if self.log_transform:
-                            timing = torch.log(torch.tensor(timing, dtype=torch.float32))
+                            timing = torch.log(
+                                torch.tensor(timing, dtype=torch.float32)
+                            )
 
                             # Check if log transform produced NaN/Inf
                             if not torch.isfinite(timing):

@@ -11,7 +11,6 @@ from collections import defaultdict
 from typing import Any, Dict, Generator, List, Optional, Union
 
 import torch
-import triton
 
 # Import PyTorch Inductor types (these would be available when integrated)
 try:
@@ -33,21 +32,15 @@ except ImportError:
 # Import Diode components
 from ..model.matmul_inference import UnifiedMatmulPredictor
 from ..model.model_wrapper import ModelWrapper
-from ..types.matmul_types import MMShape, TritonGEMMConfig
 from ..utils.debug_config import type_assert
-from ..utils.feature_extraction import (
-    extract_config_features_compat,
-    extract_problem_features_compat,
-)
-from .kernel_conversions import generate_exhaustive_triton_template_configs
 from .kernel_conversions import (
     convert_triton_config_to_triton_gemm_config,
+    convert_triton_configs_to_ktc,
     create_features_and_run_inference,
     extract_mmshape_from_kernel_inputs,
+    generate_exhaustive_triton_template_configs,
     select_best_configs,
-    convert_triton_configs_to_ktc,
 )
-
 
 logger = logging.getLogger(__name__)
 
@@ -236,7 +229,9 @@ class DiodeInductorChoices(InductorChoices):
         }
 
         for template in templates:
-            template_uid = getattr(template, "uid", "unknown") or getattr(template, "name", None)
+            template_uid = getattr(template, "uid", "unknown") or getattr(
+                template, "name", None
+            )
             if template_uid in base_template_names:
                 base_templates.append(template)
             else:
@@ -331,9 +326,7 @@ class DiodeInductorChoices(InductorChoices):
             # If we can't count original choices, just use the current count
             original_count = len(base_configs) if "base_configs" in locals() else 0
 
-        self.stats["configs_filtered"] += max(
-            0, original_count - len(selected_choices)
-        )
+        self.stats["configs_filtered"] += max(0, original_count - len(selected_choices))
 
         logger.info(
             f"   - _finalize_template_configs returned {len(selected_choices)} configs (expected ≤ {self.top_k_configs})"
@@ -367,7 +360,6 @@ class DiodeInductorChoices(InductorChoices):
             List of KernelTemplateChoice objects with exhaustive configs
         """
         try:
-
             logger.debug(
                 f"Generating exhaustive configs for {len(templates)} templates"
             )
@@ -416,7 +408,9 @@ class DiodeInductorChoices(InductorChoices):
 
         for template_generator, template in zip(configs, base_templates):
             for choice in template_generator:
-                config = convert_triton_config_to_triton_gemm_config(choice, template.uid)
+                config = convert_triton_config_to_triton_gemm_config(
+                    choice, template.uid
+                )
                 if config is not None:
                     triton_configs.append(config)
                     valid_choices.append(choice)
@@ -489,7 +483,6 @@ class DiodeInductorChoices(InductorChoices):
         This method is deprecated - the current implementation uses kernel_conversions module.
         """
         try:
-            from ..utils.feature_extraction import extract_problem_features_compat
 
             if not kernel_inputs:
                 return None
@@ -533,7 +526,7 @@ class DiodeInductorChoices(InductorChoices):
                 if len(size_a) < 3 or len(size_b) < 3:
                     return None
                 B, M, K = size_a[-3], size_a[-2], size_a[-1]
-                B2, K2, N = size_b[-3], size_b[-2], size_b[-1]
+                _B2, K2, N = size_b[-3], size_b[-2], size_b[-1]
             else:
                 return None
 
@@ -544,7 +537,7 @@ class DiodeInductorChoices(InductorChoices):
 
             # For the mock tensors, use the provided dtypes or defaults
             tensor_a_dtype = getattr(tensor_a, "_dtype", torch.float16)
-            tensor_b_dtype = getattr(tensor_b, "_dtype", torch.float16)
+            getattr(tensor_b, "_dtype", torch.float16)
 
             mm_shape = MMShape(
                 M=M,
@@ -553,7 +546,8 @@ class DiodeInductorChoices(InductorChoices):
                 B=B,
                 M_dtype=tensor_a_dtype,
                 K_dtype=tensor_a_dtype,
-                out_dtype=tensor_a_dtype,  # Assume output has same dtype as input A
+                # Assume output has same dtype as input A
+                out_dtype=tensor_a_dtype,
                 out_size=(B, M, N),
                 out_stride=(M * N, N, 1),  # Default row-major stride
             )
@@ -715,7 +709,7 @@ class DiodeInductorChoices(InductorChoices):
                             # If all attempts fail, fall back to zero
                             predictions.append(0.0)
                             continue
-                elif hasattr(self.model_wrapper, "__call__"):
+                elif callable(self.model_wrapper):
                     prediction = self.model_wrapper(combined_features)
                 else:
                     # If we can't find the right method, return 0.0
@@ -802,7 +796,7 @@ def example_usage():
     """Example of how to use the Diode integration."""
 
     # Option 1: Create directly
-    choices = create_diode_choices(
+    create_diode_choices(
         model_path="path/to/your/model.pt", device="cuda", top_k_configs=5
     )
 

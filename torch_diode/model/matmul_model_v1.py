@@ -3,8 +3,7 @@ Neural network model for predicting matrix multiplication timing (V1).
 """
 
 import logging
-import os
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import Any, List, Optional
 
 import numpy as np
 import pandas as pd
@@ -43,7 +42,7 @@ class MatmulModelV1(MatmulInferenceInterface):
         self,
         problem_feature_dim: int,
         config_feature_dim: int,
-        hidden_layer_widths: List[int] = [256, 256, 256, 256, 256, 256],
+        hidden_layer_widths: list[int] | None = None,
         kernel_overhead: float = 0.00541,
         dropout_rate: float = 0.0,
     ) -> None:
@@ -58,6 +57,8 @@ class MatmulModelV1(MatmulInferenceInterface):
                 default of 0.00541 is the lowest runtime seen in Triton H100 data.
             dropout_rate: Dropout rate for regularization (kept for interface compatibility)
         """
+        if hidden_layer_widths is None:
+            hidden_layer_widths = [256, 256, 256, 256, 256, 256]
         super().__init__(problem_feature_dim, config_feature_dim)
 
         self.hidden_layer_widths = hidden_layer_widths

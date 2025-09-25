@@ -3,15 +3,15 @@ Comprehensive tests for functions in torch_diode.__init__ module.
 """
 
 import logging
+
 # Enable debug flags for testing
 try:
     from torch_diode.utils.debug_config import set_debug_flag
+
     set_debug_flag("ENABLE_TYPE_ASSERTS", True)
 except ImportError:
     pass  # In case debug_config is not available yet
-import sys
-import warnings
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -62,7 +62,7 @@ class TestAttemptTorchImport:
         mock_torch = Mock()
         mock_torch.__version__ = "2.1.0"
 
-        with patch("builtins.__import__", return_value=mock_torch) as mock_import:
+        with patch("builtins.__import__", return_value=mock_torch):
             with patch.object(torch_diode.logger, "info") as mock_log:
                 result = torch_diode._attempt_torch_import()
 
@@ -116,7 +116,6 @@ class TestSetupIntegrations:
             with patch.object(torch_diode.logger, "info") as mock_info, patch.object(
                 torch_diode.logger, "warning"
             ) as mock_warning:
-
                 result = torch_diode._setup_integrations()
 
                 assert result == {
@@ -212,7 +211,7 @@ class TestGetImportStatus:
 
         status = torch_diode.get_import_status()
         original_torch_status = status["torch_available"]
-        original_errors_count = len(status["errors"])
+        len(status["errors"])
 
         # Modify the returned status
         status["torch_available"] = not original_torch_status
@@ -333,7 +332,6 @@ class TestDisplayInitSummary:
             "torch_diode._import_status",
             {"integrations_successful": {"int1": True, "int2": True, "int3": False}},
         ):
-
             with patch.object(torch_diode.logger, "info") as mock_info:
                 torch_diode._display_init_summary()
 
@@ -349,7 +347,6 @@ class TestDisplayInitSummary:
             "torch_diode._import_status",
             {"integrations_successful": {"int1": False, "int2": False}},
         ):
-
             with patch.object(torch_diode.logger, "info") as mock_info:
                 torch_diode._display_init_summary()
 

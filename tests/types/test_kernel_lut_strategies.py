@@ -3,10 +3,11 @@
 Common test strategies and data classes for kernel lookup table tests.
 """
 
-import json
+
 # Enable debug flags for testing
 try:
     from torch_diode.utils.debug_config import set_debug_flag
+
     set_debug_flag("ENABLE_TYPE_ASSERTS", True)
 except ImportError:
     pass  # In case debug_config is not available yet
@@ -14,13 +15,12 @@ import unittest
 from collections import OrderedDict
 from dataclasses import dataclass, field
 from typing import Any
-from unittest import TestCase
 
 import torch
+from hypothesis import strategies as st
+from hypothesis.strategies import composite
 
-import triton
 from torch_diode.types.json_serializable import JSONSerializable
-from torch_diode.types.kernel_lut import convert_triton_configs_to_gemm_configs
 from torch_diode.types.matmul_types import (
     Hardware,
     MMShape,
@@ -29,10 +29,6 @@ from torch_diode.types.matmul_types import (
     Table,
     TritonGEMMConfig,
 )
-from hypothesis import assume, given, strategies as st
-from hypothesis.strategies import composite
-from torch.utils._ordered_set import OrderedSet
-
 
 # Hypothesis strategies for generating test data
 
@@ -107,7 +103,7 @@ def operation_strategy(draw):
         problem = draw(mm_problem_strategy())
         config = draw(triton_gemm_config_strategy())
         # Create a Solution object containing the config
-        solution_name = draw(
+        draw(
             st.text(
                 min_size=1,
                 max_size=20,
@@ -118,7 +114,7 @@ def operation_strategy(draw):
         # Use the problem object directly as key since MMShape should be hashable
         solution[problem] = sol
 
-    operation_name = draw(
+    draw(
         st.text(
             min_size=1,
             max_size=20,
@@ -134,7 +130,7 @@ def hardware_strategy(draw):
     num_operations = draw(st.integers(min_value=0, max_value=3))
     operations_dict = OrderedDict()
 
-    for i in range(num_operations):
+    for _i in range(num_operations):
         operation = draw(operation_strategy())
         # Generate a name for the operation since Operation doesn't have a name attribute
         operation_name = draw(

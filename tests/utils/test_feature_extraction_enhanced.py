@@ -2,8 +2,8 @@
 Enhanced tests for feature extraction utilities.
 """
 
-import pytest
 import torch
+
 from torch_diode.types.matmul_types import MMShape, TritonGEMMConfig
 from torch_diode.utils.feature_extraction import (
     extract_config_features,

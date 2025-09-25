@@ -8,9 +8,11 @@ These tests are marked as deprecated but kept for reference.
 """
 
 import os
+
 # Enable debug flags for testing
 try:
     from torch_diode.utils.debug_config import set_debug_flag
+
     set_debug_flag("ENABLE_TYPE_ASSERTS", True)
 except ImportError:
     pass  # In case debug_config is not available yet
@@ -18,22 +20,20 @@ import sys
 import tempfile
 import unittest
 import unittest.mock as mock
-from collections import defaultdict
-from typing import Any, Dict, Generator, List, Optional
+from typing import List, Optional
 
 import torch
-import pytest
 
 # Add the parent directory to the path so we can import the module
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 from torch_diode.integration.inductor_integration import (
-    create_diode_choices,
     DiodeInductorChoices,
+    create_diode_choices,
     install_diode_choices,
 )
 from torch_diode.model.matmul_timing_model import MatmulTimingModel
-from torch_diode.types.matmul_types import MMShape, TritonGEMMConfig
+from torch_diode.types.matmul_types import TritonGEMMConfig
 
 
 class MockKernelInputs:
@@ -386,7 +386,9 @@ class TestDiodeInductorChoices(unittest.TestCase):
         with mock.patch.object(
             DiodeInductorChoices, "_find_default_model", return_value=None
         ):
-            choices = DiodeInductorChoices(device=self.device, enable_fallback=True)  # Enable fallback
+            choices = DiodeInductorChoices(
+                device=self.device, enable_fallback=True
+            )  # Enable fallback
 
             # Create mock choices
             template = MockTemplate("test_template")
@@ -452,12 +454,17 @@ class TestDiodeInductorChoices(unittest.TestCase):
         )
 
         # Mock the conversion pipeline to return empty list
-        with mock.patch('torch_diode.integration.inductor_integration.convert_and_run_inference_pipeline') as mock_pipeline:
+        with mock.patch(
+            "torch_diode.integration.inductor_integration.convert_and_run_inference_pipeline"
+        ) as mock_pipeline:
             mock_pipeline.return_value = []
 
             template_choices = {"test": iter([])}
             kernel_inputs = MockKernelInputs(
-                [MockTensor((128, 64), torch.float16), MockTensor((64, 32), torch.float16)]
+                [
+                    MockTensor((128, 64), torch.float16),
+                    MockTensor((64, 32), torch.float16),
+                ]
             )
 
             result = choices._finalize_template_configs(

@@ -43,14 +43,34 @@ class ModelPointer:
             version: Model version
             dependencies: List of required dependencies for this model
         """
-        type_assert(isinstance(model_name, str), f"model_name must be str, got {type(model_name)}")
-        type_assert(isinstance(relative_path, str), f"relative_path must be str, got {type(relative_path)}")
-        type_assert(isinstance(model_purpose, str), f"model_purpose must be str, got {type(model_purpose)}")
-        type_assert(isinstance(interface_name, str), f"interface_name must be str, got {type(interface_name)}")
-        type_assert(description is None or isinstance(description, str), f"description must be str or None, got {type(description)}")
-        type_assert(isinstance(version, str), f"version must be str, got {type(version)}")
-        type_assert(dependencies is None or isinstance(dependencies, list), f"dependencies must be list or None, got {type(dependencies)}")
-        
+        type_assert(
+            isinstance(model_name, str),
+            f"model_name must be str, got {type(model_name)}",
+        )
+        type_assert(
+            isinstance(relative_path, str),
+            f"relative_path must be str, got {type(relative_path)}",
+        )
+        type_assert(
+            isinstance(model_purpose, str),
+            f"model_purpose must be str, got {type(model_purpose)}",
+        )
+        type_assert(
+            isinstance(interface_name, str),
+            f"interface_name must be str, got {type(interface_name)}",
+        )
+        type_assert(
+            description is None or isinstance(description, str),
+            f"description must be str or None, got {type(description)}",
+        )
+        type_assert(
+            isinstance(version, str), f"version must be str, got {type(version)}"
+        )
+        type_assert(
+            dependencies is None or isinstance(dependencies, list),
+            f"dependencies must be list or None, got {type(dependencies)}",
+        )
+
         self.model_name = model_name
         self.relative_path = relative_path
         self.model_purpose = model_purpose
@@ -62,11 +82,22 @@ class ModelPointer:
     @property
     def full_path(self) -> Path:
         """Get the full path to the model file."""
-        type_assert(hasattr(self, 'model_name'), "ModelPointer must have model_name attribute")
-        type_assert(hasattr(self, 'relative_path'), "ModelPointer must have relative_path attribute")
-        type_assert(isinstance(self.model_name, str), f"model_name must be str, got {type(self.model_name)}")
-        type_assert(isinstance(self.relative_path, str), f"relative_path must be str, got {type(self.relative_path)}")
-        
+        type_assert(
+            hasattr(self, "model_name"), "ModelPointer must have model_name attribute"
+        )
+        type_assert(
+            hasattr(self, "relative_path"),
+            "ModelPointer must have relative_path attribute",
+        )
+        type_assert(
+            isinstance(self.model_name, str),
+            f"model_name must be str, got {type(self.model_name)}",
+        )
+        type_assert(
+            isinstance(self.relative_path, str),
+            f"relative_path must be str, got {type(self.relative_path)}",
+        )
+
         # Find the diode package root directory
         diode_root = Path(__file__).parent.parent.parent
         if self.relative_path == ".":
@@ -76,14 +107,18 @@ class ModelPointer:
 
     def exists(self) -> bool:
         """Check if the model file exists."""
-        type_assert(hasattr(self, 'full_path'), "ModelPointer must have full_path property")
+        type_assert(
+            hasattr(self, "full_path"), "ModelPointer must have full_path property"
+        )
         return self.full_path.exists()
 
     def get_size_mb(self) -> float:
         """Get model file size in MB."""
-        type_assert(hasattr(self, 'full_path'), "ModelPointer must have full_path property")
-        type_assert(hasattr(self, 'exists'), "ModelPointer must have exists method")
-        
+        type_assert(
+            hasattr(self, "full_path"), "ModelPointer must have full_path property"
+        )
+        type_assert(hasattr(self, "exists"), "ModelPointer must have exists method")
+
         if self.exists():
             return self.full_path.stat().st_size / (1024 * 1024)
         return 0.0
@@ -119,11 +154,23 @@ class BaseIntegration(ABC):
             enable_fallback: Whether to enable fallback when models fail to load
         """
         type_assert(isinstance(name, str), f"name must be str, got {type(name)}")
-        type_assert(isinstance(interface_name, str), f"interface_name must be str, got {type(interface_name)}")
-        type_assert(isinstance(model_pointers, list), f"model_pointers must be list, got {type(model_pointers)}")
-        type_assert(all(isinstance(mp, ModelPointer) for mp in model_pointers), "All items in model_pointers must be ModelPointer instances")
-        type_assert(isinstance(enable_fallback, bool), f"enable_fallback must be bool, got {type(enable_fallback)}")
-        
+        type_assert(
+            isinstance(interface_name, str),
+            f"interface_name must be str, got {type(interface_name)}",
+        )
+        type_assert(
+            isinstance(model_pointers, list),
+            f"model_pointers must be list, got {type(model_pointers)}",
+        )
+        type_assert(
+            all(isinstance(mp, ModelPointer) for mp in model_pointers),
+            "All items in model_pointers must be ModelPointer instances",
+        )
+        type_assert(
+            isinstance(enable_fallback, bool),
+            f"enable_fallback must be bool, got {type(enable_fallback)}",
+        )
+
         self.name = name
         self.interface_name = interface_name
         self.model_pointers = model_pointers

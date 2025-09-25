@@ -2,7 +2,7 @@
 """
 Script to parse CSV files containing TritonGEMMConfig parameters and create a Solution JSON file.
 
-This script reads CSV files with columns for TritonGEMMConfig parameters and creates a 
+This script reads CSV files with columns for TritonGEMMConfig parameters and creates a
 Solution object containing a list of these configurations, saved as a JSON file.
 
 Expected CSV format:
@@ -63,7 +63,7 @@ def parse_csv_to_configs(csv_path: str) -> List[tuple[str, TritonGEMMConfig]]:
 
     logger.info(f"Reading CSV file: {csv_path}")
 
-    with open(csv_path, "r", newline="", encoding="utf-8") as csvfile:
+    with open(csv_path, newline="", encoding="utf-8") as csvfile:
         # Detect delimiter
         sample = csvfile.read(1024)
         csvfile.seek(0)
@@ -376,7 +376,7 @@ def main():
             logger.info("Validating created JSON file...")
             import json
 
-            with open(args.output, "r", encoding="utf-8") as f:
+            with open(args.output, encoding="utf-8") as f:
                 loaded_solutions = json.load(f)
 
             # Try to parse each operation's solution

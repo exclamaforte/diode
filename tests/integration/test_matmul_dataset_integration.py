@@ -1,7 +1,9 @@
 import os
+
 # Enable debug flags for testing
 try:
     from torch_diode.utils.debug_config import set_debug_flag
+
     set_debug_flag("ENABLE_TYPE_ASSERTS", True)
 except ImportError:
     pass  # In case debug_config is not available yet
@@ -17,7 +19,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../.
 
 from torch_diode.collection.matmul_dataset_collector import MatmulDatasetCollector
 from torch_diode.types.matmul_dataset import Dataset
-from torch_diode.types.matmul_types import MMShape, Table, TritonGEMMConfig
+from torch_diode.types.matmul_types import MMShape, TritonGEMMConfig
 
 
 class TestMatmulDatasetIntegration(unittest.TestCase):
@@ -273,8 +275,7 @@ class TestMatmulDatasetToTableConversion(unittest.TestCase):
         ]
 
         # Add timings to the dataset
-        for i, (config, time) in enumerate(configs_and_times):
-
+        for _i, (config, time) in enumerate(configs_and_times):
             # Add the timing to the dataset
             dataset.add_timing(
                 hardware_name="test_gpu",
