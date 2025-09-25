@@ -121,7 +121,7 @@ class TestMatmulInferenceInterface(unittest.TestCase):
             with patch.object(self.mock_model, "forward") as mock_forward:
                 mock_forward.return_value = torch.randn(batch_size, 1)
 
-                result = self.mock_model.predict(problem_features, config_features)
+                self.mock_model.predict(problem_features, config_features)
 
                 # Verify no_grad was used
                 mock_no_grad.assert_called_once()
@@ -543,7 +543,7 @@ class TestUnifiedMatmulPredictor(unittest.TestCase):
 
         # Create mock configs
         configs = []
-        for i in range(3):
+        for _i in range(3):
             config = Mock()
             config.all_kwargs.return_value = {
                 "BLOCK_M": 32,
@@ -1149,7 +1149,7 @@ class TestPerformanceAndMemory(unittest.TestCase):
 
         self.assertEqual(len(results), num_threads)
 
-        for worker_id, shape, is_finite in results:
+        for _worker_id, shape, is_finite in results:
             self.assertEqual(shape, (10, 1))
             self.assertTrue(is_finite)
 

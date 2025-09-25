@@ -202,7 +202,7 @@ class TestEndToEndIntegration(unittest.TestCase):
         )
 
         # Train for a few epochs (with eval mode to avoid batch norm training issues)
-        for epoch in range(3):  # Reduced epochs for faster testing
+        for _epoch in range(3):  # Reduced epochs for faster testing
             for problem_features, config_features, targets in dataloader:
                 if (
                     problem_features.size(0) > 1
@@ -308,7 +308,7 @@ class TestEndToEndIntegration(unittest.TestCase):
 
         template = MockTemplate("realistic_template")
         ktcs = []
-        for i, config in enumerate(configs):
+        for _i, config in enumerate(configs):
             mock_config = MockConfig(
                 BLOCK_M=config.block_m,
                 BLOCK_N=config.block_n,
@@ -384,7 +384,7 @@ class TestEndToEndIntegration(unittest.TestCase):
         ) as mock_pipeline:
             template = MockTemplate("test_template")
             ktcs = []
-            for i in range(4):
+            for _i in range(4):
                 config = MockConfig(
                     BLOCK_M=64,
                     BLOCK_N=64,
@@ -661,7 +661,7 @@ class TestRealWorldSimulation(unittest.TestCase):
             # Simulate different problem sizes
             problem_sizes = [(64, 64), (128, 128), (256, 256), (512, 512)]
 
-            for i, (M, N) in enumerate(problem_sizes):
+            for _i, (M, N) in enumerate(problem_sizes):
                 tensor_a = MockTensor((M, N // 2), torch.float16)
                 tensor_b = MockTensor((N // 2, N), torch.float16)
                 kernel_inputs = MockKernelInputs([tensor_a, tensor_b])
@@ -731,7 +731,7 @@ class TestRealWorldSimulation(unittest.TestCase):
 
             template = MockTemplate(f"{op_name}_template")
             ktcs = []
-            for i in range(5):  # More configs than top_k
+            for _i in range(5):  # More configs than top_k
                 config = MockConfig(
                     BLOCK_M=64,
                     BLOCK_N=64,

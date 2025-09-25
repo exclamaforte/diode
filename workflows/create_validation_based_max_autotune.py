@@ -106,7 +106,7 @@ def analyze_validation_data_and_create_solution():
 
     # Print some statistics
     print("\nTop 10 fastest configs:")
-    for i, (config, runtime, key) in enumerate(fastest_configs[:10]):
+    for i, (_config, runtime, key) in enumerate(fastest_configs[:10]):
         actual_runtime = np.exp(runtime)
         print(
             f"  {i + 1}. {key} - log_runtime: {runtime:.6f}, actual_runtime: {actual_runtime:.6f}"

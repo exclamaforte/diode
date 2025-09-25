@@ -13,7 +13,6 @@ import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
 
 import torch
 from torch.utils.data import DataLoader, Dataset, DistributedSampler
@@ -41,36 +40,36 @@ def _pin_memory_default() -> bool:
     return _is_cuda_available()
 
 
-def _safe_getattr_or_dict(d: Union[dict, object], attr: str, default):
+def _safe_getattr_or_dict(d: dict | object, attr: str, default):
     if isinstance(d, dict):
         return d.get(attr, default)
     return getattr(d, attr, default)
 
 
-def _safe_setattr_or_dict(d: Union[dict, object], attr: str, value) -> None:
+def _safe_setattr_or_dict(d: dict | object, attr: str, value) -> None:
     if isinstance(d, dict):
         d[attr] = value
     else:
         setattr(d, attr, value)
 
 
-def _get_operations(hw_obj: Union[dict, object]) -> Dict:
+def _get_operations(hw_obj: dict | object) -> dict:
     return _safe_getattr_or_dict(hw_obj, "operation", {})
 
 
-def _set_operations(hw_obj: Union[dict, object], ops: Dict) -> None:
+def _set_operations(hw_obj: dict | object, ops: dict) -> None:
     _safe_setattr_or_dict(hw_obj, "operation", ops)
 
 
-def _get_solutions(op_obj: Union[dict, object]) -> Dict:
+def _get_solutions(op_obj: dict | object) -> dict:
     return _safe_getattr_or_dict(op_obj, "solution", {})
 
 
-def _set_solutions(op_obj: Union[dict, object], sols: Dict) -> None:
+def _set_solutions(op_obj: dict | object, sols: dict) -> None:
     _safe_setattr_or_dict(op_obj, "solution", sols)
 
 
-def _median_time_us(sol: Union[dict, object]) -> float:
+def _median_time_us(sol: dict | object) -> float:
     # Be liberal: many schemas nest stats differently; default to +inf.
     try:
         if isinstance(sol, dict):
@@ -99,11 +98,11 @@ class DirectoryMatmulDataset(Dataset):
     def __init__(
         self,
         data_dir: str,
-        hardware_name: Optional[str] = None,
-        op_name: Optional[str] = None,
+        hardware_name: str | None = None,
+        op_name: str | None = None,
         log_transform: bool = True,
-        file_extensions: Optional[List[str]] = None,
-        max_io_workers: Optional[int] = None,
+        file_extensions: list[str] | None = None,
+        max_io_workers: int | None = None,
     ):
         """
         Args:
@@ -175,13 +174,13 @@ class DirectoryMatmulDataset(Dataset):
 
     # --------- A)  ---------
 
-    def _find_data_files(self) -> List[str]:
+    def _find_data_files(self) -> list[str]:
         """
         Recursive file discovery with pathlib
         """
         root = Path(self.data_dir)
         exts = set(self.file_extensions)
-        files: List[str] = []
+        files: list[str] = []
 
         # Get all paths for progress tracking
         all_paths = list(root.rglob("*"))
@@ -199,10 +198,10 @@ class DirectoryMatmulDataset(Dataset):
 
     def _load_and_combine_datasets(self) -> MatmulDataset:
         files = self.data_files
-        results: List[MatmulDataset] = []
+        results: list[MatmulDataset] = []
         errors = 0
 
-        def load_one(fp: str) -> Optional[MatmulDataset]:
+        def load_one(fp: str) -> MatmulDataset | None:
             try:
                 ds = self._load_single_file(fp)
                 if ds is None:
@@ -258,7 +257,7 @@ class DirectoryMatmulDataset(Dataset):
             merged = self._merge_datasets(merged, ds)
         return merged
 
-    def _load_single_file(self, file_path: str) -> Optional[MatmulDataset]:
+    def _load_single_file(self, file_path: str) -> MatmulDataset | None:
         try:
             if file_path.lower().endswith(".msgpack"):
                 with open(file_path, "rb") as f:
@@ -325,7 +324,7 @@ class DirectoryMatmulDataset(Dataset):
     def __len__(self) -> int:
         return len(self.timing_dataset)
 
-    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         return self.timing_dataset[idx]
 
     @property
@@ -340,7 +339,7 @@ class DirectoryMatmulDataset(Dataset):
     def configs(self):
         return self.timing_dataset.configs
 
-    def get_file_info(self) -> List[Tuple[str, int]]:
+    def get_file_info(self) -> list[tuple[str, int]]:
         # Unknown per-file counts after merge; preserve API (-1 sentinel).
         return [(Path(p).name, -1) for p in self.data_files]
 
@@ -364,12 +363,12 @@ class LazyDirectoryMatmulDataset(Dataset):
     def __init__(
         self,
         data_dir: str,
-        hardware_name: Optional[str] = None,
-        op_name: Optional[str] = None,
+        hardware_name: str | None = None,
+        op_name: str | None = None,
         log_transform: bool = True,
-        file_extensions: Optional[List[str]] = None,
+        file_extensions: list[str] | None = None,
         cache_capacity: int = 8,
-        max_io_workers: Optional[int] = None,
+        max_io_workers: int | None = None,
     ):
         self.data_dir = data_dir
         self.hardware_name = hardware_name
@@ -389,8 +388,8 @@ class LazyDirectoryMatmulDataset(Dataset):
             raise ValueError(f"No data files found in directory: {data_dir}")
 
         # Build per-file counts in parallel (I/O), then cumulative index
-        self._files: List[LazyDirectoryMatmulDataset._PerFile] = []
-        self._cumulative: List[int] = []  # prefix sums of counts
+        self._files: list[LazyDirectoryMatmulDataset._PerFile] = []
+        self._cumulative: list[int] = []  # prefix sums of counts
         self._build_index()
 
         # LRU cache: file path -> MatmulTimingDataset
@@ -410,10 +409,10 @@ class LazyDirectoryMatmulDataset(Dataset):
             raise ValueError("No samples after filtering; dataset is empty.")
 
     # Discovery (same as eager)
-    def _find_data_files(self) -> List[str]:
+    def _find_data_files(self) -> list[str]:
         root = Path(self.data_dir)
         exts = set(self.file_extensions)
-        files: List[str] = []
+        files: list[str] = []
         for p in root.rglob("*"):
             if not p.is_file():
                 continue
@@ -423,7 +422,7 @@ class LazyDirectoryMatmulDataset(Dataset):
         files = sorted(set(files))
         return files
 
-    def _load_single_file_raw(self, file_path: str) -> Optional[MatmulDataset]:
+    def _load_single_file_raw(self, file_path: str) -> MatmulDataset | None:
         try:
             if file_path.lower().endswith(".msgpack"):
                 with open(file_path, "rb") as f:
@@ -470,9 +469,9 @@ class LazyDirectoryMatmulDataset(Dataset):
         return len(tds)
 
     def _build_index(self) -> None:
-        counts: Dict[str, int] = {}
+        counts: dict[str, int] = {}
 
-        def count_one(fp: str) -> Tuple[str, int]:
+        def count_one(fp: str) -> tuple[str, int]:
             try:
                 return fp, self._timing_len_for_file(fp)
             except Exception:
@@ -535,7 +534,7 @@ class LazyDirectoryMatmulDataset(Dataset):
     def __len__(self) -> int:
         return self._cumulative[-1] if self._cumulative else 0
 
-    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         if idx < 0 or idx >= len(self):
             raise IndexError(idx)
 
@@ -566,7 +565,7 @@ class LazyDirectoryMatmulDataset(Dataset):
         tds = self._get_cached_timing_dataset(self._files[0].path)
         return tds.configs
 
-    def get_file_info(self) -> List[Tuple[str, int]]:
+    def get_file_info(self) -> list[tuple[str, int]]:
         return [(Path(pf.path).name, pf.count) for pf in self._files]
 
 
@@ -578,12 +577,12 @@ def create_directory_dataloaders(
     batch_size: int = 64,
     train_ratio: float = 0.8,
     val_ratio: float = 0.1,
-    hardware_name: Optional[str] = None,
-    op_name: Optional[str] = None,
+    hardware_name: str | None = None,
+    op_name: str | None = None,
     log_transform: bool = True,
     num_workers: int = 4,
     seed: int = 42,
-    file_extensions: Optional[List[str]] = None,
+    file_extensions: list[str] | None = None,
     *,
     use_lazy: bool = False,
     # distributed opts (backward-compatible: optional and default off)
@@ -591,8 +590,8 @@ def create_directory_dataloaders(
     rank: int = 0,
     world_size: int = 1,
     cache_capacity: int = 8,  # for lazy mode
-    max_io_workers: Optional[int] = None,
-) -> Tuple[DataLoader, DataLoader, DataLoader]:
+    max_io_workers: int | None = None,
+) -> tuple[DataLoader, DataLoader, DataLoader]:
     """
     Create train/val/test dataloaders from all files in a directory.
 
@@ -671,13 +670,13 @@ def create_directory_dataloaders(
         np.random.seed(worker_seed)
         torch.manual_seed(worker_seed)
 
-    dl_common = dict(
-        batch_size=batch_size,
-        num_workers=num_workers,
-        pin_memory=_pin_memory_default(),
-        persistent_workers=(num_workers > 0),
-        worker_init_fn=_worker_init_fn,
-    )
+    dl_common = {
+        "batch_size": batch_size,
+        "num_workers": num_workers,
+        "pin_memory": _pin_memory_default(),
+        "persistent_workers": (num_workers > 0),
+        "worker_init_fn": _worker_init_fn,
+    }
     # prefetch_factor only valid when num_workers > 0
     if num_workers > 0:
         dl_common["prefetch_factor"] = 4

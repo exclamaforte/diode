@@ -161,8 +161,8 @@ class TestKTCToTritonConfig:
         assert triton_config.group_m == 8
         assert triton_config.num_stages == 4
         assert triton_config.num_warps == 8
-        assert triton_config.EVEN_K == True
-        assert triton_config.ALLOW_TF32 == False
+        assert triton_config.EVEN_K
+        assert not triton_config.ALLOW_TF32
 
     def test_convert_ktc_with_all_kwargs_method(self):
         """Test KTC conversion when config has all_kwargs method."""

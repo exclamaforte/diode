@@ -370,8 +370,8 @@ class TestKernelLUTPropertyBased(TestCase):
         )
 
         # Both should have the same version after serialization
-        config_dict = config.to_dict()
-        problem_dict = problem.to_dict()
+        config.to_dict()
+        problem.to_dict()
 
 
 class TestLeafTypeClasses(TestCase):

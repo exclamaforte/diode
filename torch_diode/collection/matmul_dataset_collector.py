@@ -638,7 +638,7 @@ class MatmulDatasetCollector:
 
                 try:
                     compiled_fn = torch.compile(mm_fn, mode=search_mode)
-                    result = compiled_fn(a, b)
+                    compiled_fn(a, b)
                 except Exception as compile_error:
                     logger.error(
                         f"Failed to compile/run {op_name} with size ({M}, {K}, {N}) and dtype {dtype} "
@@ -657,7 +657,7 @@ class MatmulDatasetCollector:
 
                 try:
                     compiled_fn = torch.compile(addmm_fn, mode=search_mode)
-                    result = compiled_fn(c, a, b)
+                    compiled_fn(c, a, b)
                 except Exception as compile_error:
                     logger.error(
                         f"Failed to compile/run {op_name} with size ({M}, {K}, {N}) and dtype {dtype} "
@@ -677,7 +677,7 @@ class MatmulDatasetCollector:
 
                 try:
                     compiled_fn = torch.compile(bmm_fn, mode=search_mode)
-                    result = compiled_fn(a, b)
+                    compiled_fn(a, b)
                 except Exception as compile_error:
                     logger.error(
                         f"Failed to compile/run {op_name} with size ({M}, {K}, {N}) and dtype {dtype} "

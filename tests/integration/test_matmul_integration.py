@@ -192,7 +192,7 @@ class TestMatmulIntegration:
         # Mock config attributes
         mock_config.max_autotune = False
 
-        result = self.integration.enable_configs()
+        self.integration.enable_configs()
 
         assert mock_config.max_autotune is True
 

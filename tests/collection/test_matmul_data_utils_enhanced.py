@@ -371,7 +371,7 @@ class TestMatmulDataUtilsEnhanced:
         with patch("os.path.exists") as mock_exists:
             with patch(
                 "builtins.open", mock_open(read_data='{"test": "data"}')
-            ) as mock_file:
+            ):
                 with patch("json.load") as mock_json_load:
                     with patch(
                         "torch_diode.types.matmul_dataset.Dataset.from_dict"
@@ -411,7 +411,7 @@ class TestMatmulDataUtilsEnhanced:
     def test_collect_data_chunked_mock_msgpack_format(self):
         """Test _collect_data_chunked with msgpack format and existing files."""
         with patch("os.path.exists") as mock_exists:
-            with patch("builtins.open", mock_open()) as mock_file:
+            with patch("builtins.open", mock_open()):
                 with patch("msgpack.unpack") as mock_msgpack_unpack:
                     with patch(
                         "torch_diode.types.matmul_dataset.Dataset.from_dict"
@@ -454,7 +454,7 @@ class TestMatmulDataUtilsEnhanced:
     def test_collect_data_chunked_resumption_with_work_remaining(self):
         """Test _collect_data_chunked with resumption and remaining work."""
         with patch("os.path.exists") as mock_exists:
-            with patch("builtins.open", mock_open()) as mock_file:
+            with patch("builtins.open", mock_open()):
                 with patch("json.load") as mock_json_load:
                     with patch(
                         "torch_diode.types.matmul_dataset.Dataset.from_dict"
@@ -731,7 +731,7 @@ class TestMatmulDataUtilsEnhanced:
                         ]
 
                         with patch("torch._dynamo.reset"):
-                            result = _collect_data_chunked(
+                            _collect_data_chunked(
                                 collector=mock_collector,
                                 output_file=os.path.join(self.temp_dir, "test.json"),
                                 chunk_size=10,

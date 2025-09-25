@@ -5,12 +5,6 @@ from typing import TYPE_CHECKING, Optional
 if TYPE_CHECKING:
     from triton import Config as TritonConfig
 
-
-try:
-    from typing_extensions import Self
-except ImportError:
-    pass
-
 from torch_diode.types.matmul_types import Table, TritonGEMMConfig
 
 # Set up logging for kernel LUT

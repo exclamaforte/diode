@@ -55,14 +55,14 @@ def run_matrix_multiplications(
                 f"[{i + 1}/{len(sizes)}] Running mm with size ({M}, {K}) x ({K}, {N}) and dtype {dtype}"
             )
             compiled_mm = torch.compile(mm_fn, mode=search_mode)
-            result_mm = compiled_mm(a, b)
+            compiled_mm(a, b)
 
             # Compile and run addmm
             logger.info(
                 f"[{i + 1}/{len(sizes)}] Running addmm with size ({M}, {K}) x ({K}, {N}) and dtype {dtype}"
             )
             compiled_addmm = torch.compile(addmm_fn, mode=search_mode)
-            result_addmm = compiled_addmm(c, a, b)
+            compiled_addmm(c, a, b)
 
 
 def collect_data(
@@ -425,7 +425,7 @@ def _collect_data_chunked(
 
                 # Count timing data entries by iterating through hardware -> operations -> solutions
                 operations_count = 0
-                for hw_name, hardware in dataset.hardware.items():
+                for _hw_name, hardware in dataset.hardware.items():
                     for op_name, operation in hardware.operation.items():
                         operations_count += len(operation.solution)
 
@@ -662,7 +662,7 @@ def _create_validation_dataset_chunked(
 
                 # Count timing data entries by iterating through hardware -> operations -> solutions
                 operations_count = 0
-                for hw_name, hardware in dataset.hardware.items():
+                for _hw_name, hardware in dataset.hardware.items():
                     for op_name, operation in hardware.operation.items():
                         operations_count += len(operation.solution)
 

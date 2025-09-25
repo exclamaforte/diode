@@ -273,7 +273,7 @@ class TestDirectoryMatmulDataset:
             mock_timing_dataset.return_value.__len__ = Mock(return_value=1)
 
             dataset = DirectoryMatmulDataset(self.temp_dir)
-            result = dataset._load_single_file(file_path)
+            dataset._load_single_file(file_path)
 
             # deserialize is called during init and during _load_single_file
             assert mock_deserialize.call_count >= 1
@@ -293,7 +293,7 @@ class TestDirectoryMatmulDataset:
             mock_timing_dataset.return_value.__len__ = Mock(return_value=1)
 
             dataset = DirectoryMatmulDataset(self.temp_dir)
-            result = dataset._load_single_file(file_path)
+            dataset._load_single_file(file_path)
 
             # from_msgpack is called during init and during _load_single_file
             assert mock_from_msgpack.call_count >= 1

@@ -83,7 +83,7 @@ class TestModelPointer:
             interface_name="test",
         )
 
-        assert pointer.exists() == True
+        assert pointer.exists()
         mock_exists.assert_called_once()
 
     @patch.object(Path, "stat")
@@ -213,7 +213,7 @@ class TestBaseIntegration:
         assert integration.name == "test_integration"
         assert integration.interface_name == "test_interface"
         assert integration.model_pointers == self.model_pointers
-        assert integration.enable_fallback == False
+        assert not integration.enable_fallback
         assert integration.loaded_models == {}
         assert integration.registration_status == {}
         assert integration.integration_status == "not_started"
@@ -236,7 +236,7 @@ class TestBaseIntegration:
             mock_import.side_effect = side_effect
 
             deps = integration.check_dependencies()
-            assert deps["torch"] == True
+            assert deps["torch"]
 
     @patch.object(ModelPointer, "exists")
     def test_get_available_models(self, mock_exists):
@@ -277,7 +277,7 @@ class TestBaseIntegration:
 
         result = integration.register_dummy(mock_dummy)
 
-        assert result == True
+        assert result
 
     @patch(
         "torch._inductor.virtualized.V",
@@ -292,7 +292,7 @@ class TestBaseIntegration:
         )
 
         result = integration.register_dummy(Mock())
-        assert result == False
+        assert not result
 
     @patch("torch._inductor.choices.InductorChoices")
     @patch("torch._inductor.virtualized.V")
@@ -311,7 +311,7 @@ class TestBaseIntegration:
         )
 
         result = integration.register_dummy(Mock())
-        assert result == False
+        assert not result
 
     @patch.object(ConcreteIntegration, "enable_configs")
     @patch.object(ConcreteIntegration, "register_model")
@@ -345,7 +345,7 @@ class TestBaseIntegration:
 
         result = integration.integrate()
 
-        assert result == True
+        assert result
         assert integration.integration_status == "success"
         assert len(integration.loaded_models) == 1
 
@@ -368,7 +368,7 @@ class TestBaseIntegration:
 
         result = integration.integrate()
 
-        assert result == False
+        assert not result
         assert integration.integration_status == "interface_unavailable"
 
     @patch.object(ConcreteIntegration, "register_dummy")
@@ -394,7 +394,7 @@ class TestBaseIntegration:
 
         result = integration.integrate()
 
-        assert result == False
+        assert not result
         assert integration.integration_status == "no_models"
 
     @patch.object(ConcreteIntegration, "enable_configs")
@@ -429,7 +429,7 @@ class TestBaseIntegration:
 
         result = integration.integrate()
 
-        assert result == True  # Should succeed due to fallback
+        assert result  # Should succeed due to fallback
         assert integration.integration_status == "config_failed"
 
     def test_get_status(self):
@@ -454,7 +454,7 @@ class TestBaseIntegration:
             assert status["interface_name"] == "test_interface"
             assert status["models_available"] == 1
             assert status["models_loaded"] == 1
-            assert status["registration_status"]["test_model1.pt"] == True
+            assert status["registration_status"]["test_model1.pt"]
 
 
 class TestIntegrationRegistry:
@@ -506,8 +506,8 @@ class TestIntegrationRegistry:
 
         results = self.registry.integrate_all()
 
-        assert results["integration1"] == True
-        assert results["integration2"] == True
+        assert results["integration1"]
+        assert results["integration2"]
         assert mock_integrate.call_count == 2
 
     @patch.object(ConcreteIntegration, "integrate")
@@ -520,8 +520,8 @@ class TestIntegrationRegistry:
 
         results = self.registry.integrate_all()
 
-        assert results["integration1"] == False
-        assert results["integration2"] == True
+        assert not results["integration1"]
+        assert results["integration2"]
 
     @patch.object(ConcreteIntegration, "get_status")
     def test_get_status_report(self, mock_get_status):
@@ -612,7 +612,7 @@ class TestDiscoverAndRegisterIntegrations:
         results = discover_and_register_integrations()
 
         assert "matmul_integration" in results
-        assert results["matmul_integration"] == True
+        assert results["matmul_integration"]
 
         # Check that integration was registered
         registry = get_integration_registry()
@@ -626,7 +626,7 @@ class TestDiscoverAndRegisterIntegrations:
         results = discover_and_register_integrations()
 
         assert "matmul_integration" in results
-        assert results["matmul_integration"] == False
+        assert not results["matmul_integration"]
 
     @patch("importlib.import_module")
     def test_discover_and_register_no_factory_function(self, mock_import_module):
@@ -640,7 +640,7 @@ class TestDiscoverAndRegisterIntegrations:
         results = discover_and_register_integrations()
 
         assert "matmul_integration" in results
-        assert results["matmul_integration"] == False
+        assert not results["matmul_integration"]
 
     @patch("importlib.import_module")
     def test_discover_and_register_factory_exception(self, mock_import_module):
@@ -652,7 +652,7 @@ class TestDiscoverAndRegisterIntegrations:
         results = discover_and_register_integrations()
 
         assert "matmul_integration" in results
-        assert results["matmul_integration"] == False
+        assert not results["matmul_integration"]
 
 
 if __name__ == "__main__":

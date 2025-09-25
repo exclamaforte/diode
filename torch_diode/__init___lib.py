@@ -43,7 +43,7 @@ def install_diode_integrations(enable_fallback: bool = True) -> Dict[str, bool]:
         logger.info("PyTorch detected, proceeding with manual integration installation")
 
         # Discover and register all available integrations
-        discovery_results = discover_and_register_integrations()
+        discover_and_register_integrations()
 
         # Execute all discovered integrations
         integration_results = integrate_all()

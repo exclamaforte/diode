@@ -62,7 +62,7 @@ class TestAttemptTorchImport:
         mock_torch = Mock()
         mock_torch.__version__ = "2.1.0"
 
-        with patch("builtins.__import__", return_value=mock_torch) as mock_import:
+        with patch("builtins.__import__", return_value=mock_torch):
             with patch.object(torch_diode.logger, "info") as mock_log:
                 result = torch_diode._attempt_torch_import()
 
@@ -211,7 +211,7 @@ class TestGetImportStatus:
 
         status = torch_diode.get_import_status()
         original_torch_status = status["torch_available"]
-        original_errors_count = len(status["errors"])
+        len(status["errors"])
 
         # Modify the returned status
         status["torch_available"] = not original_torch_status

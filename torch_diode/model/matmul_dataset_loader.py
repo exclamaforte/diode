@@ -106,7 +106,7 @@ class MatmulTimingDataset:
             hardware_items = self.dataset.hardware
 
         # Process each hardware
-        for hw_key, hardware in hardware_items.items():
+        for _hw_key, hardware in hardware_items.items():
             # Check if hardware is a DatasetHardware object or a dict
             if isinstance(hardware, dict) and "operation" in hardware:
                 operations = hardware["operation"]

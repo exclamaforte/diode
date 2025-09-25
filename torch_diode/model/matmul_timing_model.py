@@ -3,16 +3,12 @@ Neural network model for predicting matrix multiplication timing.
 """
 
 import logging
-from typing import List
 
 import torch
 import torch.nn as nn
 
 from .matmul_inference import MatmulInferenceInterface
-from .model_utils_common import (
-    init_model_weights,
-    save_model_checkpoint,
-)
+from .model_utils_common import init_model_weights, save_model_checkpoint
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +25,7 @@ class MatmulTimingModel(MatmulInferenceInterface):
         self,
         problem_feature_dim: int,
         config_feature_dim: int,
-        hidden_dims: List[int] = [256, 512, 256, 128, 64],
+        hidden_dims: list[int] | None = None,
         dropout_rate: float = 0.2,
     ):
         """
@@ -41,6 +37,8 @@ class MatmulTimingModel(MatmulInferenceInterface):
             hidden_dims: List of hidden layer dimensions
             dropout_rate: Dropout rate for regularization
         """
+        if hidden_dims is None:
+            hidden_dims = [256, 512, 256, 128, 64]
         super().__init__(problem_feature_dim, config_feature_dim)
 
         self.hidden_dims = hidden_dims

@@ -326,7 +326,7 @@ class TestDiodeRegistrationIntegration:
 
         # This should not raise exceptions even if there are integration issues
         try:
-            integration_info = torch_diode.get_integration_info()
+            torch_diode.get_integration_info()
             logger.info("✅ Integration info retrieved without exceptions")
         except Exception as e:
             pytest.fail(f"Integration info retrieval should not raise exceptions: {e}")

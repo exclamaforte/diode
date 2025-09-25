@@ -173,7 +173,7 @@ class MatmulIntegration(BaseIntegration):
 
             # Install the diode choices handler with the loaded model
             model_path = str(model_pointer.full_path)
-            diode_choices = install_diode_choices(
+            install_diode_choices(
                 model_path=model_path,
                 device="cuda" if torch.cuda.is_available() else "cpu",
                 top_k_configs=5,

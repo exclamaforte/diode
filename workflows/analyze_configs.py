@@ -7,7 +7,7 @@ This will help identify config mismatches and find the closest available configs
 import json
 import os
 from collections import defaultdict
-from typing import Dict, List, Set
+from typing import Any, Dict, List, Set
 
 from torch_diode.types.matmul_dataset import Dataset as MatmulDataset
 from torch_diode.types.matmul_types import Solution, TritonGEMMConfig
@@ -48,7 +48,7 @@ def config_distance(config1: TritonGEMMConfig, config2: TritonGEMMConfig) -> flo
     return distance
 
 
-def analyze_dataset_configs(dataset_path: str) -> Dict[str, any]:
+def analyze_dataset_configs(dataset_path: str) -> Dict[str, Any]:
     """Analyze all configs in the dataset."""
     print(f"Loading dataset from {dataset_path}...")
 
@@ -141,14 +141,13 @@ def find_closest_configs(
         }
 
         print("  Closest matches:")
-        for i, (distance, config) in enumerate(closest_configs):
-            exact = " (EXACT MATCH)" if distance == 0.0 else ""
+        for i, (_distance, config) in enumerate(closest_configs):
             print(f"    {i + 1}. {config}")
 
     return results
 
 
-def print_dataset_summary(analysis: Dict[str, any]):
+def print_dataset_summary(analysis: dict[str, Any]):
     """Print a summary of the dataset configs."""
     print(f"\n{'=' * 80}")
     print("DATASET CONFIG SUMMARY")
@@ -164,7 +163,7 @@ def print_dataset_summary(analysis: Dict[str, any]):
 
 
 def generate_better_max_autotune_solution(
-    dataset_analysis: Dict[str, any], output_path: str
+    dataset_analysis: Dict[str, Any], output_path: str
 ):
     """Generate a better max-autotune solution using actual dataset configs."""
     print(f"\n{'=' * 80}")

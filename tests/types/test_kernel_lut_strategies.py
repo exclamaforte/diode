@@ -103,7 +103,7 @@ def operation_strategy(draw):
         problem = draw(mm_problem_strategy())
         config = draw(triton_gemm_config_strategy())
         # Create a Solution object containing the config
-        solution_name = draw(
+        draw(
             st.text(
                 min_size=1,
                 max_size=20,
@@ -114,7 +114,7 @@ def operation_strategy(draw):
         # Use the problem object directly as key since MMShape should be hashable
         solution[problem] = sol
 
-    operation_name = draw(
+    draw(
         st.text(
             min_size=1,
             max_size=20,
@@ -130,7 +130,7 @@ def hardware_strategy(draw):
     num_operations = draw(st.integers(min_value=0, max_value=3))
     operations_dict = OrderedDict()
 
-    for i in range(num_operations):
+    for _i in range(num_operations):
         operation = draw(operation_strategy())
         # Generate a name for the operation since Operation doesn't have a name attribute
         operation_name = draw(

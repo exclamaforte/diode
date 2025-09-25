@@ -25,6 +25,7 @@ from torch_diode.model.matmul_timing_model import (
     MatmulTimingModel,
 )
 from torch_diode.types.matmul_dataset import Dataset as MatmulDataset
+from torch_diode.types.matmul_types import MMShape, TritonGEMMConfig
 from torch_diode.utils.dataset_utils import print_dataset_statistics
 from torch_diode.utils.feature_extraction import (
     extract_config_features,
@@ -33,9 +34,6 @@ from torch_diode.utils.feature_extraction import (
 from torch_diode.utils.visualization_utils import plot_training_history
 
 logger = logging.getLogger(__name__)
-
-
-from torch_diode.types.matmul_types import MMShape, TritonGEMMConfig
 
 
 def validate_max_autotune(

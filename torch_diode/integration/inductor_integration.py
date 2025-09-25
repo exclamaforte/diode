@@ -526,7 +526,7 @@ class DiodeInductorChoices(InductorChoices):
                 if len(size_a) < 3 or len(size_b) < 3:
                     return None
                 B, M, K = size_a[-3], size_a[-2], size_a[-1]
-                B2, K2, N = size_b[-3], size_b[-2], size_b[-1]
+                _B2, K2, N = size_b[-3], size_b[-2], size_b[-1]
             else:
                 return None
 
@@ -537,7 +537,7 @@ class DiodeInductorChoices(InductorChoices):
 
             # For the mock tensors, use the provided dtypes or defaults
             tensor_a_dtype = getattr(tensor_a, "_dtype", torch.float16)
-            tensor_b_dtype = getattr(tensor_b, "_dtype", torch.float16)
+            getattr(tensor_b, "_dtype", torch.float16)
 
             mm_shape = MMShape(
                 M=M,
@@ -546,7 +546,8 @@ class DiodeInductorChoices(InductorChoices):
                 B=B,
                 M_dtype=tensor_a_dtype,
                 K_dtype=tensor_a_dtype,
-                out_dtype=tensor_a_dtype,  # Assume output has same dtype as input A
+                # Assume output has same dtype as input A
+                out_dtype=tensor_a_dtype,
                 out_size=(B, M, N),
                 out_stride=(M * N, N, 1),  # Default row-major stride
             )
@@ -795,7 +796,7 @@ def example_usage():
     """Example of how to use the Diode integration."""
 
     # Option 1: Create directly
-    choices = create_diode_choices(
+    create_diode_choices(
         model_path="path/to/your/model.pt", device="cuda", top_k_configs=5
     )
 

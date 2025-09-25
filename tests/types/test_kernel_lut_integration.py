@@ -541,7 +541,7 @@ class TestKernelLUTIntegration(TestCase):
         table = Table(hardware=OrderedDict([("nested_gpu", hardware)]))
 
         # Multiple rounds of serialization/deserialization to test consistency
-        for round_num in range(3):
+        for _round_num in range(3):
             serialized = table.serialize()
             table = Table.deserialize(serialized)
 

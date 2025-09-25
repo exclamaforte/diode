@@ -83,9 +83,6 @@ class TestDebugDataQuality:
 
         # With log transform enabled, the timing values will be negative (log of < 1)
         # So we expect warnings about negative/zero timing locations
-        warnings = [
-            record for record in caplog.records if record.levelname == "WARNING"
-        ]
 
         # Check that info logs were created
         info_logs = [record for record in caplog.records if record.levelname == "INFO"]
@@ -192,9 +189,7 @@ class TestDebugDataQuality:
         hardware = DatasetHardware(operation=OrderedDict())
         dataset = Dataset(hardware=OrderedDict({"empty_gpu": hardware}))
 
-        matmul_dataset = MatmulTimingDataset(
-            dataset=dataset, hardware_name="empty_gpu", debug=True
-        )
+        MatmulTimingDataset(dataset=dataset, hardware_name="empty_gpu", debug=True)
 
         # Check that warnings were logged for empty tensors
         warnings = [
@@ -286,9 +281,7 @@ class TestDebugDataQuality:
         timing_values = [0.1, 0.2, 0.3, 0.4, 0.5]
         dataset = self.create_mock_dataset(timing_values)
 
-        matmul_dataset = MatmulTimingDataset(
-            dataset=dataset, hardware_name="test_gpu", debug=True
-        )
+        MatmulTimingDataset(dataset=dataset, hardware_name="test_gpu", debug=True)
 
         # Check that statistics were logged
         info_logs = [record for record in caplog.records if record.levelname == "INFO"]

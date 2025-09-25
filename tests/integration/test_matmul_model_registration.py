@@ -203,7 +203,7 @@ class TestMatmulModelRegistration(unittest.TestCase):
 
         # Look for the v1 model in the manifest
         found_v1_model = False
-        for purpose, models in manifest["models_by_purpose"].items():
+        for _purpose, models in manifest["models_by_purpose"].items():
             for model in models:
                 if model["name"] == "v1_model.pt":
                     found_v1_model = True
@@ -239,7 +239,7 @@ class TestMatmulModelRegistration(unittest.TestCase):
 
         # This should not raise an exception
         try:
-            result = integration.integrate()
+            integration.integrate()
             # We expect it might fail due to mocking, but it shouldn't crash
         except Exception as e:
             # Log the exception but don't fail the test - integration failures
@@ -519,7 +519,7 @@ class TestMatmulModelRegistration(unittest.TestCase):
 
                     # Try to integrate (may fail but shouldn't crash)
                     try:
-                        result = integration.integrate()
+                        integration.integrate()
                         # If integration succeeds, that's also a valid test outcome
                         logging.info("Integration succeeded in test environment")
 
@@ -595,7 +595,7 @@ class TestGetModelManifestScript(unittest.TestCase):
 
             # Check that v1_model.pt is in the manifest
             found_v1_model = False
-            for purpose, models in manifest["models_by_purpose"].items():
+            for _purpose, models in manifest["models_by_purpose"].items():
                 for model in models:
                     if model["name"] == "v1_model.pt":
                         found_v1_model = True

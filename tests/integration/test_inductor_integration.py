@@ -55,7 +55,7 @@ class TestDiodeInductorChoices:
             assert choices.device == "cuda"
             assert choices.top_k_configs == 5
             assert choices.performance_threshold == 1.2
-            assert choices.enable_fallback == False
+            assert not choices.enable_fallback
 
     def test_init_without_model_path(self):
         """Test initialization without model path."""
@@ -66,7 +66,7 @@ class TestDiodeInductorChoices:
 
             assert choices.device == "cpu"
             assert choices.model_path is None
-            assert choices._model_loaded == False
+            assert not choices._model_loaded
 
     def test_load_model_success(self):
         """Test successful model loading."""
@@ -85,8 +85,8 @@ class TestDiodeInductorChoices:
 
                 result = choices._load_model()
 
-                assert result == True
-                assert choices._model_loaded == True
+                assert result
+                assert choices._model_loaded
                 assert choices.model_wrapper == mock_wrapper
                 mock_wrapper_class.assert_called_with(
                     model_path="/path/to/model.pt",
@@ -106,7 +106,7 @@ class TestDiodeInductorChoices:
                 enable_fallback=True,
             )
 
-            assert choices._model_loaded == False
+            assert not choices._model_loaded
             assert choices.model_wrapper is None
 
     def test_load_model_failure_no_fallback(self):
@@ -355,7 +355,7 @@ class TestCreateDiodeChoices:
         with patch.object(
             DiodeInductorChoices, "__init__", return_value=None
         ) as mock_init:
-            result = create_diode_choices(
+            create_diode_choices(
                 model_path="/path/to/model.pt",
                 device="cuda",
                 top_k_configs=5,
@@ -372,7 +372,7 @@ class TestCreateDiodeChoices:
         with patch.object(
             DiodeInductorChoices, "__init__", return_value=None
         ) as mock_init:
-            result = create_diode_choices(device="cpu")
+            create_diode_choices(device="cpu")
 
             mock_init.assert_called_once_with(
                 model_path=None,
@@ -396,7 +396,7 @@ class TestExhaustiveConfigGeneration:
             ) as mock_make_ktc:
                 with patch(
                     "torch._inductor.kernel_inputs.MMKernelInputs"
-                ) as mock_mm_kernel_inputs:
+                ):
                     # Setup mock template and kernel inputs
                     mock_template = Mock()
                     mock_template.uid = "mm"

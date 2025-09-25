@@ -96,7 +96,7 @@ class TestInitLibEnhanced:
                     mock_discover.return_value = {"integration1": True}
                     mock_integrate.return_value = {"integration1": True}
 
-                    result = install_diode_integrations()
+                    install_diode_integrations()
 
                     # Check that appropriate log messages were called
                     assert any(
@@ -126,7 +126,7 @@ class TestInitLibEnhanced:
                         "integration3": True,
                     }
 
-                    result = install_diode_integrations()
+                    install_diode_integrations()
 
                     # Check that the log message shows correct counts
                     log_messages = [str(call) for call in mock_log_info.call_args_list]

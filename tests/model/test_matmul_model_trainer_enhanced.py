@@ -301,7 +301,7 @@ class TestMatmulModelTrainerEnhanced:
         trainer._evaluate = Mock(side_effect=mock_evaluate)
 
         with patch.object(mock_model, "save") as mock_save:
-            history = trainer.train(num_epochs=3, checkpoint_path=model_path)
+            trainer.train(num_epochs=3, checkpoint_path=model_path)
 
             # Should save the model multiple times as loss improves
             assert mock_save.called
@@ -352,7 +352,7 @@ class TestMatmulModelTrainerEnhanced:
 
         # Training should handle exceptions gracefully
         with pytest.raises(RuntimeError):
-            history = trainer.train(num_epochs=1)
+            trainer.train(num_epochs=1)
 
     def test_train_model_from_dataset_with_validation(self):
         """Test train_model_from_dataset with validation data."""
@@ -516,7 +516,7 @@ class TestMatmulModelTrainerEnhanced:
         trainer._train_epoch = Mock(return_value=0.1)
         trainer._evaluate = Mock(return_value=0.05)
 
-        with patch("torch.nn.utils.clip_grad_norm_") as mock_clip:
+        with patch("torch.nn.utils.clip_grad_norm_"):
             history = trainer.train(num_epochs=1)
 
             # Should apply training
@@ -596,7 +596,7 @@ class TestMatmulModelTrainerEnhanced:
         mock_test_loader = self._create_mock_dataloader()
 
         with patch("torch.cuda.is_available", return_value=True):
-            with patch("torch.cuda.empty_cache") as mock_empty_cache:
+            with patch("torch.cuda.empty_cache"):
                 trainer = MatmulModelTrainer(
                     model=mock_model,
                     train_dataloader=mock_train_loader,

@@ -532,7 +532,7 @@ class TestModelWrapper(unittest.TestCase):
 
         # Test with supported dtypes
         for dtype in [torch.float16, torch.bfloat16, torch.float32]:
-            with patch("torch.from_numpy") as mock_from_numpy, patch(
+            with patch("torch.from_numpy"), patch(
                 "pandas.DataFrame"
             ) as mock_df_class:
                 # Mock DataFrame and its methods
@@ -544,7 +544,7 @@ class TestModelWrapper(unittest.TestCase):
                     mock_tensor = torch.randn(3, 12)  # 3 configs, 12 features
                     mock_get_nn_x.return_value = (mock_tensor, None, None)
 
-                    result = wrapper.encode(128, 256, 512, dtype, mock_configs)
+                    wrapper.encode(128, 256, 512, dtype, mock_configs)
 
                     # Check that get_nn_x was called
                     mock_get_nn_x.assert_called_once()

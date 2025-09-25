@@ -173,7 +173,7 @@ class TestMatmulDataUtils:
 
         output_file = os.path.join(self.temp_dir, "test_data.json")
 
-        with patch("builtins.open", mock_open()) as mock_file:
+        with patch("builtins.open", mock_open()):
             result = collect_data(output_file=output_file, file_format="msgpack")
 
             # Should change extension to .msgpack

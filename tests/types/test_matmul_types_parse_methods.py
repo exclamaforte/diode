@@ -363,9 +363,6 @@ class TestSolutionParse:
             num_warps=2,
         )
 
-        # Manually create the data structure as if it came from JSON but with object
-        data = {"config": [config_obj]}
-
         # We can't directly parse this since it's not JSON, but we can test the object creation
         solution = Solution(config=[config_obj])
         assert len(solution.config) == 1

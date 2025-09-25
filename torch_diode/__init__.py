@@ -193,7 +193,7 @@ def _display_init_summary():
         warnings.warn(
             "PyTorch is not available. torch-diode will work in library-only mode. "
             "Install PyTorch 2.9+ or nightly to enable automatic model integration.",
-            UserWarning,
+            UserWarning, stacklevel=2,
         )
         return
 

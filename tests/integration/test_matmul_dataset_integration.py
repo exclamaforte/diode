@@ -275,7 +275,7 @@ class TestMatmulDatasetToTableConversion(unittest.TestCase):
         ]
 
         # Add timings to the dataset
-        for i, (config, time) in enumerate(configs_and_times):
+        for _i, (config, time) in enumerate(configs_and_times):
             # Add the timing to the dataset
             dataset.add_timing(
                 hardware_name="test_gpu",
