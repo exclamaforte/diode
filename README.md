@@ -2,7 +2,7 @@
 <img width="718" height="571" alt="diode" src="https://github.com/user-attachments/assets/308cb05a-01d9-4fc4-9c03-7e13ade91475" />
 
 # torch-diode
-`torch-diode` is a library for programattically altering the performance-relevant decisions made by `torch.compile`. It makes it easy to gather data on the outcomes of decisions, and then train Machine Learning models on that data. It initially focuses on Matmul Kernel selection, but it will be expanded to other decisions in the future. [Documentation](https://exclamaforte.github.io/diode/)
+`torch-diode` is a library for programmatically altering the performance-relevant decisions made by `torch.compile`. It makes it easy to gather data on the outcomes of decisions, and then train Machine Learning models on that data. It initially focuses on Matmul Kernel selection, but it will be expanded to other decisions in the future. [Documentation](https://exclamaforte.github.io/diode/)
 
 ## Target Audience:
 - Developers looking to adapt the compilation of their model to their specific situation.
