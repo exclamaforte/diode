@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "diode",
+  "project_id": "21d50d8f-74a9-4e37-9213-070a7b0103eb"
+}
